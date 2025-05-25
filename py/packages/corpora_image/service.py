@@ -20,6 +20,7 @@ pipe = DiffusionPipeline.from_pretrained(
 ).to("mps")  # or "cuda" if using CUDA machine
 
 # NEGATIVE_PROMPT = "photorealistic, realistic, complex background, people, text, watermark, blurry, abstract, extra limbs, body, noise"
+NEGATIVE_PROMPT = "margin"
 
 
 class ImageRequest(BaseModel):
@@ -46,8 +47,8 @@ def generate_images(prompt: str, n: int, size: str) -> List[Image.Image]:
     for _ in range(n):
         result = pipe(
             prompt,
-            # TODO: could be cool
-            # negative_prompt=NEGATIVE_PROMPT,
+            # TODO: could be cool dynamic?
+            negative_prompt=NEGATIVE_PROMPT,
             width=width,
             height=height,
             num_inference_steps=30,
