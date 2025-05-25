@@ -187,9 +187,7 @@ class LocalClient(LLMBaseInterface):
         # when each endpoint could be a different server?
         # or, we eventually put them all behind the same loader balancer
         # and use the same base_url for all of them.
-        self.client.base_url = (
-            "http://host.docker.internal:9127/v1/images/generations"
-        )
+        self.client.base_url = "http://host.docker.internal:9127/v1/"
 
         params = {
             "model": kwargs.get("model", self.image_model),
