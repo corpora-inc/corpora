@@ -1,7 +1,7 @@
-# import ast
+import base64
 import json
 import re
-from typing import List, Type, TypeVar  # , get_origin
+from typing import TYPE_CHECKING, List, Type, TypeVar  # , get_origin
 
 from corpora_ai.llm_interface import (
     ChatCompletionTextMessage,
@@ -10,6 +10,10 @@ from corpora_ai.llm_interface import (
 )
 from openai import OpenAI, OpenAIError
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from openai.types.images_response import ImagesResponse
+
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -65,13 +69,13 @@ class LocalClient(LLMBaseInterface):
         api_key: str = "foobar",  # LM Studio ignores the API key
         completion_model: str = "deepseek-r1-distill-qwen-7b",
         # embedding_model: str = "text-embedding-3-small",  # Optional / placeholder
-        # image_model: str = "local-image-model",  # Optional / placeholder
+        image_model: str = "sdxl-base",
         base_url: str = "http://host.docker.internal:1234/v1",
     ):
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.completion_model = completion_model
         # self.embedding_model = embedding_model
-        # self.image_model = image_model
+        self.image_model = image_model
 
     def get_text_completion(
         self,
@@ -179,9 +183,33 @@ class LocalClient(LLMBaseInterface):
         prompt: str,
         **kwargs,
     ) -> List[GeneratedImage]:
-        raise NotImplementedError(
-            "Image generation is not supported by this local client.",
+        # TODO: maybe this pattern is sort of meh,
+        # when each endpoint could be a different server?
+        # or, we eventually put them all behind the same loader balancer
+        # and use the same base_url for all of them.
+        self.client.base_url = (
+            "http://host.docker.internal:9127/v1/images/generations"
         )
+
+        params = {
+            "model": kwargs.get("model", self.image_model),
+            "prompt": prompt,
+            # maybe TODO?
+            # negative_prompt: kwargs.get("negative_prompt", None),
+            # "response_format": "b64_json",
+            "n": 1,
+            "size": kwargs.get("size", "1024x1024"),
+        }
+        # merge in any overrides (e.g. size="1536x1024", n=2)
+        params.update(kwargs)
+        resp: ImagesResponse = self.client.images.generate(**params)
+
+        images: List[GeneratedImage] = []
+        for img in resp.data:
+            raw = base64.b64decode(img.b64_json)
+            images.append(GeneratedImage(data=raw, format="png"))
+
+        return images
 
     def get_embedding(self, text: str) -> List[float]:
         raise NotImplementedError(
