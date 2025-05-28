@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+from corpora_ai_local.llm_client import LocalClient
 from corpora_ai_openai.llm_client import OpenAIClient
 from corpora_ai_xai.llm_client import XAIClient
 
@@ -44,6 +45,9 @@ def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
             api_key=api_key,
             **kwargs,
         )
+
+    if provider_name == "local":
+        return LocalClient(**kwargs)
 
     # Placeholder for additional providers (e.g., Anthropic)
     # elif provider_name == "anthropic" and AnthropicClient:

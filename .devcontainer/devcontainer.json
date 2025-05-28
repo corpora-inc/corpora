@@ -36,9 +36,9 @@
     },
     "mounts": [
         "source=${env:HOME}/.corpora.zsh_history,target=/home/vscode/.corpora.zsh_history,type=bind",
-        // put files in ~/.devcontainer/shared on the HOST or /workspance/host-shared
+        // put files in ~/devcontainer/shared on the HOST or /workspance/host-shared
         // to move files between the host and the container
-        "source=${env:HOME}/.devcontainer/shared,target=/workspace/host-shared,type=bind"
+        "source=${env:HOME}/devcontainer/shared,target=/workspace/host-shared,type=bind"
     ],
     "postCreateCommand": "/workspace/.devcontainer/setup.sh",
     "forwardPorts": [
