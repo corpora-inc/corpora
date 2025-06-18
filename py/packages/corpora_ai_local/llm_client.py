@@ -19,6 +19,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 def extract_last_arguments_json(text: str) -> str:
+    og = text
     # Remove <think>...</think> and <tool_call>...</tool_call>
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
     text = re.sub(r"<tool_call>.*?</tool_call>", "", text, flags=re.DOTALL)
@@ -27,9 +28,10 @@ def extract_last_arguments_json(text: str) -> str:
     decoder = json.JSONDecoder()
     idx = 0
     last_arguments = None
+    last_json = None
 
     while idx < len(text):
-        # Skip to the next '{' or '['
+        # Find next '{' or '['
         match = re.search(r"[\{\[]", text[idx:])
         if not match:
             break
@@ -38,14 +40,18 @@ def extract_last_arguments_json(text: str) -> str:
             obj, end = decoder.raw_decode(text[start:])
             if isinstance(obj, dict) and "arguments" in obj:
                 last_arguments = obj["arguments"]
+            last_json = obj
             idx = start + end
         except json.JSONDecodeError:
             idx = start + 1  # Move forward and try again
 
-    if last_arguments is None:
-        raise ValueError("No valid tool call with 'arguments' found.")
-
-    return json.dumps(last_arguments, ensure_ascii=False)
+    if last_arguments is not None:
+        return json.dumps(last_arguments, ensure_ascii=False)
+    elif last_json is not None:
+        return json.dumps(last_json, ensure_ascii=False)
+    else:
+        print(og)
+        raise ValueError("No valid JSON found.")
 
 
 # Usage example:
