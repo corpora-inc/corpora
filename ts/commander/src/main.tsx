@@ -2,32 +2,32 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+import "./index.css";
+
 import OnboardingLayout from "./layouts/OnboardingLayout";
 import WizardWelcome from "./pages/onboarding/WizardWelcome";
-import WizardProviders from "./pages/onboarding/WizardProviders";
+import OpenAIConfigPage from "./pages/onboarding/OpenAIConfigPage";
+import LMStudioConfigPage from "./pages/onboarding/LMStudioConfigPage";
+import XAIConfigPage from "./pages/onboarding/XAIConfigPage";
 import WizardComplete from "./pages/onboarding/WizardComplete";
 
 import MainLayout from "./layouts/MainLayout";
 import { RequireOnboarded } from "./components/RequireOnboarded";
-// import HomePage from "./pages/app/HomePage";
-// import ProjectListPage from "./pages/app/ProjectListPage";
-// import ProjectEditorPage from "./pages/app/ProjectEditorPage";
-
-import "./index.css";
-
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        {/* Onboarding tree */}
+        {/* Onboarding flow */}
         <Route path="/onboarding" element={<OnboardingLayout />}>
           <Route index element={<WizardWelcome />} />
-          <Route path="providers" element={<WizardProviders />} />
+          <Route path="openai" element={<OpenAIConfigPage />} />
+          <Route path="lmstudio" element={<LMStudioConfigPage />} />
+          <Route path="xai" element={<XAIConfigPage />} />
           <Route path="complete" element={<WizardComplete />} />
         </Route>
 
-        {/* Main app tree, all guarded */}
+        {/* Main app (guarded) */}
         <Route
           path="/*"
           element={
@@ -35,11 +35,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <MainLayout />
             </RequireOnboarded>
           }
-        >
-          {/* <Route index element={<HomePage />} /> */}
-          {/* <Route path="projects" element={<ProjectListPage />} /> */}
-          {/* <Route path="project/:id" element={<ProjectEditorPage />} /> */}
-        </Route>
+        />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

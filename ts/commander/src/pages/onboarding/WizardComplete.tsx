@@ -1,23 +1,23 @@
-import { useAppState } from "@/stores/AppState";
 import { useNavigate } from "react-router-dom";
+import { useAppState } from "@/stores/AppState";
 import { Button } from "@/components/ui/button";
+import { OnboardingContainer } from "@/components/OnboardingContainer";
 
 export default function WizardComplete() {
+    const navigate = useNavigate();
     const { setOnboarded } = useAppState();
-    const nav = useNavigate();
 
     const finish = () => {
         setOnboarded(true);
-        nav("/new-project", { replace: true });
+        navigate("/projects", { replace: true });
     };
 
     return (
-        <div className="p-6 max-w-lg mx-auto text-center">
-            <h1 className="text-2xl font-semibold mb-4">All Set!</h1>
-            <p className="mb-6">
-                Your LLM providers are configured. You can always update them in Settings.
-            </p>
-            <Button onClick={finish}>Create Your First Project</Button>
-        </div>
+        <OnboardingContainer
+            title="All Set!"
+            subtitle="Your LLM providers are configured. Let's create your first project."
+        >
+            <Button onClick={finish}>Create First Project</Button>
+        </OnboardingContainer>
     );
 }
