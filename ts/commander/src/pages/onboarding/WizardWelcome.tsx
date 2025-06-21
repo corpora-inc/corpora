@@ -7,7 +7,7 @@ export default function WizardWelcome() {
     return (
         <OnboardingContainer
             title="Welcome to Corpora Commander"
-            subtitle="Author and manage structured book projects with AI-assisted images, sections, and more."
+            subtitle="Author and manage structured book projects with AI-assisted content."
         >
             <Button onClick={() => navigate("/onboarding/providers")}>
                 Get Started
