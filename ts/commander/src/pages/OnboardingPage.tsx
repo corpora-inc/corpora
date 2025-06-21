@@ -1,20 +1,23 @@
-import { useAppState } from "@/stores/AppState";
+// src/pages/OnboardingPage.tsx
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 export default function OnboardingPage() {
-    const { setOnboarded } = useAppState();
+    const navigate = useNavigate();
 
     const handleFinish = () => {
-        setOnboarded(true);
-        location.href = "/new-project"; // hard reload to trigger App.tsx logic
+        // client-side nav — no full reload, so App’s effect won’t fire again
+        navigate("/onboarding/providers");
     };
 
     return (
         <div className="p-6 max-w-xl mx-auto">
-            <h1 className="text-2xl font-semibold mb-4">Welcome to Corpora Commander</h1>
+            <h1 className="text-2xl font-semibold mb-4">
+                Welcome to Corpora Commander
+            </h1>
             <p className="mb-6">
-                This app helps you author and manage structured book projects with full control
-                over sections, subsections, and AI-generated images.
+                This app helps you author and manage structured book projects with full
+                control over sections, subsections, and AI-generated images.
             </p>
             <Button onClick={handleFinish}>Get Started</Button>
         </div>
