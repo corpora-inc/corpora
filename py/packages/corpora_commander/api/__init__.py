@@ -2,4 +2,4 @@
 
 from .router import router as commander_router  # noqa
 
-from . import onboarding, project  # noqa
+from . import onboarding, project, llm  # noqa
