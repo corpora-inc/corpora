@@ -1,42 +1,43 @@
 // src/stores/LLMConfigStore.ts
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
-export type ProviderType = "openai" | "lmstudio" | "xai";
+export type ProviderType = 'openai' | 'lmstudio' | 'xai'
 
 export interface OpenAIConfig {
-    provider: "openai";
-    apiKey: string;
-    defaultModel?: string;
-    baseUrl?: string;
+    provider: 'openai'
+    apiKey: string
+    defaultModel?: string
+    baseUrl?: string
 }
 
 export interface LMStudioConfig {
-    provider: "lmstudio";
-    baseUrl: string;
-    defaultModel: string;
-    apiKey?: string;
+    provider: 'lmstudio'
+    baseUrl: string
+    defaultModel: string
+    apiKey?: string
 }
 
 export interface XAIConfig {
-    provider: "xai";
-    apiKey: string;
-    defaultModel?: string;
-    baseUrl?: string;
+    provider: 'xai'
+    apiKey: string
+    defaultModel?: string
+    baseUrl?: string
 }
 
-export type LLMConfig = OpenAIConfig | LMStudioConfig | XAIConfig;
+export type LLMConfig = OpenAIConfig | LMStudioConfig | XAIConfig
 
 interface LLMState {
-    configs: Record<ProviderType, LLMConfig | null>;
-    defaultProvider: ProviderType | null;
-    availableModels: Record<ProviderType, string[]>;
+    configs: Record<ProviderType, LLMConfig | null>
+    defaultProvider: ProviderType | null
+    availableModels: Record<ProviderType, string[]>
 
-    addConfig: (cfg: LLMConfig) => void;
-    removeConfig: (provider: ProviderType) => void;
-    setDefault: (provider: ProviderType) => void;
-    clearAll: () => void;
-    setAvailableModels: (provider: ProviderType, models: string[]) => void;
+    addConfig: (cfg: LLMConfig) => void
+    removeConfig: (provider: ProviderType) => void
+    setDefault: (provider: ProviderType) => void
+    setDefaultModel: (provider: ProviderType, model: string) => void
+    clearAll: () => void
+    setAvailableModels: (provider: ProviderType, models: string[]) => void
 }
 
 export const useLLMConfigStore = create<LLMState>()(
@@ -64,6 +65,18 @@ export const useLLMConfigStore = create<LLMState>()(
                         s.configs[provider] != null ? provider : s.defaultProvider,
                 })),
 
+            setDefaultModel: (provider, model) =>
+                set((s) => {
+                    const cfg = s.configs[provider]
+                    if (!cfg) return {}
+                    return {
+                        configs: {
+                            ...s.configs,
+                            [provider]: { ...cfg, defaultModel: model },
+                        },
+                    }
+                }),
+
             clearAll: () =>
                 set({
                     configs: { openai: null, lmstudio: null, xai: null },
@@ -80,8 +93,8 @@ export const useLLMConfigStore = create<LLMState>()(
                 })),
         }),
         {
-            name: "corpora-llm-config",
+            name: 'corpora-llm-config',
             storage: createJSONStorage(() => localStorage),
         }
     )
-);
+)
