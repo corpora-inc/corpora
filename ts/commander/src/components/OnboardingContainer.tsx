@@ -21,7 +21,7 @@ export function OnboardingContainer({
     const navigate = useNavigate();
 
     return (
-        <div className="flex w-full flex-col bg-white rounded-2xl shadow-md p-8 space-y-6 min-h-[380px]">
+        <div className="flex w-full flex-col bg-white rounded-2xl shadow-md p-8 space-y-6 min-h-[400px]">
             <div className="flex w-full justify-between items-center">
                 {title && <h1 className="text-3xl font-semibold">{title}</h1>}
                 {skip && (

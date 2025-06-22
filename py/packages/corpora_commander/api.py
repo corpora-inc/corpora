@@ -2,6 +2,7 @@
 from typing import List, Optional
 
 import httpx
+import openai
 from corpora_ai.llm_interface import ChatCompletionTextMessage
 from corpora_ai.provider_loader import load_llm_provider
 from ninja import Router
@@ -80,3 +81,26 @@ def list_lmstudio_models(request, data: LMStudioPing):
         return request.error_out(status=resp.status_code, message=resp.text)
     models = resp.json()
     return {"models": models}
+
+
+class OpenAIModelsRequest(BaseModel):
+    api_key: Optional[str] = None
+
+
+@router.post("/openai/models")
+def list_openai_models(request, body: OpenAIModelsRequest):
+    """
+    Fetch the list of available OpenAI model IDs.
+    If `api_key` is provided in the request body, it overrides the
+    OPENAI_API_KEY environment variable for this call.
+    """
+    # 1) Configure the key (use env if none passed)
+    if body.api_key:
+        openai.api_key = body.api_key
+
+    resp = openai.models.list()
+
+    # 3) Extract the IDs
+    model_ids = [m.id for m in resp.data]
+
+    return {"models": model_ids}
