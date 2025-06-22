@@ -26,8 +26,11 @@ def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
         provider_name = os.getenv("LLM_PROVIDER", "openai")
 
     # Check for the OpenAI provider
-    if provider_name == "openai" and OpenAIClient:
-        api_key = os.getenv("OPENAI_API_KEY")
+    if provider_name == "openai":
+        api_key = kwargs.pop("api_key", None)
+        kwargs.pop("base_url", None)
+        if not api_key:
+            api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY environment variable is not set.")
         return OpenAIClient(
