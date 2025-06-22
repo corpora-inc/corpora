@@ -40,8 +40,12 @@ def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
             **kwargs,
         )
 
-    if provider_name == "xai" and XAIClient:
-        api_key = os.getenv("XAI_API_KEY")
+    if provider_name == "xai":
+        api_key = kwargs.pop("api_key", None)
+        # ... XAIClient has base_url :shrug:
+        kwargs.pop("base_url", None)
+        if not api_key:
+            api_key = os.getenv("XAI_API_KEY")
         if not api_key:
             raise ValueError("XAI_API_KEY environment variable is not set.")
         return XAIClient(
