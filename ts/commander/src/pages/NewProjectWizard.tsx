@@ -7,6 +7,7 @@ import {
     useCorporaCommanderApiProjectCreateProject,
 } from "@/api/commander/commander";
 import type { ProjectIn } from "@/api/schemas/projectIn";
+import { LLMEnhanceModal } from "@/components/LLMEnhanceModal";
 
 export default function NewProjectWizard() {
     const navigate = useNavigate();
@@ -16,19 +17,24 @@ export default function NewProjectWizard() {
     const [title, setTitle] = useState("");
     const [subtitle, setSubtitle] = useState("");
     const [purpose, setPurpose] = useState("");
+    const [instructions, setInstructions] = useState("");
+    const [voice, setVoice] = useState("");
+    const [hasImages, setHasImages] = useState(false);
+
+    // other metadata (optional, out of scope for AI enhancement)
     const [author, setAuthor] = useState("");
     const [publisher, setPublisher] = useState("");
     const [isbn, setIsbn] = useState("");
     const [language, setLanguage] = useState("en-US");
-    const [publicationDate, setPublicationDate] = useState(""); // keep as string
-    const [instructions, setInstructions] = useState("");
-    const [voice, setVoice] = useState("");
+    const [publicationDate, setPublicationDate] = useState("");
 
-    // derive our loading / error flags from the mutation status
+    // modal open?
+    const [enhanceOpen, setEnhanceOpen] = useState(false);
+
+    // derive loading / error from the createProject mutation
     const isPending = createProject.status === "pending";
     const isError = createProject.status === "error";
-    const errorMessage =
-        (createProject.error as Error | null)?.message ?? null;
+    const errorMessage = (createProject.error as Error | null)?.message ?? null;
 
     const handleCreate = async () => {
         const payload: ProjectIn = {
@@ -39,19 +45,26 @@ export default function NewProjectWizard() {
             publisher,
             isbn,
             language,
-            publication_date: publicationDate || undefined, // string or undefined
+            publication_date: publicationDate || undefined,
             instructions,
             voice,
         };
-
         try {
             const res = await createProject.mutateAsync({ data: payload });
-            const id = res.data.id;
-            navigate(`/project/${id}`);
+            navigate(`/project/${res.data.id}`);
         } catch {
-            // nothing here—errorMessage will show below
+            // errorMessage will render below
         }
     };
+
+    // keys we want AI to fill or refine:
+    const enhanceSchema = {
+        subtitle: "str",
+        purpose: "str",
+        instructions: "str",
+        voice: "str",
+        has_images: "bool",
+    } as const;
 
     return (
         <div className="p-6 max-w-xl mx-auto space-y-6">
@@ -89,57 +102,6 @@ export default function NewProjectWizard() {
                     />
                 </div>
 
-                {/* Author / Publisher */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium">Author</label>
-                        <Input
-                            value={author}
-                            onChange={(e) => setAuthor(e.target.value)}
-                            placeholder="Jane Doe"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium">Publisher</label>
-                        <Input
-                            value={publisher}
-                            onChange={(e) => setPublisher(e.target.value)}
-                            placeholder="Corpora Inc."
-                        />
-                    </div>
-                </div>
-
-                {/* ISBN / Language */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium">ISBN</label>
-                        <Input
-                            value={isbn}
-                            onChange={(e) => setIsbn(e.target.value)}
-                            placeholder="978-3-16-148410-0"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium">Language</label>
-                        <Input
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            placeholder="en-US"
-                        />
-                    </div>
-                </div>
-
-                {/* Publication Date */}
-                <div>
-                    <label className="block text-sm font-medium">Publication Date</label>
-                    <Input
-                        type="date"
-                        value={publicationDate}
-                        onChange={(e) => setPublicationDate(e.target.value)}
-                        className="w-full"
-                    />
-                </div>
-
                 {/* LLM Instructions */}
                 <div>
                     <label className="block text-sm font-medium">LLM Instructions</label>
@@ -161,6 +123,70 @@ export default function NewProjectWizard() {
                         placeholder="E.g., formal, conversational…"
                     />
                 </div>
+
+                {/* Has Images */}
+                <div className="flex items-center space-x-2">
+                    <input
+                        id="hasImages"
+                        type="checkbox"
+                        checked={hasImages}
+                        onChange={(e) => setHasImages(e.target.checked)}
+                    />
+                    <label htmlFor="hasImages" className="text-sm">
+                        Will include images?
+                    </label>
+                </div>
+
+                {/* Other metadata (optional) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium">Author</label>
+                        <Input
+                            value={author}
+                            onChange={(e) => setAuthor(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium">Publisher</label>
+                        <Input
+                            value={publisher}
+                            onChange={(e) => setPublisher(e.target.value)}
+                        />
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium">ISBN</label>
+                        <Input value={isbn} onChange={(e) => setIsbn(e.target.value)} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium">Language</label>
+                        <Input
+                            value={language}
+                            onChange={(e) => setLanguage(e.target.value)}
+                        />
+                    </div>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium">Publication Date</label>
+                    <Input
+                        type="date"
+                        value={publicationDate}
+                        onChange={(e) => setPublicationDate(e.target.value)}
+                        className="w-full"
+                    />
+                </div>
+            </div>
+
+            {/* AI-Enhance button */}
+            <div className="flex justify-end">
+                <Button
+                    variant="outline"
+                    onClick={() => setEnhanceOpen(true)}
+                    disabled={!title.trim()}
+                >
+                    Enhance with AI
+                </Button>
             </div>
 
             {/* API error */}
@@ -168,22 +194,43 @@ export default function NewProjectWizard() {
                 <p className="text-red-600">{errorMessage}</p>
             )}
 
-            {/* Actions */}
+            {/* Create / Cancel */}
             <div className="flex justify-end space-x-2">
-                <Button
-                    variant="secondary"
-                    onClick={() => navigate(-1)}
-                    disabled={isPending}
-                >
+                <Button variant="secondary" onClick={() => navigate(-1)} disabled={isPending}>
                     Cancel
                 </Button>
-                <Button
-                    onClick={handleCreate}
-                    disabled={!title.trim() || isPending}
-                >
+                <Button onClick={handleCreate} disabled={!title.trim() || isPending}>
                     {isPending ? "Creating…" : "Create Project"}
                 </Button>
             </div>
+
+            {/* ——— AI Enhance Modal ——— */}
+            <LLMEnhanceModal<{
+                subtitle: string;
+                purpose: string;
+                instructions: string;
+                voice: string;
+                has_images: boolean;
+            }>
+                open={enhanceOpen}
+                schema={enhanceSchema}
+                initialData={{
+                    subtitle,
+                    purpose,
+                    instructions,
+                    voice,
+                    has_images: hasImages,
+                }}
+                onAccept={(suggested) => {
+                    if (typeof suggested.subtitle === "string") setSubtitle(suggested.subtitle);
+                    if (typeof suggested.purpose === "string") setPurpose(suggested.purpose);
+                    if (typeof suggested.instructions === "string") setInstructions(suggested.instructions);
+                    if (typeof suggested.voice === "string") setVoice(suggested.voice);
+                    if (typeof suggested.has_images === "boolean") setHasImages(suggested.has_images);
+                    setEnhanceOpen(false);
+                }}
+                onClose={() => setEnhanceOpen(false)}
+            />
         </div>
     );
 }

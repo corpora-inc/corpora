@@ -22,7 +22,7 @@ export type GenericCompleteResponse<T> = Partial<T>;
 function genericComplete<T>(
     req: GenericCompleteRequest<T>
 ): Promise<GenericCompleteResponse<T>> {
-    return fetch("/api/commander/generic-complete", {
+    return fetch("/api/commander/generic/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(req),
@@ -62,7 +62,6 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
     );
     const [model, setModel] = useState<string>("");
 
-    // whenever provider changes, pull its defaultModel from the store
     useEffect(() => {
         const cfg = configs[provider];
         if (cfg && "defaultModel" in cfg && (cfg as any).defaultModel) {
@@ -75,7 +74,6 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
     const [extraPrompt, setExtraPrompt] = useState("");
     const generic = useGenericCompleteMutation<T>();
 
-    // static messages array
     const messages: ChatMessage[] = [
         { role: "system", text: "You are a helpful assistant." },
         {
@@ -109,7 +107,7 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                 if (!isOpen) onClose();
             }}
         >
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md w-full">
                 <h2 className="text-xl font-semibold">Enhance with AI</h2>
 
                 <div className="grid grid-cols-2 gap-4 mt-4">
@@ -120,12 +118,13 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                             setProvider(e.target.value as ProviderType)
                         }
                     >
-                        {Object.entries(configs).map(([p, cfg]) =>
-                            cfg ? (
-                                <option key={p} value={p}>
-                                    {p.toUpperCase()}
-                                </option>
-                            ) : null
+                        {Object.entries(configs).map(
+                            ([p, cfg]) =>
+                                cfg && (
+                                    <option key={p} value={p}>
+                                        {p.toUpperCase()}
+                                    </option>
+                                )
                         )}
                     </select>
                     <select
@@ -148,17 +147,15 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                     <Button variant="secondary" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button
-                        onClick={handleGenerate}
-                        disabled={generic.isPending}
-                    >
+                    <Button onClick={handleGenerate} disabled={generic.isPending}>
                         {generic.isPending ? "Thinking…" : "Generate"}
                     </Button>
                 </div>
 
+                {/* ONLY render the LLM response */}
                 {generic.data && (
                     <div className="mt-6 p-4 bg-gray-50 rounded">
-                        <pre className="text-sm">
+                        <pre className="whitespace-pre-wrap text-sm">
                             {JSON.stringify(generic.data, null, 2)}
                         </pre>
                         <div className="flex justify-end space-x-2 mt-2">
@@ -173,9 +170,7 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                 )}
 
                 {generic.error && (
-                    <p className="text-red-600 mt-2">
-                        {generic.error.message}
-                    </p>
+                    <p className="text-red-600 mt-2">{generic.error.message}</p>
                 )}
             </DialogContent>
         </Dialog>
