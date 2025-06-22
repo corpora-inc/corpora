@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "oauth2_provider",
     "ninja",
     "corpora",
+    "corpora_commander",
 ]
 
 MIDDLEWARE = [
