@@ -6,11 +6,10 @@ import openai
 import requests
 from corpora_ai.llm_interface import ChatCompletionTextMessage
 from corpora_ai.provider_loader import load_llm_provider
-from ninja import Router
 from ninja.errors import HttpError
 from pydantic import BaseModel, Field, HttpUrl
 
-router = Router(tags=["commander"])
+from .router import router
 
 
 class ChatMessageSchema(BaseModel):

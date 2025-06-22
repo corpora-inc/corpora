@@ -12,7 +12,7 @@ export default function WizardComplete() {
     const finish = () => {
         setOnboarded(true);
         // send them straight into the new-project flow
-        navigate("/projects/new");
+        navigate("/projects");
     };
 
     return (
@@ -23,7 +23,7 @@ export default function WizardComplete() {
                 <>
                     <div />
                     <Button onClick={finish}>
-                        Create First Project
+                        Let's Go!
                         <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
                 </>

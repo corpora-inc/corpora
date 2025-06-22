@@ -4,6 +4,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import "./index.css";
 
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
+
+
 import OnboardingLayout from "./layouts/OnboardingLayout";
 import WizardWelcome from "./pages/onboarding/WizardWelcome";
 import OpenAIConfigPage from "./pages/onboarding/OpenAIConfigPage";
@@ -14,42 +18,50 @@ import WizardComplete from "./pages/onboarding/WizardComplete";
 import MainLayout from "./layouts/MainLayout";
 import { RequireOnboarded } from "./components/RequireOnboarded";
 
-// **You’ll need these two pages added**:
+import ProjectListPage from "./pages/ProjectListPage";
 import NewProjectWizard from "./pages/NewProjectWizard";
-// import ProjectListPage from "./pages/app/ProjectListPage";
+import ProjectEditorPage from "./pages/ProjectEditorPage";
+import HomeRedirectFallback from "./pages/HomeRedirectFallback";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <Routes>
-        {/* Onboarding */}
-        <Route path="/onboarding" element={<OnboardingLayout />}>
-          <Route index element={<WizardWelcome />} />
-          <Route path="openai" element={<OpenAIConfigPage />} />
-          <Route path="lmstudio" element={<LMStudioConfigPage />} />
-          <Route path="xai" element={<XAIConfigPage />} />
-          <Route path="complete" element={<WizardComplete />} />
-        </Route>
+      <QueryClientProvider client={queryClient}>
 
-        {/* Main app (guarded) */}
-        <Route
-          path="/*"
-          element={
-            <RequireOnboarded>
-              <MainLayout />
-            </RequireOnboarded>
-          }
-        >
-          {/* Eventually, your projects list */}
-          {/* <Route path="projects" element={<ProjectListPage />} /> */}
+        <Routes>
+          {/* Onboarding */}
+          <Route path="/onboarding" element={<OnboardingLayout />}>
+            <Route index element={<WizardWelcome />} />
+            <Route path="openai" element={<OpenAIConfigPage />} />
+            <Route path="lmstudio" element={<LMStudioConfigPage />} />
+            <Route path="xai" element={<XAIConfigPage />} />
+            <Route path="complete" element={<WizardComplete />} />
+          </Route>
 
-          {/* New-project wizard */}
-          <Route path="projects/new" element={<NewProjectWizard />} />
+          {/* Main app (guarded) */}
+          <Route
+            path="/*"
+            element={
+              <RequireOnboarded>
+                <MainLayout />
+              </RequireOnboarded>
+            }
+          >
+            {/* Project listing */}
+            <Route index element={<ProjectListPage />} />
+            <Route path="projects" element={<ProjectListPage />} />
 
-          {/* Catch-all: redirect to /projects/new when you have no list yet */}
-          <Route index element={<NewProjectWizard />} />
-        </Route>
-      </Routes>
+            {/* Create new project */}
+            <Route path="projects/new" element={<NewProjectWizard />} />
+
+            {/* Edit existing project */}
+            <Route path="project/:id" element={<ProjectEditorPage />} />
+
+            {/* Fallback for unknown routes */}
+            <Route path="*" element={<HomeRedirectFallback />} />
+          </Route>
+        </Routes>
+      </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
