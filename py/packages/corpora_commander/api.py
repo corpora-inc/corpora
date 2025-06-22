@@ -1,9 +1,63 @@
 # corpora_commander/api.py
+from typing import List, Optional
+
 import httpx
+from corpora_ai.llm_interface import ChatCompletionTextMessage
+from corpora_ai.provider_loader import load_llm_provider
 from ninja import Router
-from pydantic import BaseModel
+from ninja.errors import HttpError
+from pydantic import BaseModel, Field, HttpUrl
 
 router = Router(tags=["commander"])
+
+
+class ChatMessageSchema(BaseModel):
+    role: str
+    text: str
+
+
+class CompletionRequest(BaseModel):
+    provider: str = Field(..., description="one of: openai, xai, local")
+    model: str = Field(..., description="model name to use")
+    base_url: Optional[HttpUrl] = Field(
+        None,
+        description="only for providers that need a URL (e.g. local)",
+    )
+    api_key: Optional[str] = Field(
+        None,
+        description="override env var for key-based providers",
+    )
+    messages: List[ChatMessageSchema]
+
+
+class CompletionResponse(BaseModel):
+    text: str
+
+
+@router.post("/complete", response=CompletionResponse)
+def text_completion(request, data: CompletionRequest):
+    # 1) Load the correct LLM provider (this can raise ValueError on bad config)
+    try:
+        llm = load_llm_provider(
+            provider_name=data.provider,
+            completion_model=data.model,
+            base_url=str(data.base_url) if data.base_url else None,
+            api_key=data.api_key,
+        )
+    except ValueError as e:
+        # configuration issue: return 400
+        raise HttpError(400, str(e))
+
+    # 2) Build the chat message list
+    msgs = [
+        ChatCompletionTextMessage(role=m.role, text=m.text)
+        for m in data.messages
+    ]
+
+    # 3) Delegate to the provider. Any errors here bubble up as 500.
+    result_text = llm.get_text_completion(msgs)
+
+    return CompletionResponse(text=result_text)
 
 
 class LMStudioPing(BaseModel):
@@ -18,6 +72,5 @@ def list_lmstudio_models(request, data: LMStudioPing):
     resp = httpx.get(f"{data.base_url}/models", timeout=5.0)
     if resp.status_code != 200:
         return request.error_out(status=resp.status_code, message=resp.text)
-    # assume the LM Studio /models endpoint returns JSON array of strings
     models = resp.json()
     return {"models": models}

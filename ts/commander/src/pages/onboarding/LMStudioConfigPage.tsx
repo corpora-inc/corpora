@@ -5,7 +5,7 @@ import { useLLMConfigStore } from "@/stores/LLMConfigStore";
 import type { LMStudioConfig } from "@/stores/LLMConfigStore";
 import { OnboardingContainer } from "@/components/OnboardingContainer";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -19,17 +19,20 @@ export default function LMStudioConfigPage() {
     const navigate = useNavigate();
     const { addConfig } = useLLMConfigStore();
 
-    const [baseUrl, setBaseUrl] = useState("http://host.docker.internal:1234/v1");
+    const [baseUrl, setBaseUrl] = useState(
+        "http://host.docker.internal:1234/v1"
+    );
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
     const [models, setModels] = useState<string[]>([]);
     const [selectedModel, setSelectedModel] = useState<string>("");
+    const [validated, setValidated] = useState(false);
 
-    const testConnection = async () => {
+    // Phase 1: discover available models
+    const discoverModels = async () => {
         setLoading(true);
         setError(null);
-        setModels([]);
-
         try {
             const res = await fetch("/api/commander/lmstudio/models", {
                 method: "POST",
@@ -40,35 +43,69 @@ export default function LMStudioConfigPage() {
                 const text = await res.text();
                 throw new Error(text || "Unknown error");
             }
-
-            // Backend returns: { models: { data: Array<{ id: string; ... }> } }
-            const payload: { models: { data: Array<{ id: string }> } } = await res.json();
+            const payload: { models: { data: Array<{ id: string }> } } =
+                await res.json();
             const ids = payload.models.data.map((m) => m.id);
-            if (ids.length === 0) {
-                throw new Error("No models found at that endpoint");
-            }
-
+            if (ids.length === 0) throw new Error("No models found");
             setModels(ids);
             setSelectedModel(ids[0]);
-            return true;
         } catch (e: any) {
-            setError(e.message || "Connection failed");
-            return false;
+            setError(e.message || "Discovery failed");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleNext = async () => {
-        if (!(await testConnection())) return;
+    // Phase 2: validate the selected model
+    const validateModel = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            let res = await fetch("/api/commander/complete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: "local",
+                    model: selectedModel,
+                    base_url: baseUrl,
+                    messages: [
+                        { role: "system", text: "You are a helpful assistant." },
+                        { role: "user", text: "Hello world" },
+                    ],
+                }),
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || "Validation failed");
+            }
+            setValidated(true);
+        } catch (e: any) {
+            setError(e.message || "Validation failed");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleNext = () => {
         const cfg: LMStudioConfig = {
             provider: "lmstudio",
             baseUrl,
-            defaultModel: selectedModel, // ensure your store type is updated accordingly
+            defaultModel: selectedModel,
         };
         addConfig(cfg);
         navigate("/onboarding/openai");
     };
+
+    // Determine the Test button label and action
+    const isDiscoveryPhase = models.length === 0;
+    const testLabel = loading
+        ? ""
+        : isDiscoveryPhase
+            ? "Discover models"
+            : validated
+                ? ""
+                : "Validate model";
 
     return (
         <OnboardingContainer
@@ -78,13 +115,26 @@ export default function LMStudioConfigPage() {
                     <Button variant="secondary" onClick={() => navigate("/onboarding")}>
                         Back
                     </Button>
+
                     <div className="flex items-center space-x-2">
-                        <Button onClick={testConnection} disabled={loading}>
-                            {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "Test"}
-                        </Button>
+                        {!validated && (
+                            <Button
+                                onClick={isDiscoveryPhase ? discoverModels : validateModel}
+                                disabled={loading || !baseUrl.trim() || (!isDiscoveryPhase && !selectedModel)}
+                            >
+                                {loading ? (
+                                    <Loader2 className="animate-spin h-4 w-4" />
+                                ) : (
+                                    testLabel
+                                )}
+                            </Button>
+                        )}
+                        {validated && (
+                            <CheckCircle2 className="text-green-600 h-5 w-5" />
+                        )}
                         <Button
                             onClick={handleNext}
-                            disabled={!baseUrl.trim() || !selectedModel}
+                            disabled={!validated}
                         >
                             Next
                         </Button>
@@ -120,7 +170,11 @@ export default function LMStudioConfigPage() {
                     <label className="block text-sm font-medium text-neutral-700">
                         Select default model
                     </label>
-                    <Select value={selectedModel} onValueChange={setSelectedModel}>
+                    <Select
+                        value={selectedModel}
+                        onValueChange={setSelectedModel}
+                        disabled={loading || validated}
+                    >
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Choose a model…" />
                         </SelectTrigger>
