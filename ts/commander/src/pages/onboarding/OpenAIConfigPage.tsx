@@ -69,7 +69,7 @@ export default function OpenAIConfigPage() {
             title="Configure OpenAI"
             footer={
                 <>
-                    <Button variant="secondary" onClick={() => navigate("/onboarding")}>
+                    <Button variant="secondary" onClick={() => navigate("/onboarding/lmstudio")}>
                         Back
                     </Button>
                     <div className="flex items-center space-x-2">
