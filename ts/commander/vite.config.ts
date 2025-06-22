@@ -9,6 +9,16 @@ export default defineConfig({
     react(),
     tailwind()
   ],
+  server: {
+    proxy: {
+      // any request starting with /api will be forwarded
+      "/api": {
+        target: "http://corpora-app:8877",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

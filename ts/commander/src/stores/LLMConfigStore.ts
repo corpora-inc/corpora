@@ -11,6 +11,7 @@ export interface OpenAIConfig {
 
 export interface LMStudioConfig {
     provider: "lmstudio";
+    defaultModel: string;
     baseUrl: string;       // e.g. "http://host.docker.internal:1234/v1"
     apiKey?: string;       // if LM Studio is token-protected
 }

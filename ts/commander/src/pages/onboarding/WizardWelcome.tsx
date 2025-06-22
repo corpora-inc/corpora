@@ -15,7 +15,10 @@ export default function WizardWelcome() {
                 <>
                     {/* empty spacer to push the button right */}
                     <div />
-                    <Button onClick={() => navigate("/onboarding/lmstudio")}>
+                    <Button
+                        onClick={() => navigate("/onboarding/lmstudio")}
+                        className="cursor-pointer"
+                    >
                         Get Started
                         <ChevronRight className="h-4 w-4" />
                     </Button>
