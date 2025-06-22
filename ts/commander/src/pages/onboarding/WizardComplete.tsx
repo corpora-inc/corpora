@@ -9,9 +9,10 @@ export default function WizardComplete() {
     const navigate = useNavigate();
     const { setOnboarded } = useAppState();
 
-    const handleFinish = () => {
+    const finish = () => {
         setOnboarded(true);
-        navigate("/projects", { replace: true });
+        // send them straight into the new-project flow
+        navigate("/projects/new");
     };
 
     return (
@@ -20,20 +21,15 @@ export default function WizardComplete() {
             subtitle="Your LLM providers are configured. Let's create your first project."
             footer={
                 <>
-                    {/* spacer to push button right */}
-                    <Button variant="secondary" onClick={() => navigate("/onboarding/xai")}>
-                        Back
-                    </Button>
-                    <Button onClick={handleFinish}
-                        className="cursor-pointer"
-                    >
+                    <div />
+                    <Button onClick={finish}>
                         Create First Project
-                        <ChevronRight className="h-4 w-4 ml-1" />
+                        <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
                 </>
             }
         >
-            {/* You could add additional summary or tips here if desired */}
+            {/* you can add tips or summary here */}
         </OnboardingContainer>
     );
 }

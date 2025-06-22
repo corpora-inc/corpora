@@ -3,6 +3,7 @@ from typing import List, Optional
 
 import httpx
 import openai
+import requests
 from corpora_ai.llm_interface import ChatCompletionTextMessage
 from corpora_ai.provider_loader import load_llm_provider
 from ninja import Router
@@ -104,3 +105,41 @@ def list_openai_models(request, body: OpenAIModelsRequest):
     model_ids = [m.id for m in resp.data]
 
     return {"models": model_ids}
+
+
+class XAIModelsRequest(BaseModel):
+    api_key: str = Field(..., description="Your xAI API key")
+    base_url: Optional[HttpUrl] = Field(
+        "https://api.x.ai",
+        description="Base URL for xAI API (defaults to https://api.x.ai)",
+    )
+
+
+class XAIModelsResponse(BaseModel):
+    models: List[str]
+
+
+@router.post("/xai/models", response=XAIModelsResponse)
+def list_xai_models(request, data: XAIModelsRequest):
+    """
+    Fetch the list of available xAI Grok model IDs via GET /v1/models.
+    """
+    url = f"{data.base_url.rstrip('/')}/v1/models"
+    headers = {"Authorization": f"Bearer {data.api_key}"}
+
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        raise HttpError(502, f"xAI API request failed: {e}")
+
+    payload = resp.json()
+    # According to xAI REST API reference, the response is:
+    # { "data": [ { "id": "grok-3" }, { "id": "grok-3-fast" }, … ] }
+    raw_list = payload.get("data", [])
+    ids = [m.get("id") for m in raw_list if isinstance(m, dict) and "id" in m]
+
+    if not ids:
+        raise HttpError(404, "No models found at that endpoint")
+
+    return XAIModelsResponse(models=ids)

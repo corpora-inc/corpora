@@ -17,7 +17,7 @@ export default function NewProjectWizard() {
             <h2 className="text-xl font-semibold mb-4">Create New Project</h2>
             <input
                 className="w-full border rounded p-2 mb-4"
-                placeholder="Project title"
+                placeholder="Title"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
             />
