@@ -63,7 +63,6 @@ export default function NewProjectWizard() {
         purpose: "str",
         instructions: "str",
         voice: "str",
-        has_images: "bool",
     } as const;
 
     return (
@@ -210,7 +209,6 @@ export default function NewProjectWizard() {
                 purpose: string;
                 instructions: string;
                 voice: string;
-                has_images: boolean;
             }>
                 open={enhanceOpen}
                 schema={enhanceSchema}
@@ -219,14 +217,12 @@ export default function NewProjectWizard() {
                     purpose,
                     instructions,
                     voice,
-                    has_images: hasImages,
                 }}
                 onAccept={(suggested) => {
                     if (typeof suggested.subtitle === "string") setSubtitle(suggested.subtitle);
                     if (typeof suggested.purpose === "string") setPurpose(suggested.purpose);
                     if (typeof suggested.instructions === "string") setInstructions(suggested.instructions);
                     if (typeof suggested.voice === "string") setVoice(suggested.voice);
-                    if (typeof suggested.has_images === "boolean") setHasImages(suggested.has_images);
                     setEnhanceOpen(false);
                 }}
                 onClose={() => setEnhanceOpen(false)}
