@@ -69,121 +69,128 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
     const configs = useLLMConfigStore((s) => s.configs);
     const defaultProv = useLLMConfigStore((s) => s.defaultProvider);
 
-    const availableProviders = useMemo(
+    const providers = useMemo(
         () =>
-            Object.entries(configs)
-                .filter(([, cfg]) => cfg)
-                .map(([p]) => p as ProviderType),
+            (Object.keys(configs) as ProviderType[]).filter(
+                (p) => configs[p] !== null
+            ),
         [configs]
     );
 
-    const [provider, _setProvider] = useState<ProviderType>(
-        defaultProv ?? availableProviders[0]!
+    const [provider, setProvider] = useState<ProviderType>(
+        defaultProv ?? providers[0]!
     );
-    const setProvider = (v: string) => _setProvider(v as ProviderType);
-
     const [model, setModel] = useState<string>(
-        configs[provider]?.defaultModel ?? ""
+        configs[defaultProv!]?.defaultModel ?? ""
     );
+    const [prompt, setPrompt] = useState("");
+    const [history, setHistory] = useState<ChatMessage[]>([]);
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+    const generic = useGenericCompleteMutation<T>();
+
+    // ─── only reset ONCE, when open flips true ──────────────────────────
+    useEffect(() => {
+        if (!open) return;
+        // initialize our state one time
+        setProvider(defaultProv ?? providers[0]!);
+        setModel(configs[defaultProv!]?.defaultModel ?? "");
+        setPrompt("");
+        setHistory([
+            { role: "system", text: "You are a helpful assistant." },
+            {
+                role: "user",
+                text: `Current values: ${JSON.stringify(initialData)}`,
+            },
+        ]);
+        generic.reset();
+        setExpanded({});
+    }, [open]); // << only depends on `open`
+
+    // keep model in sync when provider changes
     useEffect(() => {
         setModel(configs[provider]?.defaultModel ?? "");
     }, [provider, configs]);
 
-    const [extraPrompt, setExtraPrompt] = useState("");
-    const generic = useGenericCompleteMutation<T>();
-
-    const baseMessages = useMemo<ChatMessage[]>(
-        () => [
-            { role: "system", text: "You are a helpful assistant." },
-            { role: "user", text: `Current values: ${JSON.stringify(initialData)}` },
-        ],
-        [initialData]
-    );
+    // append each assistant reply to history
+    useEffect(() => {
+        if (generic.data) {
+            setHistory((h) => [
+                ...h,
+                { role: "assistant", text: JSON.stringify(generic.data) },
+            ]);
+        }
+    }, [generic.data]);
 
     const handleGenerate = () => {
         generic.mutate({
             provider,
             config: configs[provider] as LLMConfig,
             messages: [
-                ...baseMessages,
-                { role: "user", text: extraPrompt },
+                ...history,
+                { role: "user", text: prompt },
                 {
                     role: "system",
-                    text: `Return JSON matching keys: ${Object.keys(schema).join(
-                        ", "
-                    )}`,
+                    text: `Return JSON matching keys: ${Object.keys(schema).join(", ")}`,
                 },
             ],
             schema,
         });
     };
 
+    const toggleField = (key: string) =>
+        setExpanded((e) => ({ ...e, [key]: !e[key] }));
+
     return (
-        <Dialog open={open} onOpenChange={(ok) => ok || onClose()}>
-            <DialogContent
-                className="
-          w-full
-          sm:max-w-md
-          lg:max-w-xl
-          max-h-[80vh]
-          flex flex-col overflow-hidden
-        "
-            >
+        <Dialog open={open} onOpenChange={(ok) => !ok && onClose()}>
+            <DialogContent className="w-full sm:max-w-md lg:max-w-xl max-h-[80vh] flex flex-col overflow-hidden">
                 <header className="flex items-center justify-between mb-4">
                     <DialogTitle className="text-xl font-semibold">
                         Enhance with AI
                     </DialogTitle>
-                    <DialogClose className="text-gray-500 hover:text-gray-700" />
+                    <DialogClose className="cursor-pointer" />
                 </header>
 
                 <div className="grid grid-cols-2 gap-3">
-                    <Select value={provider} onValueChange={setProvider}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Provider" />
-                        </SelectTrigger>
+                    <Select value={provider} onValueChange={(v) => setProvider(v as ProviderType)}>
+                        <SelectTrigger><SelectValue placeholder="Provider" /></SelectTrigger>
                         <SelectContent>
-                            {availableProviders.map((p) => (
+                            {providers.map((p) => (
                                 <SelectItem key={p} value={p}>
                                     {p.toUpperCase()}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
-                    <Select value={model} onValueChange={setModel} disabled={!model}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Model" />
-                        </SelectTrigger>
+
+                    <Select value={model} onValueChange={setModel}>
+                        <SelectTrigger><SelectValue placeholder="Model" /></SelectTrigger>
                         <SelectContent>
                             {model && <SelectItem value={model}>{model}</SelectItem>}
                         </SelectContent>
                     </Select>
                 </div>
-
-                <label className="block text-sm font-medium mt-4">
-                    Additional instructions
-                </label>
                 <Textarea
                     className="mt-1 flex-1 min-h-[6rem]"
-                    placeholder="Extra prompt..."
-                    value={extraPrompt}
-                    onChange={(e) => setExtraPrompt(e.target.value)}
+                    placeholder="Instructions for the AI"
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
                 />
 
                 <div className="mt-4 flex space-x-2">
                     <Button
+                        className="cursor-pointer"
                         variant="secondary"
                         onClick={handleGenerate}
                         disabled={!model || generic.isPending}
                     >
-                        {generic.isPending ? "Thinking…" : "Generate"}
+                        {generic.data ? "Regenerate" : "Generate"}
                     </Button>
                     {generic.data && (
-                        <Button variant="outline" onClick={handleGenerate}>
-                            Retry
-                        </Button>
-                    )}
-                    {generic.data && (
-                        <Button onClick={() => onAccept(generic.data as Partial<T>)}>
+                        <Button
+                            className="cursor-pointer"
+                            onClick={() => onAccept(generic.data as Partial<T>)}
+                        >
                             Accept
                         </Button>
                     )}
@@ -194,15 +201,28 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                 )}
 
                 {generic.data && (
-                    <div className="mt-4 overflow-auto max-h-40 border rounded p-3 bg-gray-50">
-                        <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
-                            {Object.entries(generic.data).map(([k, v]) => (
-                                <div key={k}>
-                                    <dt className="font-medium">{k}</dt>
-                                    <dd className="break-words">{String(v)}</dd>
+                    <div className="mt-4 overflow-auto flex-1 border rounded p-3 bg-gray-50">
+                        {Object.entries(generic.data).map(([key, val]) => {
+                            const isOpen = !!expanded[key];
+                            const lines = String(val).split("\n");
+                            return (
+                                <div
+                                    key={key}
+                                    className="mb-2 cursor-pointer"
+                                    onClick={() => toggleField(key)}
+                                >
+                                    <div className="font-medium">{key}</div>
+                                    <div className="text-sm break-words">
+                                        {isOpen
+                                            ? String(val)
+                                            : lines[0] + (lines.length > 1 ? "…" : "")}
+                                    </div>
+                                    <div className="text-xs text-blue-500">
+                                        {isOpen ? "Show less" : "Show more"}
+                                    </div>
                                 </div>
-                            ))}
-                        </dl>
+                            );
+                        })}
                     </div>
                 )}
             </DialogContent>
