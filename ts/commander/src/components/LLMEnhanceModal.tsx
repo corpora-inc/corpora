@@ -1,36 +1,36 @@
 // src/components/LLMEnhanceModal.tsx
-import { useState, useEffect, useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useState, useEffect, useMemo } from "react"
+import { useMutation } from "@tanstack/react-query"
 import {
     Dialog,
     DialogContent,
     DialogTitle,
     DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import {
     Select,
     SelectTrigger,
     SelectValue,
     SelectContent,
     SelectItem,
-} from "@/components/ui/select";
-import { useLLMConfigStore } from "@/stores/LLMConfigStore";
-import type { ProviderType, LLMConfig } from "@/stores/LLMConfigStore";
+} from "@/components/ui/select"
+import { useLLMConfigStore } from "@/stores/LLMConfigStore"
+import type { ProviderType, LLMConfig } from "@/stores/LLMConfigStore"
 
 export interface ChatMessage {
-    role: "system" | "user" | "assistant";
-    text: string;
+    role: "system" | "user" | "assistant"
+    text: string
 }
 
 export interface GenericCompleteRequest<T> {
-    provider: ProviderType;
-    config: LLMConfig;
-    messages: ChatMessage[];
-    schema: Record<keyof T, "str" | "int" | "bool">;
+    provider: ProviderType
+    config: LLMConfig
+    messages: ChatMessage[]
+    schema: Record<keyof T, "str" | "int" | "bool">
 }
-export type GenericCompleteResponse<T> = Partial<T>;
+export type GenericCompleteResponse<T> = Partial<T>
 
 function genericComplete<T>(
     req: GenericCompleteRequest<T>
@@ -40,23 +40,23 @@ function genericComplete<T>(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(req),
     }).then((r) => {
-        if (!r.ok) throw new Error(r.statusText);
-        return r.json() as Promise<GenericCompleteResponse<T>>;
-    });
+        if (!r.ok) throw new Error(r.statusText)
+        return r.json() as Promise<GenericCompleteResponse<T>>
+    })
 }
 
 function useGenericCompleteMutation<T>() {
     return useMutation<GenericCompleteResponse<T>, Error, GenericCompleteRequest<T>>({
         mutationFn: genericComplete,
-    });
+    })
 }
 
 export interface LLMEnhanceModalProps<T extends Record<string, any>> {
-    open: boolean;
-    schema: Record<keyof T, "str" | "int" | "bool">;
-    initialData: Partial<T>;
-    onAccept: (suggested: Partial<T>) => void;
-    onClose: () => void;
+    open: boolean
+    schema: Record<keyof T, "str" | "int" | "bool">
+    initialData: Partial<T>
+    onAccept: (suggested: Partial<T>) => void
+    onClose: () => void
 }
 
 export function LLMEnhanceModal<T extends Record<string, any>>({
@@ -66,8 +66,8 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
     onAccept,
     onClose,
 }: LLMEnhanceModalProps<T>) {
-    const configs = useLLMConfigStore((s) => s.configs);
-    const defaultProv = useLLMConfigStore((s) => s.defaultProvider);
+    const configs = useLLMConfigStore((s) => s.configs)
+    const defaultProv = useLLMConfigStore((s) => s.defaultProvider)
 
     const providers = useMemo(
         () =>
@@ -75,52 +75,51 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                 (p) => configs[p] !== null
             ),
         [configs]
-    );
+    )
 
     const [provider, setProvider] = useState<ProviderType>(
         defaultProv ?? providers[0]!
-    );
-    const [model, setModel] = useState<string>(
+    )
+    const [model, setModel] = useState(
         configs[defaultProv!]?.defaultModel ?? ""
-    );
-    const [prompt, setPrompt] = useState("");
-    const [history, setHistory] = useState<ChatMessage[]>([]);
-    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+    )
+    const [prompt, setPrompt] = useState("")
+    const [history, setHistory] = useState<ChatMessage[]>([])
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({})
 
-    const generic = useGenericCompleteMutation<T>();
+    const generic = useGenericCompleteMutation<T>()
 
-    // ─── only reset ONCE, when open flips true ──────────────────────────
+    // reset once when modal opens
     useEffect(() => {
-        if (!open) return;
-        // initialize our state one time
-        setProvider(defaultProv ?? providers[0]!);
-        setModel(configs[defaultProv!]?.defaultModel ?? "");
-        setPrompt("");
+        if (!open) return
+        setProvider(defaultProv ?? providers[0]!)
+        setModel(configs[defaultProv!]?.defaultModel ?? "")
+        setPrompt("")
         setHistory([
             { role: "system", text: "You are a helpful assistant." },
             {
                 role: "user",
                 text: `Current values: ${JSON.stringify(initialData)}`,
             },
-        ]);
-        generic.reset();
-        setExpanded({});
-    }, [open]); // << only depends on `open`
+        ])
+        generic.reset()
+        setExpanded({})
+    }, [open])
 
-    // keep model in sync when provider changes
+    // sync model when provider changes
     useEffect(() => {
-        setModel(configs[provider]?.defaultModel ?? "");
-    }, [provider, configs]);
+        setModel(configs[provider]?.defaultModel ?? "")
+    }, [provider, configs])
 
-    // append each assistant reply to history
+    // append each assistant reply
     useEffect(() => {
         if (generic.data) {
             setHistory((h) => [
                 ...h,
                 { role: "assistant", text: JSON.stringify(generic.data) },
-            ]);
+            ])
         }
-    }, [generic.data]);
+    }, [generic.data])
 
     const handleGenerate = () => {
         generic.mutate({
@@ -131,20 +130,32 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                 { role: "user", text: prompt },
                 {
                     role: "system",
-                    text: `Return JSON matching keys: ${Object.keys(schema).join(", ")}`,
+                    text: `Return JSON matching keys: ${Object.keys(schema).join(
+                        ", "
+                    )}`,
                 },
             ],
             schema,
-        });
-    };
+        })
+    }
 
     const toggleField = (key: string) =>
-        setExpanded((e) => ({ ...e, [key]: !e[key] }));
+        setExpanded((e) => ({ ...e, [key]: !e[key] }))
 
     return (
         <Dialog open={open} onOpenChange={(ok) => !ok && onClose()}>
-            <DialogContent className="w-full sm:max-w-md lg:max-w-xl max-h-[80vh] flex flex-col overflow-hidden">
-                <header className="flex items-center justify-between mb-4">
+            <DialogContent
+                className="
+          w-full
+          sm:max-w-md
+          lg:max-w-xl
+          max-h-[80vh]
+          overflow-auto     /* let the entire modal scroll */
+          p-6
+          space-y-4
+        "
+            >
+                <header className="flex items-center justify-between">
                     <DialogTitle className="text-xl font-semibold">
                         Enhance with AI
                     </DialogTitle>
@@ -152,8 +163,13 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                 </header>
 
                 <div className="grid grid-cols-2 gap-3">
-                    <Select value={provider} onValueChange={(v) => setProvider(v as ProviderType)}>
-                        <SelectTrigger><SelectValue placeholder="Provider" /></SelectTrigger>
+                    <Select
+                        value={provider}
+                        onValueChange={(v) => setProvider(v as ProviderType)}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Provider" />
+                        </SelectTrigger>
                         <SelectContent>
                             {providers.map((p) => (
                                 <SelectItem key={p} value={p}>
@@ -164,23 +180,27 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                     </Select>
 
                     <Select value={model} onValueChange={setModel}>
-                        <SelectTrigger><SelectValue placeholder="Model" /></SelectTrigger>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Model" />
+                        </SelectTrigger>
                         <SelectContent>
                             {model && <SelectItem value={model}>{model}</SelectItem>}
                         </SelectContent>
                     </Select>
                 </div>
+
+                <label className="block text-sm font-medium">Additional instructions</label>
                 <Textarea
-                    className="mt-1 flex-1 min-h-[6rem]"
-                    placeholder="Instructions for the AI"
+                    className="mt-1 min-h-[6rem]"
+                    placeholder="Extra prompt..."
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                 />
 
-                <div className="mt-4 flex space-x-2">
+                <div className="flex space-x-2">
                     <Button
-                        className="cursor-pointer"
                         variant="secondary"
+                        className="cursor-pointer"
                         onClick={handleGenerate}
                         disabled={!model || generic.isPending}
                     >
@@ -197,35 +217,35 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                 </div>
 
                 {generic.isError && (
-                    <p className="text-red-600 mt-3">{generic.error!.message}</p>
+                    <p className="text-red-600">{generic.error!.message}</p>
                 )}
 
                 {generic.data && (
-                    <div className="mt-4 overflow-auto flex-1 border rounded p-3 bg-gray-50">
+                    <div className="border rounded bg-gray-50 p-4 space-y-3">
                         {Object.entries(generic.data).map(([key, val]) => {
-                            const isOpen = !!expanded[key];
-                            const lines = String(val).split("\n");
+                            const str = String(val)
+                            const isLong = str.length > 100
+                            const isOpen = !!expanded[key]
+                            const preview = isOpen ? str : str.slice(0, 100) + (isLong ? "…" : "")
                             return (
                                 <div
                                     key={key}
-                                    className="mb-2 cursor-pointer"
-                                    onClick={() => toggleField(key)}
+                                    className="cursor-pointer"
+                                    onClick={() => isLong && toggleField(key)}
                                 >
                                     <div className="font-medium">{key}</div>
-                                    <div className="text-sm break-words">
-                                        {isOpen
-                                            ? String(val)
-                                            : lines[0] + (lines.length > 1 ? "…" : "")}
-                                    </div>
-                                    <div className="text-xs text-blue-500">
-                                        {isOpen ? "Show less" : "Show more"}
-                                    </div>
+                                    <div className="text-sm break-words">{preview}</div>
+                                    {isLong && (
+                                        <div className="text-xs text-blue-500">
+                                            {isOpen ? "Show less" : "Show more"}
+                                        </div>
+                                    )}
                                 </div>
-                            );
+                            )
                         })}
                     </div>
                 )}
             </DialogContent>
         </Dialog>
-    );
+    )
 }
