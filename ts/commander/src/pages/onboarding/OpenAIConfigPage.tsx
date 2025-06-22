@@ -5,21 +5,23 @@ import { useLLMConfigStore } from "@/stores/LLMConfigStore";
 import type { OpenAIConfig } from "@/stores/LLMConfigStore";
 import { OnboardingContainer } from "@/components/OnboardingContainer";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-// Change this to whatever default you prefer
-const DEFAULT_OPENAI_MODEL = "gpt-3.5-turbo";
+const DEFAULT_MODEL = "gpt-3.5-turbo";
 
 export default function OpenAIConfigPage() {
     const navigate = useNavigate();
-    const { addConfig, setDefault } = useLLMConfigStore();
+    const { configs, addConfig, setDefault } = useLLMConfigStore();
+    const existing = configs.openai;
 
-    const [apiKey, setApiKey] = useState("");
+    const [apiKey, setApiKey] = useState(existing?.apiKey || "");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [responseText, setResponseText] = useState<string | null>(null);
-    const [validated, setValidated] = useState(false);
+    const [validated, setValidated] = useState<boolean>(
+        Boolean(existing?.apiKey)
+    );
 
     const testConnection = async () => {
         setLoading(true);
@@ -33,24 +35,19 @@ export default function OpenAIConfigPage() {
                 body: JSON.stringify({
                     provider: "openai",
                     api_key: apiKey,
-                    model: DEFAULT_OPENAI_MODEL,
+                    model: DEFAULT_MODEL,
                     messages: [
                         { role: "system", text: "You are a helpful assistant." },
                         { role: "user", text: "Ping" },
                     ],
                 }),
             });
-
-            if (!res.ok) {
-                const err = await res.text();
-                throw new Error(err || "Unknown error");
-            }
-
-            const data: { text: string } = await res.json();
-            setResponseText(data.text);
+            if (!res.ok) throw new Error(await res.text() || "Validation failed");
+            const { text } = await res.json();
+            setResponseText(text);
             setValidated(true);
         } catch (e: any) {
-            setError(e.message || "Validation failed");
+            setError(e.message);
             setValidated(false);
         } finally {
             setLoading(false);
@@ -67,6 +64,8 @@ export default function OpenAIConfigPage() {
     return (
         <OnboardingContainer
             title="Configure OpenAI"
+            subtitle="Provide your OpenAI API key to enable hosted completions."
+            skip="/onboarding/xai"
             footer={
                 <>
                     <Button variant="secondary" onClick={() => navigate("/onboarding/lmstudio")}>
@@ -80,14 +79,14 @@ export default function OpenAIConfigPage() {
                         )}
                         {validated && <CheckCircle2 className="text-green-600 h-5 w-5" />}
                         <Button onClick={handleNext} disabled={!validated}>
-                            Next
+                            Next <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                     </div>
                 </>
             }
         >
             <p className="text-neutral-600">
-                Enter your OpenAI API key below to enable OpenAI.
+                Enter your OpenAI API key to enable text generation.
             </p>
             <Input
                 type="password"

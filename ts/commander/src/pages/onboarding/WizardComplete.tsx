@@ -21,7 +21,9 @@ export default function WizardComplete() {
             footer={
                 <>
                     {/* spacer to push button right */}
-                    <div />
+                    <Button variant="secondary" onClick={() => navigate("/onboarding/xai")}>
+                        Back
+                    </Button>
                     <Button onClick={handleFinish}
                         className="cursor-pointer"
                     >

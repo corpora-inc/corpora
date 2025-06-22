@@ -1,44 +1,50 @@
-// src/stores/llmConfigStore.ts
+// src/stores/LLMConfigStore.ts
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export type ProviderType = "openai" | "lmstudio" | "xai";
 
 export interface OpenAIConfig {
     provider: "openai";
     apiKey: string;
+    defaultModel?: string;
+    baseUrl?: string;
 }
 
 export interface LMStudioConfig {
     provider: "lmstudio";
+    baseUrl: string;
     defaultModel: string;
-    baseUrl: string;       // e.g. "http://host.docker.internal:1234/v1"
-    apiKey?: string;       // if LM Studio is token-protected
+    apiKey?: string;
 }
 
 export interface XAIConfig {
     provider: "xai";
     apiKey: string;
-    url?: string;          // optional override
+    defaultModel?: string;
+    baseUrl?: string;
 }
 
 export type LLMConfig = OpenAIConfig | LMStudioConfig | XAIConfig;
 
-type LLMState = {
+interface LLMState {
     configs: Record<ProviderType, LLMConfig | null>;
     defaultProvider: ProviderType | null;
+    availableModels: Record<ProviderType, string[]>;
 
     addConfig: (cfg: LLMConfig) => void;
     removeConfig: (provider: ProviderType) => void;
     setDefault: (provider: ProviderType) => void;
     clearAll: () => void;
-};
+    setAvailableModels: (provider: ProviderType, models: string[]) => void;
+}
 
 export const useLLMConfigStore = create<LLMState>()(
     persist(
-        (set, _get) => ({
+        (set) => ({
             configs: { openai: null, lmstudio: null, xai: null },
             defaultProvider: null,
+            availableModels: { openai: [], lmstudio: [], xai: [] },
 
             addConfig: (cfg) =>
                 set((s) => ({
@@ -58,8 +64,24 @@ export const useLLMConfigStore = create<LLMState>()(
                         s.configs[provider] != null ? provider : s.defaultProvider,
                 })),
 
-            clearAll: () => set({ configs: { openai: null, lmstudio: null, xai: null }, defaultProvider: null }),
+            clearAll: () =>
+                set({
+                    configs: { openai: null, lmstudio: null, xai: null },
+                    defaultProvider: null,
+                    availableModels: { openai: [], lmstudio: [], xai: [] },
+                }),
+
+            setAvailableModels: (provider, models) =>
+                set((s) => ({
+                    availableModels: {
+                        ...s.availableModels,
+                        [provider]: models,
+                    },
+                })),
         }),
-        { name: "corpora-llm-config" },
+        {
+            name: "corpora-llm-config",
+            storage: createJSONStorage(() => localStorage),
+        }
     )
 );
