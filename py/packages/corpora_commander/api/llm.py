@@ -32,7 +32,7 @@ def generic_data_completion(request, payload: GenericCompletionRequest):
     and return a dict matching that schema."""
     # 1) build the Pydantic model
     fields: Dict[str, tuple] = {}
-    for name, type_name in payload.schema.items():
+    for name, type_name in payload.fields_schema.items():
         py_type = TYPE_MAP.get(type_name)
         if py_type is None:
             raise ValueError(f"Unsupported field type: {type_name!r}")
