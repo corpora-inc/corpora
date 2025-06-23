@@ -182,41 +182,51 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
             >
                 <header className="flex items-center justify-between">
                     <DialogTitle className="text-xl font-semibold">
-                        Enhance with AI
+                        Mutate with AI
                     </DialogTitle>
                     <DialogClose className="cursor-pointer" />
                 </header>
 
                 <div className="grid grid-cols-2 gap-3">
-                    <Select
-                        value={provider}
-                        onValueChange={(v) => setProvider(v as ProviderType)}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Provider" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {providers.map((p) => (
-                                <SelectItem key={p} value={p}>
-                                    {p.toUpperCase()}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <div className="w-full">
+                        <Select
+                            value={provider}
+                            onValueChange={(v) => setProvider(v as ProviderType)}
+                        >
+                            <SelectTrigger
+                                className="w-full"
+                            >
+                                <SelectValue placeholder="Provider" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {providers.map((p) => (
+                                    <SelectItem key={p} value={p}>
+                                        {p.toUpperCase()}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                    <Select value={model} onValueChange={setModel}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Model" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {models.map((m) => (
-                                <SelectItem key={m} value={m}>
-                                    {m}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <div className="w-full">
+
+
+                        <Select value={model} onValueChange={setModel}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {models.map((m) => (
+                                    <SelectItem key={m} value={m}>
+                                        {m}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
+
+                {/* Prompt area */}
                 <Textarea
                     className="min-h-[6rem]"
                     placeholder="Extra prompt..."

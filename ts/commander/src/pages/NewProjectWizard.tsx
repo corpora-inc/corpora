@@ -59,6 +59,7 @@ export default function NewProjectWizard() {
 
     // keys we want AI to fill or refine:
     const enhanceSchema = {
+        title: "str",
         subtitle: "str",
         purpose: "str",
         instructions: "str",
@@ -184,7 +185,7 @@ export default function NewProjectWizard() {
                     onClick={() => setEnhanceOpen(true)}
                     disabled={!title.trim()}
                 >
-                    Enhance with AI
+                    Mutate with AI
                 </Button>
             </div>
 
@@ -205,6 +206,7 @@ export default function NewProjectWizard() {
 
             {/* ——— AI Enhance Modal ——— */}
             <LLMEnhanceModal<{
+                title: string;
                 subtitle: string;
                 purpose: string;
                 instructions: string;
@@ -213,6 +215,7 @@ export default function NewProjectWizard() {
                 open={enhanceOpen}
                 schema={enhanceSchema}
                 initialData={{
+                    title,
                     subtitle,
                     purpose,
                     instructions,
