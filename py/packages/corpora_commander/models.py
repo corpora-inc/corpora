@@ -45,3 +45,47 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Section(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(
+        "Project",
+        related_name="sections",
+        on_delete=models.CASCADE,
+    )
+    order = models.PositiveIntegerField(default=0)
+    title = models.CharField(max_length=200)
+    introduction = models.TextField(blank=True)
+    instructions = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order"]
+        unique_together = ("project", "order")
+
+    def __str__(self):
+        return self.title
+
+
+class Subsection(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    section = models.ForeignKey(
+        "Section",
+        related_name="subsections",
+        on_delete=models.CASCADE,
+    )
+    order = models.PositiveIntegerField(default=0)
+    title = models.CharField(max_length=200)
+    content = models.TextField(blank=True)
+    instructions = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["section__order", "order"]
+        unique_together = ("section", "order")
+
+    def __str__(self):
+        return self.title

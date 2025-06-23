@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-from .models import Project
+from .models import Project, Section, Subsection
 
 
 @admin.register(Project)
@@ -77,3 +77,32 @@ class ProjectAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+
+class SubsectionInline(admin.TabularInline):
+    model = Subsection
+    extra = 0
+    fields = ("order", "title", "instructions")
+    ordering = ("order",)
+
+
+class SectionInline(admin.TabularInline):
+    model = Section
+    extra = 0
+    fields = ("order", "title", "instructions")
+    ordering = ("order",)
+
+
+@admin.register(Section)
+class SectionAdmin(admin.ModelAdmin):
+    list_display = ("title", "project", "order", "created_at")
+    list_filter = ("project",)
+    ordering = ("project", "order")
+    inlines = (SubsectionInline,)
+
+
+@admin.register(Subsection)
+class SubsectionAdmin(admin.ModelAdmin):
+    list_display = ("title", "section", "order", "created_at")
+    list_filter = ("section__project", "section")
+    ordering = ("section__order", "order")
