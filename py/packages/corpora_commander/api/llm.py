@@ -12,7 +12,7 @@ class GenericCompletionRequest(BaseModel):
     provider: str
     config: Dict[str, Any]
     messages: List[ChatCompletionTextMessage]
-    schema: Dict[str, str]  # e.g. {"title": "str", "pages": "int"}
+    fields_schema: Dict[str, str]  # e.g. {"title": "str", "pages": "int"}
 
 
 # simple map from your schema types → Python types

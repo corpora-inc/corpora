@@ -3,11 +3,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { LLMEnhanceModal } from "@/components/LLMEnhanceModal";
 import {
     useCorporaCommanderApiProjectCreateProject,
 } from "@/api/commander/commander";
 import type { ProjectIn } from "@/api/schemas/projectIn";
-import { LLMEnhanceModal } from "@/components/LLMEnhanceModal";
 
 export default function NewProjectWizard() {
     const navigate = useNavigate();
@@ -21,17 +21,17 @@ export default function NewProjectWizard() {
     const [voice, setVoice] = useState("");
     const [hasImages, setHasImages] = useState(false);
 
-    // other metadata (optional, out of scope for AI enhancement)
+    // other metadata (optional)
     const [author, setAuthor] = useState("");
     const [publisher, setPublisher] = useState("");
     const [isbn, setIsbn] = useState("");
     const [language, setLanguage] = useState("en-US");
     const [publicationDate, setPublicationDate] = useState("");
 
-    // modal open?
+    // AI‐enhance modal
     const [enhanceOpen, setEnhanceOpen] = useState(false);
 
-    // derive loading / error from the createProject mutation
+    // mutation status
     const isPending = createProject.status === "pending";
     const isError = createProject.status === "error";
     const errorMessage = (createProject.error as Error | null)?.message ?? null;
@@ -48,16 +48,19 @@ export default function NewProjectWizard() {
             publication_date: publicationDate || undefined,
             instructions,
             voice,
+            has_images: hasImages,
         };
+
         try {
             const res = await createProject.mutateAsync({ data: payload });
+            // id is now a UUID string
             navigate(`/project/${res.data.id}`);
         } catch {
-            // errorMessage will render below
+            // errorMessage will display
         }
     };
 
-    // keys we want AI to fill or refine:
+    // which fields the AI should refine
     const enhanceSchema = {
         title: "str",
         subtitle: "str",
@@ -137,7 +140,7 @@ export default function NewProjectWizard() {
                     </label>
                 </div>
 
-                {/* Other metadata (optional) */}
+                {/* Other metadata */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium">Author</label>
@@ -157,7 +160,10 @@ export default function NewProjectWizard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium">ISBN</label>
-                        <Input value={isbn} onChange={(e) => setIsbn(e.target.value)} />
+                        <Input
+                            value={isbn}
+                            onChange={(e) => setIsbn(e.target.value)}
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium">Language</label>
@@ -196,10 +202,17 @@ export default function NewProjectWizard() {
 
             {/* Create / Cancel */}
             <div className="flex justify-end space-x-2">
-                <Button variant="secondary" onClick={() => navigate(-1)} disabled={isPending}>
+                <Button
+                    variant="secondary"
+                    onClick={() => navigate(-1)}
+                    disabled={isPending}
+                >
                     Cancel
                 </Button>
-                <Button onClick={handleCreate} disabled={!title.trim() || isPending}>
+                <Button
+                    onClick={handleCreate}
+                    disabled={!title.trim() || isPending}
+                >
                     {isPending ? "Creating…" : "Create Project"}
                 </Button>
             </div>
@@ -222,10 +235,18 @@ export default function NewProjectWizard() {
                     voice,
                 }}
                 onAccept={(suggested) => {
-                    if (typeof suggested.subtitle === "string") setSubtitle(suggested.subtitle);
-                    if (typeof suggested.purpose === "string") setPurpose(suggested.purpose);
-                    if (typeof suggested.instructions === "string") setInstructions(suggested.instructions);
-                    if (typeof suggested.voice === "string") setVoice(suggested.voice);
+                    if (typeof suggested.subtitle === "string") {
+                        setSubtitle(suggested.subtitle);
+                    }
+                    if (typeof suggested.purpose === "string") {
+                        setPurpose(suggested.purpose);
+                    }
+                    if (typeof suggested.instructions === "string") {
+                        setInstructions(suggested.instructions);
+                    }
+                    if (typeof suggested.voice === "string") {
+                        setVoice(suggested.voice);
+                    }
                     setEnhanceOpen(false);
                 }}
                 onClose={() => setEnhanceOpen(false)}

@@ -26,7 +26,8 @@ export interface ProjectOut {
   publication_date?: ProjectOutPublicationDate;
   instructions?: ProjectOutInstructions;
   voice?: ProjectOutVoice;
-  id: number;
+  has_images?: boolean;
+  id: string;
   created_at: string;
   updated_at: string;
 }

@@ -2,6 +2,7 @@
 
 from datetime import date, datetime
 from typing import List, Optional
+from uuid import UUID
 
 from django.shortcuts import get_object_or_404
 from pydantic import BaseModel
@@ -22,10 +23,11 @@ class ProjectIn(BaseModel):
     publication_date: Optional[date] = None
     instructions: Optional[str] = ""
     voice: Optional[str] = ""
+    has_images: bool = False  # new field
 
 
 class ProjectOut(ProjectIn):
-    id: int
+    id: UUID  # now a UUID
     created_at: datetime
     updated_at: datetime
 
@@ -44,6 +46,7 @@ class ProjectUpdate(BaseModel):
     publication_date: Optional[date]
     instructions: Optional[str]
     voice: Optional[str]
+    has_images: Optional[bool]  # allow patching this flag
 
 
 @router.get("/projects/", response=List[ProjectOut])
@@ -64,7 +67,7 @@ def create_project(request, payload: ProjectIn):
 
 
 @router.get("/projects/{project_id}", response=ProjectOut)
-def get_project(request, project_id: int):
+def get_project(request, project_id: UUID):
     """
     Retrieve a single project by its ID.
     """
@@ -73,7 +76,7 @@ def get_project(request, project_id: int):
 
 
 @router.put("/projects/{project_id}", response=ProjectOut)
-def update_project(request, project_id: int, payload: ProjectUpdate):
+def update_project(request, project_id: UUID, payload: ProjectUpdate):
     """
     Update the given fields on a project.
     """
@@ -86,7 +89,7 @@ def update_project(request, project_id: int, payload: ProjectUpdate):
 
 
 @router.delete("/projects/{project_id}")
-def delete_project(request, project_id: int):
+def delete_project(request, project_id: UUID):
     """
     Delete a project.
     """

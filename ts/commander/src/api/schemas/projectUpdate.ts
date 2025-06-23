@@ -15,6 +15,7 @@ import type { ProjectUpdateLanguage } from "./projectUpdateLanguage";
 import type { ProjectUpdatePublicationDate } from "./projectUpdatePublicationDate";
 import type { ProjectUpdateInstructions } from "./projectUpdateInstructions";
 import type { ProjectUpdateVoice } from "./projectUpdateVoice";
+import type { ProjectUpdateHasImages } from "./projectUpdateHasImages";
 
 export interface ProjectUpdate {
   title: ProjectUpdateTitle;
@@ -27,4 +28,5 @@ export interface ProjectUpdate {
   publication_date: ProjectUpdatePublicationDate;
   instructions: ProjectUpdateInstructions;
   voice: ProjectUpdateVoice;
+  has_images: ProjectUpdateHasImages;
 }

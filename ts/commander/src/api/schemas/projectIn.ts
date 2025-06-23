@@ -26,4 +26,5 @@ export interface ProjectIn {
   publication_date?: ProjectInPublicationDate;
   instructions?: ProjectInInstructions;
   voice?: ProjectInVoice;
+  has_images?: boolean;
 }

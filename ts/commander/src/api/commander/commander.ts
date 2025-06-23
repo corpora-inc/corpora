@@ -27,6 +27,8 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import type {
   CompletionRequest,
   CompletionResponse,
+  CorporaCommanderApiLlmGenericDataCompletion200,
+  GenericCompletionRequest,
   LMStudioPing,
   OpenAIModelsRequest,
   ProjectIn,
@@ -656,14 +658,14 @@ export const useCorporaCommanderApiProjectCreateProject = <
  * @summary Get Project
  */
 export const corporaCommanderApiProjectGetProject = (
-  projectId: number,
+  projectId: string,
   options?: AxiosRequestConfig,
 ): Promise<AxiosResponse<ProjectOut>> => {
   return axios.default.get(`/api/commander/projects/${projectId}`, options);
 };
 
 export const getCorporaCommanderApiProjectGetProjectQueryKey = (
-  projectId: number,
+  projectId: string,
 ) => {
   return [`/api/commander/projects/${projectId}`] as const;
 };
@@ -672,7 +674,7 @@ export const getCorporaCommanderApiProjectGetProjectQueryOptions = <
   TData = Awaited<ReturnType<typeof corporaCommanderApiProjectGetProject>>,
   TError = AxiosError<unknown>,
 >(
-  projectId: number,
+  projectId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -720,7 +722,7 @@ export function useCorporaCommanderApiProjectGetProject<
   TData = Awaited<ReturnType<typeof corporaCommanderApiProjectGetProject>>,
   TError = AxiosError<unknown>,
 >(
-  projectId: number,
+  projectId: string,
   options: {
     query: Partial<
       UseQueryOptions<
@@ -747,7 +749,7 @@ export function useCorporaCommanderApiProjectGetProject<
   TData = Awaited<ReturnType<typeof corporaCommanderApiProjectGetProject>>,
   TError = AxiosError<unknown>,
 >(
-  projectId: number,
+  projectId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -774,7 +776,7 @@ export function useCorporaCommanderApiProjectGetProject<
   TData = Awaited<ReturnType<typeof corporaCommanderApiProjectGetProject>>,
   TError = AxiosError<unknown>,
 >(
-  projectId: number,
+  projectId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -797,7 +799,7 @@ export function useCorporaCommanderApiProjectGetProject<
   TData = Awaited<ReturnType<typeof corporaCommanderApiProjectGetProject>>,
   TError = AxiosError<unknown>,
 >(
-  projectId: number,
+  projectId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -832,7 +834,7 @@ export function useCorporaCommanderApiProjectGetProject<
  * @summary Update Project
  */
 export const corporaCommanderApiProjectUpdateProject = (
-  projectId: number,
+  projectId: string,
   projectUpdate: ProjectUpdate,
   options?: AxiosRequestConfig,
 ): Promise<AxiosResponse<ProjectOut>> => {
@@ -850,14 +852,14 @@ export const getCorporaCommanderApiProjectUpdateProjectMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof corporaCommanderApiProjectUpdateProject>>,
     TError,
-    { projectId: number; data: ProjectUpdate },
+    { projectId: string; data: ProjectUpdate },
     TContext
   >;
   axios?: AxiosRequestConfig;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof corporaCommanderApiProjectUpdateProject>>,
   TError,
-  { projectId: number; data: ProjectUpdate },
+  { projectId: string; data: ProjectUpdate },
   TContext
 > => {
   const mutationKey = ["corporaCommanderApiProjectUpdateProject"];
@@ -871,7 +873,7 @@ export const getCorporaCommanderApiProjectUpdateProjectMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof corporaCommanderApiProjectUpdateProject>>,
-    { projectId: number; data: ProjectUpdate }
+    { projectId: string; data: ProjectUpdate }
   > = (props) => {
     const { projectId, data } = props ?? {};
 
@@ -905,7 +907,7 @@ export const useCorporaCommanderApiProjectUpdateProject = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof corporaCommanderApiProjectUpdateProject>>,
       TError,
-      { projectId: number; data: ProjectUpdate },
+      { projectId: string; data: ProjectUpdate },
       TContext
     >;
     axios?: AxiosRequestConfig;
@@ -914,7 +916,7 @@ export const useCorporaCommanderApiProjectUpdateProject = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof corporaCommanderApiProjectUpdateProject>>,
   TError,
-  { projectId: number; data: ProjectUpdate },
+  { projectId: string; data: ProjectUpdate },
   TContext
 > => {
   const mutationOptions =
@@ -927,7 +929,7 @@ export const useCorporaCommanderApiProjectUpdateProject = <
  * @summary Delete Project
  */
 export const corporaCommanderApiProjectDeleteProject = (
-  projectId: number,
+  projectId: string,
   options?: AxiosRequestConfig,
 ): Promise<AxiosResponse<void>> => {
   return axios.default.delete(`/api/commander/projects/${projectId}`, options);
@@ -940,14 +942,14 @@ export const getCorporaCommanderApiProjectDeleteProjectMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof corporaCommanderApiProjectDeleteProject>>,
     TError,
-    { projectId: number },
+    { projectId: string },
     TContext
   >;
   axios?: AxiosRequestConfig;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof corporaCommanderApiProjectDeleteProject>>,
   TError,
-  { projectId: number },
+  { projectId: string },
   TContext
 > => {
   const mutationKey = ["corporaCommanderApiProjectDeleteProject"];
@@ -961,7 +963,7 @@ export const getCorporaCommanderApiProjectDeleteProjectMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof corporaCommanderApiProjectDeleteProject>>,
-    { projectId: number }
+    { projectId: string }
   > = (props) => {
     const { projectId } = props ?? {};
 
@@ -990,7 +992,7 @@ export const useCorporaCommanderApiProjectDeleteProject = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof corporaCommanderApiProjectDeleteProject>>,
       TError,
-      { projectId: number },
+      { projectId: string },
       TContext
     >;
     axios?: AxiosRequestConfig;
@@ -999,11 +1001,102 @@ export const useCorporaCommanderApiProjectDeleteProject = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof corporaCommanderApiProjectDeleteProject>>,
   TError,
-  { projectId: number },
+  { projectId: string },
   TContext
 > => {
   const mutationOptions =
     getCorporaCommanderApiProjectDeleteProjectMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Dynamically build a Pydantic model from `schema`, invoke the LLM,
+and return a dict matching that schema.
+ * @summary Generic Data Completion
+ */
+export const corporaCommanderApiLlmGenericDataCompletion = (
+  genericCompletionRequest: GenericCompletionRequest,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<CorporaCommanderApiLlmGenericDataCompletion200>> => {
+  return axios.default.post(
+    `/api/commander/generic/complete`,
+    genericCompletionRequest,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiLlmGenericDataCompletionMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>,
+    TError,
+    { data: GenericCompletionRequest },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>,
+  TError,
+  { data: GenericCompletionRequest },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiLlmGenericDataCompletion"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>,
+    { data: GenericCompletionRequest }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return corporaCommanderApiLlmGenericDataCompletion(data, axiosOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiLlmGenericDataCompletionMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>
+  >;
+export type CorporaCommanderApiLlmGenericDataCompletionMutationBody =
+  GenericCompletionRequest;
+export type CorporaCommanderApiLlmGenericDataCompletionMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Generic Data Completion
+ */
+export const useCorporaCommanderApiLlmGenericDataCompletion = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>,
+      TError,
+      { data: GenericCompletionRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>,
+  TError,
+  { data: GenericCompletionRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiLlmGenericDataCompletionMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

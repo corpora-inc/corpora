@@ -1,7 +1,17 @@
+# src/models.py
+import uuid
+
 from django.db import models
 
 
 class Project(models.Model):
+    # 1) UUID primary key
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
     title = models.CharField(max_length=200)
     subtitle = models.CharField(max_length=500, blank=True)
     purpose = models.TextField(blank=True)
@@ -10,6 +20,12 @@ class Project(models.Model):
     isbn = models.CharField(max_length=32, blank=True)
     language = models.CharField(max_length=10, default="en-US")
     publication_date = models.DateField(null=True, blank=True)
+
+    # NEW: do we include images?
+    has_images = models.BooleanField(
+        default=False,
+        help_text="Whether this project will include images",
+    )
 
     # LLM guidance fields
     instructions = models.TextField(

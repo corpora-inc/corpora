@@ -28,7 +28,7 @@ export interface GenericCompleteRequest<T> {
     provider: ProviderType
     config: LLMConfig
     messages: ChatMessage[]
-    schema: Record<keyof T, 'str' | 'int' | 'bool'>
+    fields_schema: Record<keyof T, 'str' | 'int' | 'bool'>
 }
 export type GenericCompleteResponse<T> = Partial<T>
 
@@ -158,7 +158,7 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                     )}`,
                 },
             ],
-            schema,
+            fields_schema: schema,
         })
     }
 
