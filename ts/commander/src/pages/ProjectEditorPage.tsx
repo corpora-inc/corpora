@@ -1,47 +1,29 @@
-// src/pages/ProjectEditorPage.tsx
 import { useState } from "react"
 import { useParams } from "react-router-dom"
 import { Loader2 } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogClose,
-} from "@/components/ui/dialog"
-
 import {
     useCorporaCommanderApiProjectGetProject,
     useCorporaCommanderApiSectionListSections,
-    useCorporaCommanderApiOutlineGenerateOutline,
     useCorporaCommanderApiSectionCreateSection,
     useCorporaCommanderApiSubsectionCreateSubsection,
 } from "@/api/commander/commander"
-
-import { useLLMConfigStore } from "@/stores/LLMConfigStore"
+import { GenerateOutlineDialog } from "@/components/GenerateOutlineDialog"
 
 import type { SectionOut } from "@/api/schemas/sectionOut"
 import type { OutlineResponse } from "@/api/schemas/outlineResponse"
-import type { SectionOutline } from "@/api/schemas/sectionOutline"
-import type { OutlineRequestConfig } from "@/api/schemas/outlineRequestConfig"
 
 export default function ProjectEditorPage() {
     const { id } = useParams<{ id: string }>()
-
     const projectQuery = useCorporaCommanderApiProjectGetProject(
         id!, { query: { enabled: !!id } }
     )
     const sectionsQuery = useCorporaCommanderApiSectionListSections(
         id!, { query: { enabled: !!id } }
     )
-    const outlineGen = useCorporaCommanderApiOutlineGenerateOutline()
     const createSection = useCorporaCommanderApiSectionCreateSection()
     const createSubsection = useCorporaCommanderApiSubsectionCreateSubsection()
 
-    const { configs, defaultProvider } = useLLMConfigStore()
-
-    const [outline, setOutline] = useState<OutlineResponse | null>(null)
     const [isOutlineOpen, setIsOutlineOpen] = useState(false)
 
     if (!id) {
@@ -69,25 +51,11 @@ export default function ProjectEditorPage() {
         )
     }
 
-    // After loading + error checks, data is guaranteed
     const project = projectQuery.data!.data
     const sections = sectionsQuery.data!.data!
 
-    const handleGenerateOutline = async () => {
-        setIsOutlineOpen(true)
-        const res = await outlineGen.mutateAsync({
-            projectId: id!,
-            data: {
-                provider: defaultProvider!,
-                // cast your LLMConfig to the generated OutlineRequestConfig
-                config: configs[defaultProvider!]! as unknown as OutlineRequestConfig,
-            },
-        })
-        setOutline(res.data)
-    }
-
-    const handleAcceptOutline = async () => {
-        if (!outline) return
+    // Accept an outline: create all sections and subsections, then refresh
+    const handleAcceptOutline = async (outline: OutlineResponse) => {
         for (const sec of outline.sections) {
             const secRes = await createSection.mutateAsync({
                 projectId: id!,
@@ -111,7 +79,7 @@ export default function ProjectEditorPage() {
                 })
             }
         }
-        sectionsQuery.refetch()
+        await sectionsQuery.refetch()
         setIsOutlineOpen(false)
     }
 
@@ -120,13 +88,12 @@ export default function ProjectEditorPage() {
             <div className="flex h-full">
                 <aside className="hidden w-64 border-r p-4 md:block">
                     <h2 className="mb-4 text-lg font-semibold">Outline</h2>
-
                     {sections.length === 0 ? (
                         <div className="space-y-2">
                             <p className="text-sm text-gray-600">
-                                You haven’t created any sections yet.
+                                You haven't created any sections yet.
                             </p>
-                            <Button onClick={handleGenerateOutline}>
+                            <Button onClick={() => setIsOutlineOpen(true)}>
                                 Generate outline
                             </Button>
                         </div>
@@ -158,7 +125,6 @@ export default function ProjectEditorPage() {
                             <p className="mt-1 text-gray-600">{project.subtitle}</p>
                         )}
                     </header>
-
                     <div>
                         <label className="block text-sm font-medium text-gray-700">
                             Draft content
@@ -172,57 +138,21 @@ export default function ProjectEditorPage() {
                 </main>
             </div>
 
-            <Dialog
+            <GenerateOutlineDialog
                 open={isOutlineOpen}
-                onOpenChange={(open) => !open && setIsOutlineOpen(false)}
-            >
-                <DialogContent className="max-w-xl space-y-4">
-                    <header className="flex items-center justify-between">
-                        <DialogTitle className="text-xl font-semibold">
-                            AI-Proposed Outline
-                        </DialogTitle>
-                        <DialogClose className="cursor-pointer" />
-                    </header>
+                onClose={() => setIsOutlineOpen(false)}
+                projectMeta={{
+                    id,
+                    title: project.title,
+                    subtitle: project.subtitle,
+                    purpose: project.purpose,
+                    has_images: project.has_images,
+                    instructions: project.instructions,
+                    voice: project.voice,
 
-                    {outlineGen.isPending ? (
-                        <div className="py-6 flex justify-center">
-                            <Loader2 className="animate-spin h-6 w-6 text-gray-500" />
-                        </div>
-                    ) : outline ? (
-                        outline.sections.map((sec: SectionOutline) => (
-                            <div key={sec.order} className="space-y-1">
-                                <h3 className="font-semibold">
-                                    {sec.order + 1}. {sec.title}
-                                </h3>
-                                <p className="text-sm text-gray-600">
-                                    {sec.instructions}
-                                </p>
-                                <div className="pl-4">
-                                    {sec.subsections.map((sub) => (
-                                        <div key={sub.order} className="mb-2">
-                                            <h4 className="font-medium">
-                                                {sub.order + 1}. {sub.title}
-                                            </h4>
-                                            <p className="text-sm text-gray-600">
-                                                {sub.instructions}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))
-                    ) : null}
-
-                    <div className="flex justify-end space-x-2">
-                        <Button variant="secondary" onClick={() => setIsOutlineOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button onClick={handleAcceptOutline} disabled={!outline}>
-                            Accept
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                }}
+                onAccept={handleAcceptOutline}
+            />
         </>
     )
 }

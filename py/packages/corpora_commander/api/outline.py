@@ -14,6 +14,7 @@ from .router import router
 class OutlineRequest(BaseModel):
     provider: str
     config: Dict[str, Any]
+    prompt: str
 
 
 class SubsectionOutline(BaseModel):
@@ -52,7 +53,9 @@ def generate_outline(
                 f"title: {proj.title}\n"
                 f"subtitle: {proj.subtitle}\n"
                 f"purpose: {proj.purpose}\n"
-                f"has_images: {proj.has_images}\n\n"
+                f"General Instructions: {proj.instructions}\n\n"
+                f"Voice: {proj.voice}\n\n"
+                f"Prompt: {payload.prompt}\n\n"
                 f"Return JSON matching schema:\n"
                 f"{OutlineResponse.model_json_schema()}"
             ),

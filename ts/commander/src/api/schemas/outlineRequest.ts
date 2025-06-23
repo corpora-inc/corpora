@@ -10,4 +10,5 @@ import type { OutlineRequestConfig } from "./outlineRequestConfig";
 export interface OutlineRequest {
   provider: string;
   config: OutlineRequestConfig;
+  prompt: string;
 }
