@@ -54,6 +54,7 @@ def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
         )
 
     if provider_name == "local":
+        kwargs.pop("api_key", None)
         return LocalClient(**kwargs)
 
     # Placeholder for additional providers (e.g., Anthropic)
