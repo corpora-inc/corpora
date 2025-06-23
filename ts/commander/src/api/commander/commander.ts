@@ -27,16 +27,19 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import type {
   CompletionRequest,
   CompletionResponse,
-  CorporaCommanderApiLlmGenericDataCompletion200,
-  GenericCompletionRequest,
   LMStudioPing,
   OpenAIModelsRequest,
+  OutlineRequest,
+  OutlineResponse,
   ProjectIn,
   ProjectOut,
   ProjectUpdate,
   SectionIn,
   SectionOut,
   SectionUpdate,
+  SubsectionIn,
+  SubsectionOut,
+  SubsectionUpdate,
   XAIModelsRequest,
   XAIModelsResponse,
 } from ".././schemas";
@@ -1013,97 +1016,6 @@ export const useCorporaCommanderApiProjectDeleteProject = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * Dynamically build a Pydantic model from `schema`, invoke the LLM,
-and return a dict matching that schema.
- * @summary Generic Data Completion
- */
-export const corporaCommanderApiLlmGenericDataCompletion = (
-  genericCompletionRequest: GenericCompletionRequest,
-  options?: AxiosRequestConfig,
-): Promise<AxiosResponse<CorporaCommanderApiLlmGenericDataCompletion200>> => {
-  return axios.default.post(
-    `/api/commander/generic/complete`,
-    genericCompletionRequest,
-    options,
-  );
-};
-
-export const getCorporaCommanderApiLlmGenericDataCompletionMutationOptions = <
-  TError = AxiosError<unknown>,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>,
-    TError,
-    { data: GenericCompletionRequest },
-    TContext
-  >;
-  axios?: AxiosRequestConfig;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>,
-  TError,
-  { data: GenericCompletionRequest },
-  TContext
-> => {
-  const mutationKey = ["corporaCommanderApiLlmGenericDataCompletion"];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>,
-    { data: GenericCompletionRequest }
-  > = (props) => {
-    const { data } = props ?? {};
-
-    return corporaCommanderApiLlmGenericDataCompletion(data, axiosOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type CorporaCommanderApiLlmGenericDataCompletionMutationResult =
-  NonNullable<
-    Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>
-  >;
-export type CorporaCommanderApiLlmGenericDataCompletionMutationBody =
-  GenericCompletionRequest;
-export type CorporaCommanderApiLlmGenericDataCompletionMutationError =
-  AxiosError<unknown>;
-
-/**
- * @summary Generic Data Completion
- */
-export const useCorporaCommanderApiLlmGenericDataCompletion = <
-  TError = AxiosError<unknown>,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>,
-      TError,
-      { data: GenericCompletionRequest },
-      TContext
-    >;
-    axios?: AxiosRequestConfig;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof corporaCommanderApiLlmGenericDataCompletion>>,
-  TError,
-  { data: GenericCompletionRequest },
-  TContext
-> => {
-  const mutationOptions =
-    getCorporaCommanderApiLlmGenericDataCompletionMutationOptions(options);
-
-  return useMutation(mutationOptions, queryClient);
-};
-/**
  * @summary List Sections
  */
 export const corporaCommanderApiSectionListSections = (
@@ -1724,6 +1636,796 @@ export const useCorporaCommanderApiSectionDeleteSection = <
 > => {
   const mutationOptions =
     getCorporaCommanderApiSectionDeleteSectionMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary List Subsections
+ */
+export const corporaCommanderApiSubsectionListSubsections = (
+  sectionId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<SubsectionOut[]>> => {
+  return axios.default.get(
+    `/api/commander/sections/${sectionId}/subsections`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiSubsectionListSubsectionsQueryKey = (
+  sectionId: string,
+) => {
+  return [`/api/commander/sections/${sectionId}/subsections`] as const;
+};
+
+export const getCorporaCommanderApiSubsectionListSubsectionsQueryOptions = <
+  TData = Awaited<
+    ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+  >,
+  TError = AxiosError<unknown>,
+>(
+  sectionId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+        >,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCorporaCommanderApiSubsectionListSubsectionsQueryKey(sectionId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionListSubsections>>
+  > = ({ signal }) =>
+    corporaCommanderApiSubsectionListSubsections(sectionId, {
+      signal,
+      ...axiosOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!sectionId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionListSubsections>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CorporaCommanderApiSubsectionListSubsectionsQueryResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionListSubsections>>
+  >;
+export type CorporaCommanderApiSubsectionListSubsectionsQueryError =
+  AxiosError<unknown>;
+
+export function useCorporaCommanderApiSubsectionListSubsections<
+  TData = Awaited<
+    ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+  >,
+  TError = AxiosError<unknown>,
+>(
+  sectionId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<
+            ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+          >,
+          TError,
+          Awaited<
+            ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+          >
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiSubsectionListSubsections<
+  TData = Awaited<
+    ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+  >,
+  TError = AxiosError<unknown>,
+>(
+  sectionId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<
+            ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+          >,
+          TError,
+          Awaited<
+            ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+          >
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiSubsectionListSubsections<
+  TData = Awaited<
+    ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+  >,
+  TError = AxiosError<unknown>,
+>(
+  sectionId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+        >,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List Subsections
+ */
+
+export function useCorporaCommanderApiSubsectionListSubsections<
+  TData = Awaited<
+    ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+  >,
+  TError = AxiosError<unknown>,
+>(
+  sectionId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<typeof corporaCommanderApiSubsectionListSubsections>
+        >,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions =
+    getCorporaCommanderApiSubsectionListSubsectionsQueryOptions(
+      sectionId,
+      options,
+    );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Create Subsection
+ */
+export const corporaCommanderApiSubsectionCreateSubsection = (
+  sectionId: string,
+  subsectionIn: SubsectionIn,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<SubsectionOut>> => {
+  return axios.default.post(
+    `/api/commander/sections/${sectionId}/subsections`,
+    subsectionIn,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiSubsectionCreateSubsectionMutationOptions =
+  <TError = AxiosError<unknown>, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiSubsectionCreateSubsection>
+      >,
+      TError,
+      { sectionId: string; data: SubsectionIn },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  }): UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionCreateSubsection>>,
+    TError,
+    { sectionId: string; data: SubsectionIn },
+    TContext
+  > => {
+    const mutationKey = ["corporaCommanderApiSubsectionCreateSubsection"];
+    const { mutation: mutationOptions, axios: axiosOptions } = options
+      ? options.mutation &&
+        "mutationKey" in options.mutation &&
+        options.mutation.mutationKey
+        ? options
+        : { ...options, mutation: { ...options.mutation, mutationKey } }
+      : { mutation: { mutationKey }, axios: undefined };
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiSubsectionCreateSubsection>
+      >,
+      { sectionId: string; data: SubsectionIn }
+    > = (props) => {
+      const { sectionId, data } = props ?? {};
+
+      return corporaCommanderApiSubsectionCreateSubsection(
+        sectionId,
+        data,
+        axiosOptions,
+      );
+    };
+
+    return { mutationFn, ...mutationOptions };
+  };
+
+export type CorporaCommanderApiSubsectionCreateSubsectionMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionCreateSubsection>>
+  >;
+export type CorporaCommanderApiSubsectionCreateSubsectionMutationBody =
+  SubsectionIn;
+export type CorporaCommanderApiSubsectionCreateSubsectionMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Create Subsection
+ */
+export const useCorporaCommanderApiSubsectionCreateSubsection = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiSubsectionCreateSubsection>
+      >,
+      TError,
+      { sectionId: string; data: SubsectionIn },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiSubsectionCreateSubsection>>,
+  TError,
+  { sectionId: string; data: SubsectionIn },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiSubsectionCreateSubsectionMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Get Subsection
+ */
+export const corporaCommanderApiSubsectionGetSubsection = (
+  subsectionId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<SubsectionOut>> => {
+  return axios.default.get(
+    `/api/commander/subsections/${subsectionId}`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiSubsectionGetSubsectionQueryKey = (
+  subsectionId: string,
+) => {
+  return [`/api/commander/subsections/${subsectionId}`] as const;
+};
+
+export const getCorporaCommanderApiSubsectionGetSubsectionQueryOptions = <
+  TData = Awaited<
+    ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>
+  >,
+  TError = AxiosError<unknown>,
+>(
+  subsectionId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCorporaCommanderApiSubsectionGetSubsectionQueryKey(subsectionId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>>
+  > = ({ signal }) =>
+    corporaCommanderApiSubsectionGetSubsection(subsectionId, {
+      signal,
+      ...axiosOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!subsectionId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CorporaCommanderApiSubsectionGetSubsectionQueryResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>>
+  >;
+export type CorporaCommanderApiSubsectionGetSubsectionQueryError =
+  AxiosError<unknown>;
+
+export function useCorporaCommanderApiSubsectionGetSubsection<
+  TData = Awaited<
+    ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>
+  >,
+  TError = AxiosError<unknown>,
+>(
+  subsectionId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<
+            ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>
+          >,
+          TError,
+          Awaited<
+            ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>
+          >
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiSubsectionGetSubsection<
+  TData = Awaited<
+    ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>
+  >,
+  TError = AxiosError<unknown>,
+>(
+  subsectionId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<
+            ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>
+          >,
+          TError,
+          Awaited<
+            ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>
+          >
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiSubsectionGetSubsection<
+  TData = Awaited<
+    ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>
+  >,
+  TError = AxiosError<unknown>,
+>(
+  subsectionId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get Subsection
+ */
+
+export function useCorporaCommanderApiSubsectionGetSubsection<
+  TData = Awaited<
+    ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>
+  >,
+  TError = AxiosError<unknown>,
+>(
+  subsectionId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSubsectionGetSubsection>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions =
+    getCorporaCommanderApiSubsectionGetSubsectionQueryOptions(
+      subsectionId,
+      options,
+    );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Update Subsection
+ */
+export const corporaCommanderApiSubsectionUpdateSubsection = (
+  subsectionId: string,
+  subsectionUpdate: SubsectionUpdate,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<SubsectionOut>> => {
+  return axios.default.put(
+    `/api/commander/subsections/${subsectionId}`,
+    subsectionUpdate,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiSubsectionUpdateSubsectionMutationOptions =
+  <TError = AxiosError<unknown>, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiSubsectionUpdateSubsection>
+      >,
+      TError,
+      { subsectionId: string; data: SubsectionUpdate },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  }): UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionUpdateSubsection>>,
+    TError,
+    { subsectionId: string; data: SubsectionUpdate },
+    TContext
+  > => {
+    const mutationKey = ["corporaCommanderApiSubsectionUpdateSubsection"];
+    const { mutation: mutationOptions, axios: axiosOptions } = options
+      ? options.mutation &&
+        "mutationKey" in options.mutation &&
+        options.mutation.mutationKey
+        ? options
+        : { ...options, mutation: { ...options.mutation, mutationKey } }
+      : { mutation: { mutationKey }, axios: undefined };
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiSubsectionUpdateSubsection>
+      >,
+      { subsectionId: string; data: SubsectionUpdate }
+    > = (props) => {
+      const { subsectionId, data } = props ?? {};
+
+      return corporaCommanderApiSubsectionUpdateSubsection(
+        subsectionId,
+        data,
+        axiosOptions,
+      );
+    };
+
+    return { mutationFn, ...mutationOptions };
+  };
+
+export type CorporaCommanderApiSubsectionUpdateSubsectionMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionUpdateSubsection>>
+  >;
+export type CorporaCommanderApiSubsectionUpdateSubsectionMutationBody =
+  SubsectionUpdate;
+export type CorporaCommanderApiSubsectionUpdateSubsectionMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Update Subsection
+ */
+export const useCorporaCommanderApiSubsectionUpdateSubsection = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiSubsectionUpdateSubsection>
+      >,
+      TError,
+      { subsectionId: string; data: SubsectionUpdate },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiSubsectionUpdateSubsection>>,
+  TError,
+  { subsectionId: string; data: SubsectionUpdate },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiSubsectionUpdateSubsectionMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Delete Subsection
+ */
+export const corporaCommanderApiSubsectionDeleteSubsection = (
+  subsectionId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<void>> => {
+  return axios.default.delete(
+    `/api/commander/subsections/${subsectionId}`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiSubsectionDeleteSubsectionMutationOptions =
+  <TError = AxiosError<unknown>, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiSubsectionDeleteSubsection>
+      >,
+      TError,
+      { subsectionId: string },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  }): UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionDeleteSubsection>>,
+    TError,
+    { subsectionId: string },
+    TContext
+  > => {
+    const mutationKey = ["corporaCommanderApiSubsectionDeleteSubsection"];
+    const { mutation: mutationOptions, axios: axiosOptions } = options
+      ? options.mutation &&
+        "mutationKey" in options.mutation &&
+        options.mutation.mutationKey
+        ? options
+        : { ...options, mutation: { ...options.mutation, mutationKey } }
+      : { mutation: { mutationKey }, axios: undefined };
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiSubsectionDeleteSubsection>
+      >,
+      { subsectionId: string }
+    > = (props) => {
+      const { subsectionId } = props ?? {};
+
+      return corporaCommanderApiSubsectionDeleteSubsection(
+        subsectionId,
+        axiosOptions,
+      );
+    };
+
+    return { mutationFn, ...mutationOptions };
+  };
+
+export type CorporaCommanderApiSubsectionDeleteSubsectionMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiSubsectionDeleteSubsection>>
+  >;
+
+export type CorporaCommanderApiSubsectionDeleteSubsectionMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Delete Subsection
+ */
+export const useCorporaCommanderApiSubsectionDeleteSubsection = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiSubsectionDeleteSubsection>
+      >,
+      TError,
+      { subsectionId: string },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiSubsectionDeleteSubsection>>,
+  TError,
+  { subsectionId: string },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiSubsectionDeleteSubsectionMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Generate Outline
+ */
+export const corporaCommanderApiOutlineGenerateOutline = (
+  projectId: string,
+  outlineRequest: OutlineRequest,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<OutlineResponse>> => {
+  return axios.default.post(
+    `/api/commander/projects/${projectId}/outline`,
+    outlineRequest,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiOutlineGenerateOutlineMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiOutlineGenerateOutline>>,
+    TError,
+    { projectId: string; data: OutlineRequest },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiOutlineGenerateOutline>>,
+  TError,
+  { projectId: string; data: OutlineRequest },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiOutlineGenerateOutline"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiOutlineGenerateOutline>>,
+    { projectId: string; data: OutlineRequest }
+  > = (props) => {
+    const { projectId, data } = props ?? {};
+
+    return corporaCommanderApiOutlineGenerateOutline(
+      projectId,
+      data,
+      axiosOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiOutlineGenerateOutlineMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiOutlineGenerateOutline>>
+  >;
+export type CorporaCommanderApiOutlineGenerateOutlineMutationBody =
+  OutlineRequest;
+export type CorporaCommanderApiOutlineGenerateOutlineMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Generate Outline
+ */
+export const useCorporaCommanderApiOutlineGenerateOutline = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiOutlineGenerateOutline>>,
+      TError,
+      { projectId: string; data: OutlineRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiOutlineGenerateOutline>>,
+  TError,
+  { projectId: string; data: OutlineRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiOutlineGenerateOutlineMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
