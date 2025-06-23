@@ -1,12 +1,10 @@
 from typing import Any, Dict, List, Optional, Type
 
 from corpora_ai.llm_interface import ChatCompletionTextMessage
-from ninja import Router
 from pydantic import BaseModel, ValidationError, create_model
 
 from .llm_utils import build_llm
-
-router = Router(tags=["commander"])
+from .router import router
 
 
 class GenericCompletionRequest(BaseModel):
