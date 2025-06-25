@@ -66,6 +66,7 @@ def export_pdf(request, project_id: UUID):
     pdf_handle = open(pdf_file, "rb")
     return FileResponse(
         pdf_handle,
+        as_attachment=True,
         filename=f"{proj.title}.pdf",
-        media_type="application/pdf",
+        content_type="application/pdf",
     )
