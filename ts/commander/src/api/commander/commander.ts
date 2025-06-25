@@ -28,6 +28,8 @@ import type {
   CompletionRequest,
   CompletionResponse,
   CorporaCommanderApiLlmGenericDataCompletion200,
+  DraftBookRequest,
+  DraftBookResponse,
   GenericCompletionRequest,
   LMStudioPing,
   OpenAIModelsRequest,
@@ -2521,3 +2523,268 @@ export const useCorporaCommanderApiOutlineGenerateOutline = <
 
   return useMutation(mutationOptions, queryClient);
 };
+/**
+ * For each section in the project, ask the LLM to draft an introduction
+and each subsection's content. Returns a DraftBookResponse containing
+all sections and their generated content with UUIDs preserved.
+ * @summary Draft Book
+ */
+export const corporaCommanderApiDraftDraftBook = (
+  projectId: string,
+  draftBookRequest: DraftBookRequest,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<DraftBookResponse>> => {
+  return axios.default.post(
+    `/api/commander/projects/${projectId}/draft`,
+    draftBookRequest,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiDraftDraftBookMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiDraftDraftBook>>,
+    TError,
+    { projectId: string; data: DraftBookRequest },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiDraftDraftBook>>,
+  TError,
+  { projectId: string; data: DraftBookRequest },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiDraftDraftBook"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiDraftDraftBook>>,
+    { projectId: string; data: DraftBookRequest }
+  > = (props) => {
+    const { projectId, data } = props ?? {};
+
+    return corporaCommanderApiDraftDraftBook(projectId, data, axiosOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiDraftDraftBookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiDraftDraftBook>>
+>;
+export type CorporaCommanderApiDraftDraftBookMutationBody = DraftBookRequest;
+export type CorporaCommanderApiDraftDraftBookMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Draft Book
+ */
+export const useCorporaCommanderApiDraftDraftBook = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiDraftDraftBook>>,
+      TError,
+      { projectId: string; data: DraftBookRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiDraftDraftBook>>,
+  TError,
+  { projectId: string; data: DraftBookRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiDraftDraftBookMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Export the entire book for a project as a PDF.
+ * @summary Export Pdf
+ */
+export const corporaCommanderApiExportExportPdf = (
+  projectId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<void>> => {
+  return axios.default.get(
+    `/api/commander/projects/${projectId}/export/pdf`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiExportExportPdfQueryKey = (
+  projectId: string,
+) => {
+  return [`/api/commander/projects/${projectId}/export/pdf`] as const;
+};
+
+export const getCorporaCommanderApiExportExportPdfQueryOptions = <
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCorporaCommanderApiExportExportPdfQueryKey(projectId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>
+  > = ({ signal }) =>
+    corporaCommanderApiExportExportPdf(projectId, { signal, ...axiosOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!projectId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CorporaCommanderApiExportExportPdfQueryResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>
+>;
+export type CorporaCommanderApiExportExportPdfQueryError = AxiosError<unknown>;
+
+export function useCorporaCommanderApiExportExportPdf<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiExportExportPdf<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiExportExportPdf<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Export Pdf
+ */
+
+export function useCorporaCommanderApiExportExportPdf<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportPdf>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCorporaCommanderApiExportExportPdfQueryOptions(
+    projectId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}

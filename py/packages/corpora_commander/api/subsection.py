@@ -27,10 +27,10 @@ class SubsectionOut(SubsectionIn):
 
 
 class SubsectionUpdate(BaseModel):
-    title: Optional[str]
-    content: Optional[str]
-    instructions: Optional[str]
-    order: Optional[int]
+    title: Optional[str] = None
+    content: Optional[str] = None
+    instructions: Optional[str] = None
+    order: Optional[int] = None
 
 
 @router.get("/sections/{section_id}/subsections", response=List[SubsectionOut])

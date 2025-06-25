@@ -11,8 +11,8 @@ import type { SubsectionUpdateInstructions } from "./subsectionUpdateInstruction
 import type { SubsectionUpdateOrder } from "./subsectionUpdateOrder";
 
 export interface SubsectionUpdate {
-  title: SubsectionUpdateTitle;
-  content: SubsectionUpdateContent;
-  instructions: SubsectionUpdateInstructions;
-  order: SubsectionUpdateOrder;
+  title?: SubsectionUpdateTitle;
+  content?: SubsectionUpdateContent;
+  instructions?: SubsectionUpdateInstructions;
+  order?: SubsectionUpdateOrder;
 }

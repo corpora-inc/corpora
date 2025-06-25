@@ -23,7 +23,6 @@ class SectionOut(SectionIn):
     project_id: UUID
     created_at: datetime
     updated_at: datetime
-
     model_config = {"from_attributes": True}
 
 
@@ -47,7 +46,24 @@ def list_sections(request, project_id: UUID):
         Project.objects.prefetch_related("sections__subsections"),
         id=project_id,
     )
-    return project.sections.all()
+
+    results = []
+    for sec in project.sections.all():
+        results.append(  # noqa
+            {
+                "id": sec.id,
+                "project_id": sec.project_id,
+                "title": sec.title,
+                "introduction": sec.introduction,
+                "instructions": sec.instructions,
+                "order": sec.order,
+                "created_at": sec.created_at,
+                "updated_at": sec.updated_at,
+                "subsections": list(sec.subsections.all()),
+            },
+        )
+
+    return results
 
 
 @router.post("/projects/{project_id}/sections", response=SectionOut)

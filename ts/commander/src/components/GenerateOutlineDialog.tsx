@@ -42,7 +42,7 @@ export function GenerateOutlineDialog({
         defaultProvider,
         availableModels,
         setDefault,
-        setDefaultModel,
+        // setDefaultModel,
     } = useLLMConfigStore()
 
     const createSection = useCorporaCommanderApiSectionCreateSection()
