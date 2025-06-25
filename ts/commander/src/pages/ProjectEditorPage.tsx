@@ -118,7 +118,7 @@ export default function ProjectEditorPage() {
                                 </Button>
                             )}
                             <Button onClick={() => setIsOutlineOpen(true)}>Outline</Button>
-                            {sections.length > 0 && <ExportPdfButton />}
+                            {sections.length > 0 && <ExportPdfButton projectId={project?.id!} />}
                         </div>
                     </header>
 

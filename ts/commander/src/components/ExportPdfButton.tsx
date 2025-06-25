@@ -1,39 +1,46 @@
-// ts/commander/src/components/ExportPdfButton.tsx
-
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
-import { useProjectStore } from "@/stores/ProjectStore"
+import { Button } from "@/components/ui/button"
 
-export function ExportPdfButton() {
-    const project = useProjectStore((s) => s.project)
-    const [loading, setLoading] = useState(false)
+interface ExportPdfButtonProps {
+    projectId: string
+}
+
+export function ExportPdfButton({ projectId }: ExportPdfButtonProps) {
+    const [isDownloading, setIsDownloading] = useState(false)
 
     const handleDownload = async () => {
-        if (!project) return
-        setLoading(true)
+        setIsDownloading(true)
         try {
-            // call the orval‐generated client function
-            const blob = await exportPdf({ projectId: project.id })
-            // create URL and trigger download
+            // hit our PDF-export endpoint
+            const res = await fetch(
+                `/api/commander/projects/${projectId}/export/pdf`,
+                {
+                    credentials: "include",
+                }
+            )
+            if (!res.ok) {
+                throw new Error(`Download failed: ${res.status} ${res.statusText}`)
+            }
+            const blob = await res.blob()
             const url = URL.createObjectURL(blob)
             const a = document.createElement("a")
             a.href = url
-            a.download = `${project.title}.pdf`
+            a.download = `${projectId}.pdf`
             document.body.appendChild(a)
             a.click()
-            document.body.removeChild(a)
+            a.remove()
             URL.revokeObjectURL(url)
-        } catch (err) {
-            console.error("Export PDF failed", err)
+        } catch (e) {
+            console.error("PDF download error:", e)
         } finally {
-            setLoading(false)
+            setIsDownloading(false)
         }
     }
 
     return (
-        <Button onClick={handleDownload} disabled={loading || !project}>
-            {loading ? <Loader2 className="animate-spin" /> : "Download PDF"}
+        <Button onClick={handleDownload} disabled={isDownloading}>
+            {isDownloading ? <Loader2 className="animate-spin h-4 w-4" /> : "Download PDF"}
         </Button>
     )
 }

@@ -1,6 +1,5 @@
-// ts/commander/src/components/GenerateOutlineDialog.tsx
-
-import { useEffect, useState, useMemo } from "react"
+// src/components/GenerateOutlineDialog.tsx
+import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -37,30 +36,27 @@ export function GenerateOutlineDialog({
 }: GenerateOutlineDialogProps) {
     const project = useProjectStore((s) => s.project)
 
+    // LLM config
     const {
         configs,
         defaultProvider,
         availableModels,
         setDefault,
-        // setDefaultModel,
+        setDefaultModel,
     } = useLLMConfigStore()
 
+    // CRUD hooks
     const createSection = useCorporaCommanderApiSectionCreateSection()
     const createSubsection = useCorporaCommanderApiSubsectionCreateSubsection()
+
+    // Outline LLM hook
     const outlineGen = useCorporaCommanderApiOutlineGenerateOutline()
 
-    const providers = useMemo(
-        () =>
-            (Object.keys(configs) as ProviderType[]).filter(
-                (p) => configs[p] !== null
-            ),
-        [configs]
-    )
-
+    // Local UI state
     const [provider, setProvider] = useState<ProviderType>(
-        defaultProvider ?? providers[0]!
+        defaultProvider!
     )
-    const [model, setModelLocal] = useState<string>("")
+    const [model, setModel] = useState<string>("")
     const [userPrompt, setUserPrompt] = useState<string>("")
     const [history, setHistory] = useState<
         { role: "system" | "user" | "assistant"; text: string }[]
@@ -68,18 +64,18 @@ export function GenerateOutlineDialog({
     const [outline, setOutline] = useState<OutlineResponse | null>(null)
     const [error, setError] = useState<string | null>(null)
 
-    // Initialize dialog state on open
+    // Reset state when opened or project changes
     useEffect(() => {
         if (!open || !project) return
-        const startProv = defaultProvider ?? providers[0]!
+
+        const startProv = defaultProvider!
         setProvider(startProv)
-        setDefault(startProv)
         const modelsForProv = availableModels[startProv] ?? []
         const startModel =
             (configs[startProv]?.defaultModel as string) ??
             modelsForProv[0] ??
             ""
-        setModelLocal(startModel)
+        setModel(startModel)
 
         setUserPrompt("")
         setOutline(null)
@@ -107,19 +103,16 @@ export function GenerateOutlineDialog({
         outlineGen.reset()
     }, [open, project])
 
-    // Sync default model when provider changes
+    // Keep model in sync if configs change
     useEffect(() => {
-        setDefault(provider)
-        const mdl = configs[provider]?.defaultModel
-        if (typeof mdl === "string") {
-            setModelLocal(mdl)
-        } else {
-            const list = availableModels[provider] ?? []
-            setModelLocal(list[0] ?? "")
-        }
-    }, [provider, configs, availableModels, setDefault])
+        const list = availableModels[provider] ?? []
+        const defaultM = configs[provider]?.defaultModel as string | undefined
+        setModel((prev) =>
+            defaultM === prev ? prev : defaultM ?? list[0] ?? ""
+        )
+    }, [provider, configs, availableModels])
 
-    // When LLM returns data
+    // On LLM response
     useEffect(() => {
         if (!outlineGen.data) return
         const result = outlineGen.data.data
@@ -193,13 +186,21 @@ export function GenerateOutlineDialog({
                     <DialogClose />
                 </DialogHeader>
 
+                {/* Reusable provider/model selector */}
                 <LLMModelSelector
                     provider={provider}
                     model={model}
-                    onProviderChange={setProvider}
-                    onModelChange={setModelLocal}
+                    onProviderChange={(p) => {
+                        setProvider(p)
+                        setDefault(p)
+                    }}
+                    onModelChange={(m) => {
+                        setModel(m)
+                        setDefaultModel(provider, m)
+                    }}
                 />
 
+                {/* Custom prompt */}
                 <Textarea
                     className="min-h-[5rem]"
                     placeholder="Feedback or custom instructions (optional)"
@@ -207,6 +208,7 @@ export function GenerateOutlineDialog({
                     onChange={(e) => setUserPrompt(e.target.value)}
                 />
 
+                {/* Chat history */}
                 <div className="border rounded bg-gray-50 p-3 max-h-40 overflow-auto text-xs space-y-2">
                     {history.map((m, i) => (
                         <div key={i}>
@@ -216,6 +218,7 @@ export function GenerateOutlineDialog({
                     ))}
                 </div>
 
+                {/* Spinner or preview */}
                 {outlineGen.isPending ? (
                     <div className="flex justify-center py-6">
                         <Loader2 className="animate-spin h-6 w-6 text-gray-500" />
@@ -225,7 +228,9 @@ export function GenerateOutlineDialog({
                         {outline.sections.map((sec: SectionOutline) => (
                             <div key={sec.order} className="space-y-1">
                                 <h3 className="font-semibold">{sec.title}</h3>
-                                <p className="text-sm text-gray-600">{sec.instructions}</p>
+                                <p className="text-sm text-gray-600">
+                                    {sec.instructions}
+                                </p>
                                 <div className="pl-4">
                                     {sec.subsections.map((sub) => (
                                         <div key={sub.order} className="mb-2">
@@ -262,7 +267,8 @@ export function GenerateOutlineDialog({
                             createSubsection.isPending
                         }
                     >
-                        {createSection.isPending || createSubsection.isPending ? (
+                        {createSection.isPending ||
+                            createSubsection.isPending ? (
                             <Loader2 className="animate-spin" />
                         ) : (
                             "Accept"
