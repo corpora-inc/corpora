@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from corpora_commander.models import Project, Section
 
 from .router import router
+from .subsection import SubsectionOut
 
 
 class SectionIn(BaseModel):
@@ -26,16 +27,26 @@ class SectionOut(SectionIn):
     model_config = {"from_attributes": True}
 
 
+class SectionWithSubsections(SectionOut):
+    subsections: List[SubsectionOut]
+
+
 class SectionUpdate(BaseModel):
-    title: Optional[str]
-    introduction: Optional[str]
-    instructions: Optional[str]
-    order: Optional[int]
+    title: Optional[str] = None
+    introduction: Optional[str] = None
+    instructions: Optional[str] = None
+    order: Optional[int] = None
 
 
-@router.get("/projects/{project_id}/sections", response=List[SectionOut])
+@router.get(
+    "/projects/{project_id}/sections",
+    response=List[SectionWithSubsections],
+)
 def list_sections(request, project_id: UUID):
-    project = get_object_or_404(Project, id=project_id)
+    project = get_object_or_404(
+        Project.objects.prefetch_related("sections__subsections"),
+        id=project_id,
+    )
     return project.sections.all()
 
 

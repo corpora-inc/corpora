@@ -11,8 +11,8 @@ import type { SectionUpdateInstructions } from "./sectionUpdateInstructions";
 import type { SectionUpdateOrder } from "./sectionUpdateOrder";
 
 export interface SectionUpdate {
-  title: SectionUpdateTitle;
-  introduction: SectionUpdateIntroduction;
-  instructions: SectionUpdateInstructions;
-  order: SectionUpdateOrder;
+  title?: SectionUpdateTitle;
+  introduction?: SectionUpdateIntroduction;
+  instructions?: SectionUpdateInstructions;
+  order?: SectionUpdateOrder;
 }

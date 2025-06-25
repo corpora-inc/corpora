@@ -1,30 +1,47 @@
-import { useState } from "react"
+// ts/commander/src/pages/ProjectEditorPage.tsx
+
+import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     useCorporaCommanderApiProjectGetProject,
     useCorporaCommanderApiSectionListSections,
-    useCorporaCommanderApiSectionCreateSection,
-    useCorporaCommanderApiSubsectionCreateSubsection,
 } from "@/api/commander/commander"
 import { GenerateOutlineDialog } from "@/components/GenerateOutlineDialog"
-
-import type { SectionOut } from "@/api/schemas/sectionOut"
-import type { OutlineResponse } from "@/api/schemas/outlineResponse"
+import { GenerateDraftDialog } from "@/components/GenerateDraftDialog"
+import { ExportPdfButton } from "@/components/ExportPdfButton"
+import { useProjectStore } from "@/stores/ProjectStore"
 
 export default function ProjectEditorPage() {
     const { id } = useParams<{ id: string }>()
-    const projectQuery = useCorporaCommanderApiProjectGetProject(
-        id!, { query: { enabled: !!id } }
-    )
-    const sectionsQuery = useCorporaCommanderApiSectionListSections(
-        id!, { query: { enabled: !!id } }
-    )
-    const createSection = useCorporaCommanderApiSectionCreateSection()
-    const createSubsection = useCorporaCommanderApiSubsectionCreateSubsection()
+    const projectQuery = useCorporaCommanderApiProjectGetProject(id!, {
+        query: { enabled: !!id },
+    })
+    const sectionsQuery = useCorporaCommanderApiSectionListSections(id!, {
+        query: { enabled: !!id },
+    })
+
+    const setProject = useProjectStore((s) => s.setProject)
+    const setSections = useProjectStore((s) => s.setSections)
+    const project = useProjectStore((s) => s.project)
+    const sections = useProjectStore((s) => s.sections)
 
     const [isOutlineOpen, setIsOutlineOpen] = useState(false)
+    const [isDraftOpen, setIsDraftOpen] = useState(false)
+
+    // Sync query results to global store
+    useEffect(() => {
+        if (projectQuery.data) {
+            setProject(projectQuery.data.data)
+        }
+    }, [projectQuery.data, setProject])
+
+    useEffect(() => {
+        if (sectionsQuery.data) {
+            setSections(sectionsQuery.data.data)
+        }
+    }, [sectionsQuery.data, setSections])
 
     if (!id) {
         return <p className="p-4 text-red-600">No project ID provided.</p>
@@ -51,38 +68,6 @@ export default function ProjectEditorPage() {
         )
     }
 
-    const project = projectQuery.data!.data
-    const sections = sectionsQuery.data!.data!
-
-    // Accept an outline: create all sections and subsections, then refresh
-    const handleAcceptOutline = async (outline: OutlineResponse) => {
-        for (const sec of outline.sections) {
-            const secRes = await createSection.mutateAsync({
-                projectId: id!,
-                data: {
-                    title: sec.title,
-                    order: sec.order,
-                    introduction: "",
-                    instructions: sec.instructions,
-                },
-            })
-            const createdSec = secRes.data
-            for (const sub of sec.subsections) {
-                await createSubsection.mutateAsync({
-                    sectionId: createdSec.id,
-                    data: {
-                        title: sub.title,
-                        order: sub.order,
-                        content: "",
-                        instructions: sub.instructions,
-                    },
-                })
-            }
-        }
-        await sectionsQuery.refetch()
-        setIsOutlineOpen(false)
-    }
-
     return (
         <>
             <div className="flex h-full">
@@ -99,7 +84,7 @@ export default function ProjectEditorPage() {
                         </div>
                     ) : (
                         <ul className="space-y-1">
-                            {sections.map((sec: SectionOut) => (
+                            {sections.map((sec) => (
                                 <li
                                     key={sec.id}
                                     className="cursor-pointer rounded px-2 py-1 hover:bg-gray-100"
@@ -110,7 +95,7 @@ export default function ProjectEditorPage() {
                         </ul>
                     )}
 
-                    {project.has_images && (
+                    {project?.has_images && (
                         <div className="mt-6">
                             <h3 className="mb-2 text-sm font-medium">Images</h3>
                             {/* <ImageDrawer projectId={project.id} /> */}
@@ -119,39 +104,36 @@ export default function ProjectEditorPage() {
                 </aside>
 
                 <main className="flex-1 overflow-y-auto p-6">
-                    <header className="mb-6 border-b pb-4">
-                        <h1 className="text-2xl font-bold">{project.title}</h1>
-                        {project.subtitle && (
-                            <p className="mt-1 text-gray-600">{project.subtitle}</p>
-                        )}
+                    <header className="mb-6 border-b pb-4 flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold">{project?.title}</h1>
+                            {project?.subtitle && (
+                                <p className="mt-1 text-gray-600">{project.subtitle}</p>
+                            )}
+                        </div>
+                        <div className="space-x-2">
+                            {sections.length > 0 && (
+                                <Button onClick={() => setIsDraftOpen(true)}>
+                                    Draft book
+                                </Button>
+                            )}
+                            <Button onClick={() => setIsOutlineOpen(true)}>Outline</Button>
+                            {sections.length > 0 && <ExportPdfButton />}
+                        </div>
                     </header>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Draft content
-                        </label>
-                        <textarea
-                            className="mt-1 w-full rounded border p-2 min-h-[300px] text-sm"
-                            placeholder="Start writing or use the outline…"
-                            disabled
-                        />
-                    </div>
+
+                    {/* Section editor, etc. */}
                 </main>
             </div>
 
             <GenerateOutlineDialog
                 open={isOutlineOpen}
                 onClose={() => setIsOutlineOpen(false)}
-                projectMeta={{
-                    id,
-                    title: project.title,
-                    subtitle: project.subtitle,
-                    purpose: project.purpose,
-                    has_images: project.has_images,
-                    instructions: project.instructions,
-                    voice: project.voice,
+            />
 
-                }}
-                onAccept={handleAcceptOutline}
+            <GenerateDraftDialog
+                open={isDraftOpen}
+                onClose={() => setIsDraftOpen(false)}
             />
         </>
     )
