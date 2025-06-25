@@ -6,7 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * Provider-specific configuration
- */
 export type DraftBookRequestConfig = { [key: string]: unknown };

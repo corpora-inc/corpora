@@ -1,0 +1,101 @@
+% templates/custom_headings.tex
+
+% == Page geometry ==
+\usepackage[
+  paperwidth=6in,
+  paperheight=9in,
+  left=0.75in,
+  right=0.75in,
+  top=0.6in,
+  bottom=1.0in,
+  heightrounded
+]{geometry}
+\raggedbottom
+
+% == Fonts & multilingual support ==
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX,Mapping=tex-text}
+\setmainfont{Noto Serif}
+\setsansfont{Noto Sans}
+\setmonofont{Noto Mono}
+
+\usepackage{xeCJK}
+\setCJKmainfont{Noto Serif CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\setotherlanguages{arabic, russian} % add more as needed
+\newfontfamily\arabicfont[Script=Arabic,Scale=1.1]{Noto Naskh Arabic}
+
+% == Memoir styling tweaks ==
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+\setsecnumdepth{none}
+
+% == Table of contents formatting ==
+\usepackage{titlesec}
+\makeatletter
+\renewcommand\tableofcontents{%
+  \begingroup
+    \setlength{\parskip}{1pt}%
+    \setlength{\parindent}{0pt}%
+    \vspace{5em}%
+    {\LARGE \bfseries Contents\par}%
+    \vspace{2em}%
+    \@starttoc{toc}%
+  \endgroup
+}
+\makeatother
+
+% == Heading spacing ==
+\titlespacing*{\section}{0pt}{0.8em}{0.1em}
+\titlespacing*{\subsection}{0pt}{0.7em}{0em}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+\titlespacing*{\subsubsection}{0pt}{0.5em}{0em}
+\titleformat{\paragraph}{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}{0pt}{0.3em}{0em}
+\titleformat{\subparagraph}{\normalfont\normalsize\bfseries\itshape}{\thesubparagraph}{1em}{}
+\titlespacing*{\subparagraph}{0pt}{0.2em}{0em}
+
+% == Header & footer ==
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[LE,RO]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% == Horizontal rule ==
+\newcommand{\myhrule}{%
+  \par\vspace*{1em}%
+  {\centering\rule{0.6\linewidth}{0.4pt}\par}%
+  \vspace*{1em}%
+}
+
+% == List spacing ==
+\usepackage{enumitem}
+\let\olditem\item
+\renewcommand{\item}{\olditem\vspace{0.191em}}
+\setlist[itemize,enumerate]{topsep=-0.5em,leftmargin=1.5em,after=\vspace{0.25em}}
+
+% == Block quotes ==
+\usepackage{mdframed}
+\usepackage{xcolor}
+\renewenvironment{quote}
+  {\begin{samepage}\begin{mdframed}[
+     backgroundcolor=gray!10, linecolor=gray!60,
+     leftline=true, rightline=false, topline=false, bottomline=false,
+     innerleftmargin=1em, innerrightmargin=1.618em,
+     innertopmargin=1em, innerbottommargin=1em,
+     skipabove=1em, skipbelow=0em]}
+  {\end{mdframed}\vspace{-0.5em}\end{samepage}}
+
+\usepackage{caption}
+\captionsetup[figure]{labelformat=empty}
+\captionsetup[table]{labelformat=empty}
+
+% == Graphics & plots ==
+\usepackage{pgfplots}
+\pgfplotsset{width=10cm,compat=1.9}
+\usepgfplotslibrary{statistics}

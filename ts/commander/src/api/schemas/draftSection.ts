@@ -8,10 +8,7 @@
 import type { DraftSubsection } from "./draftSubsection";
 
 export interface DraftSection {
-  /** UUID of the section */
   section_id: string;
-  /** Plain text introduction for the section. No markdown headers. */
   introduction: string;
-  /** List of drafted subsections, in order. */
   subsections: DraftSubsection[];
 }

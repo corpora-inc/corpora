@@ -8,10 +8,7 @@
 import type { DraftBookRequestConfig } from "./draftBookRequestConfig";
 
 export interface DraftBookRequest {
-  /** LLM provider name (e.g. openai) */
   provider: string;
-  /** Provider-specific configuration */
   config: DraftBookRequestConfig;
-  /** Instruction to pass to the LLM for drafting */
   prompt?: string;
 }

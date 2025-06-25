@@ -7,8 +7,6 @@
  */
 
 export interface DraftSubsection {
-  /** UUID of the subsection */
   subsection_id: string;
-  /** Markdown content for this subsection. MUST start with '## {title}' where {title} is the subsection title. */
   content: string;
 }

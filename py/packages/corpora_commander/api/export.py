@@ -1,3 +1,5 @@
+# packages/corpora_commander/api/export.py
+
 import logging
 import shutil
 import subprocess
@@ -21,48 +23,57 @@ def export_pdf(request, project_id: UUID):
     """
     Export the entire book for a project as a PDF.
     """
-    # 1) Load project and its sections/subsections
+    # 1) Load project + its sections/subsections
     proj = get_object_or_404(
         Project.objects.prefetch_related("sections__subsections"),
         id=project_id,
     )
 
-    # 2) Render the markdown from our template
+    # 2) Render Markdown via our template
     md_content = render_to_string("book.md", {"project": proj})
 
-    # 3) Write markdown to a temporary build directory
+    # 3) Write markdown & header to a temp build dir
     build_dir = Path(tempfile.mkdtemp(prefix="corpora-export-"))
     md_file = build_dir / "book.md"
     md_file.write_text(md_content, encoding="utf-8")
 
+    # Copy our custom LaTeX header in
+    header_src = Path("templates/custom_headings.tex")
+    if not header_src.exists():
+        logger.error("custom_headings.tex not found")
+        raise Http404("PDF export is misconfigured")
+    (build_dir / "custom_headings.tex").write_text(
+        header_src.read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
     pdf_file = build_dir / f"{proj.id}.pdf"
 
-    # 4) Locate pandoc executable
+    # 4) Locate pandoc
     pandoc_path = shutil.which("pandoc")
     if not pandoc_path:
-        logger.error("Pandoc not found in PATH; cannot export PDF")
-        raise Http404(
-            "PDF export is not available. Pandoc is not installed on the server.",
-        )
+        logger.error("Pandoc not in PATH")
+        raise Http404("PDF export not available (pandoc missing)")
 
-    # 5) Invoke pandoc to generate the PDF
+    # 5) Run Pandoc → XeLaTeX
     cmd = [
         pandoc_path,
-        str(md_file),
+        str(md_file.name),
         "-o",
-        str(pdf_file),
+        str(pdf_file.name),
         "--pdf-engine=xelatex",
         "--toc",
         "--toc-depth=2",
+        "--include-in-header=custom_headings.tex",
     ]
-    logger.info("Running pandoc for project %s: %s", proj.id, " ".join(cmd))
+    logger.info("Running Pandoc: %s", " ".join(cmd))
     try:
         subprocess.run(cmd, check=True, cwd=build_dir)
     except subprocess.CalledProcessError as e:
         logger.error("Pandoc failed: %s", e)
-        raise Http404("Failed to generate PDF.")
+        raise Http404("Failed to generate PDF")
 
-    # 6) Stream the resulting PDF back to the client
+    # 6) Stream back
     pdf_handle = open(pdf_file, "rb")
     return FileResponse(
         pdf_handle,

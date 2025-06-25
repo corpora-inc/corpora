@@ -2524,9 +2524,9 @@ export const useCorporaCommanderApiOutlineGenerateOutline = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * For each section in the project, ask the LLM to draft an introduction
-and each subsection's content. Returns a DraftBookResponse containing
-all sections and their generated content with UUIDs preserved.
+ * Iterate over each section of the project, invoke the LLM to draft that section
+(with strict enforcement of no markdown headers in introductions and subsections
+starting with '## {title}'), and return all drafts together.
  * @summary Draft Book
  */
 export const corporaCommanderApiDraftDraftBook = (
