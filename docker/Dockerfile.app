@@ -10,7 +10,8 @@ RUN apt-get update && \
     pandoc \
     texlive-xetex \
     texlive-fonts-recommended \
-    texlive-fonts-extra \
+    texlive-latex-extra \
+    texlive-lang-cjk \
     fonts-noto \
     fonts-noto-cjk \
     fonts-noto-extra \

@@ -2616,6 +2616,7 @@ export const useCorporaCommanderApiDraftDraftBook = <
 };
 /**
  * Export the entire book for a project as a PDF.
+Any unexpected error will propagate as a 500.
  * @summary Export Pdf
  */
 export const corporaCommanderApiExportExportPdf = (
