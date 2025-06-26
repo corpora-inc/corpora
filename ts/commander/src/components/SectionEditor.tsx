@@ -2,101 +2,97 @@
 import { useEffect, useState } from "react"
 import {
     useCorporaCommanderApiSectionGetSection,
-    useCorporaCommanderApiSubsectionListSubsections,
     useCorporaCommanderApiSectionUpdateSection,
 } from "@/api/commander/commander"
-import type { SubsectionOut } from "@/api/schemas/subsectionOut"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { ChevronLeft, Zap } from "lucide-react"
+import { LLMEnhanceModal } from "@/components/LLMEnhanceModal"
 
 export function SectionEditor({
     sectionId,
     onBack,
-    onPickSub,
 }: {
     sectionId: string
     onBack: () => void
-    onPickSub: (subId: string) => void
 }) {
-    // 1) fetch the section
-    const sectionQuery = useCorporaCommanderApiSectionGetSection(sectionId)
-    // 2) fetch its subsections
-    const subsQuery = useCorporaCommanderApiSubsectionListSubsections(
-        sectionId,
-        { query: { enabled: !!sectionId } }
-    )
-    // 3) mutation for saving
-    const updateSection = useCorporaCommanderApiSectionUpdateSection()
+    const sectionQ = useCorporaCommanderApiSectionGetSection(sectionId)
+    const saveSection = useCorporaCommanderApiSectionUpdateSection()
 
-    // local intro state (always a string)
     const [intro, setIntro] = useState("")
+    const [enhanceOpen, setEnhanceOpen] = useState(false)
 
-    // when section arrives, initialize intro
     useEffect(() => {
-        if (sectionQuery.data) {
-            setIntro(sectionQuery.data.data.introduction ?? "")
+        if (sectionQ.data) {
+            setIntro(sectionQ.data.data.introduction ?? "")
         }
-    }, [sectionQuery.data])
+    }, [sectionQ.data])
 
-    // loading / error states
-    if (sectionQuery.isLoading || subsQuery.isLoading) {
-        return <p>Loading…</p>
-    }
-    if (sectionQuery.isError) {
-        return <p className="text-red-600">Error loading section: {sectionQuery.error?.message}</p>
-    }
-    if (subsQuery.isError) {
-        return <p className="text-red-600">Error loading subsections: {subsQuery.error?.message}</p>
-    }
+    if (sectionQ.isLoading) return <p>Loading…</p>
+    if (sectionQ.isError)
+        return (
+            <p className="text-red-600">
+                Error loading section: {sectionQ.error?.message}
+            </p>
+        )
 
-    // both are ready
-    const section = sectionQuery.data!.data
-    const subs = subsQuery.data!.data as SubsectionOut[]
+    const section = sectionQ.data!.data
 
-    const handleSave = () => {
-        updateSection.mutate({ sectionId, data: { introduction: intro } })
-    }
+    const handleSave = () =>
+        saveSection.mutate({ sectionId, data: { introduction: intro } })
 
     return (
-        <div>
-            <button
-                className="mb-4 text-blue-600 hover:underline"
-                onClick={onBack}
-            >
-                &larr; Back to Project
-            </button>
+        <div className="flex flex-col h-full">
+            {/* HEADER */}
+            <div className="flex items-center justify-between mb-4">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onBack}
+                    aria-label="Back to Project"
+                >
+                    <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <h2 className="text-xl font-semibold">{section.title}</h2>
+                <div className="w-8" />
+            </div>
 
-            <h2 className="text-xl font-semibold">{section.title}</h2>
+            {/* BODY: label + expanding textarea */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <label className="block mb-2 font-medium">Introduction</label>
+                <Textarea
+                    className="flex-1 resize-none"
+                    value={intro}
+                    onChange={(e) => setIntro(e.target.value)}
+                />
+            </div>
 
-            <label className="block mt-4 font-medium">Introduction</label>
-            <textarea
-                className="mt-1 w-full border p-2"
-                rows={4}
-                value={intro}
-                onChange={e => setIntro(e.target.value)}
+            {/* FOOTER */}
+            <div className="flex justify-end space-x-2 py-4 border-t">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEnhanceOpen(true)}
+                    disabled={!intro.trim()}
+                >
+                    <Zap className="mr-1 h-4 w-4" /> Enhance
+                </Button>
+                <Button size="sm" onClick={handleSave} disabled={saveSection.isPending}>
+                    {saveSection.isPending ? "Saving…" : "Save Intro"}
+                </Button>
+            </div>
+
+            {/* AI ENHANCE DIALOG */}
+            <LLMEnhanceModal<{ introduction: string }>
+                open={enhanceOpen}
+                schema={{ introduction: "str" }}
+                initialData={{ introduction: intro }}
+                onAccept={({ introduction: enhanced }) => {
+                    if (enhanced) setIntro(enhanced)
+                    setEnhanceOpen(false)
+                }}
+                onClose={() => setEnhanceOpen(false)}
             />
-            <button
-                className="mt-2 btn-primary"
-                onClick={handleSave}
-                disabled={updateSection.isPending}
-            >
-                {updateSection.isPending ? "Saving…" : "Save Intro"}
-            </button>
-
-            <h3 className="mt-6 font-semibold">Subsections</h3>
-            {subs.length === 0 ? (
-                <p className="text-gray-600">No subsections yet.</p>
-            ) : (
-                <ul className="mt-2 space-y-1">
-                    {subs.map((sub: SubsectionOut) => (
-                        <li
-                            key={sub.id}
-                            className="cursor-pointer text-blue-600 hover:underline"
-                            onClick={() => onPickSub(sub.id)}
-                        >
-                            {sub.title}
-                        </li>
-                    ))}
-                </ul>
-            )}
         </div>
     )
 }

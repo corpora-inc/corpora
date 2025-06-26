@@ -1,6 +1,4 @@
-// ts/commander/src/pages/ProjectEditorPage.tsx
-
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,12 +6,12 @@ import {
     useCorporaCommanderApiProjectGetProject,
     useCorporaCommanderApiSectionListSections,
 } from "@/api/commander/commander"
+
+import { useProjectStore } from "@/stores/ProjectStore"
+import { OutlinePanel } from "@/components/OutlinePanel"
 import { GenerateOutlineDialog } from "@/components/GenerateOutlineDialog"
 import { GenerateDraftDialog } from "@/components/GenerateDraftDialog"
 import { ExportPdfButton } from "@/components/ExportPdfButton"
-import { useProjectStore } from "@/stores/ProjectStore"
-
-// these editors render into the scrollable area below
 import { ProjectMetadataEditor } from "@/components/ProjectMetadataEditor"
 import { SectionEditor } from "@/components/SectionEditor"
 import { SubsectionEditor } from "@/components/SubsectionEditor"
@@ -27,28 +25,40 @@ export default function ProjectEditorPage() {
         query: { enabled: !!id },
     })
 
-    // global store
-    const setProject = useProjectStore((s) => s.setProject)
-    const setSections = useProjectStore((s) => s.setSections)
+    // project data + outline‐panel state live in the same store:
     const project = useProjectStore((s) => s.project)
     const sections = useProjectStore((s) => s.sections)
+    const selectedSectionId = useProjectStore((s) => s.selectedSectionId)
+    const selectedSubsectionId = useProjectStore((s) => s.selectedSubsectionId)
 
-    // UI state
-    const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null)
-    const [selectedSubsectionId, setSelectedSubsectionId] = useState<string | null>(null)
+    const setProject = useProjectStore((s) => s.setProject)
+    const setSections = useProjectStore((s) => s.setSections)
+    const setSelectedSectionId = useProjectStore(
+        (s) => s.setSelectedSectionId
+    )
+    const setSelectedSubsectionId = useProjectStore(
+        (s) => s.setSelectedSubsectionId
+    )
+
     const [isOutlineOpen, setIsOutlineOpen] = useState(false)
     const [isDraftOpen, setIsDraftOpen] = useState(false)
 
-    // hydrate
+    // hydrate on mount / response
     useEffect(() => {
-        if (projectQuery.data) setProject(projectQuery.data.data)
+        if (projectQuery.data) {
+            setProject(projectQuery.data.data)
+        }
     }, [projectQuery.data, setProject])
+
     useEffect(() => {
-        if (sectionsQuery.data) setSections(sectionsQuery.data.data)
+        if (sectionsQuery.data) {
+            setSections(sectionsQuery.data.data)
+        }
     }, [sectionsQuery.data, setSections])
 
-    if (!id)
+    if (!id) {
         return <p className="p-4 text-red-600">No project ID provided.</p>
+    }
     if (projectQuery.isLoading || sectionsQuery.isLoading) {
         return (
             <div className="flex h-full items-center justify-center">
@@ -56,32 +66,26 @@ export default function ProjectEditorPage() {
             </div>
         )
     }
-    if (projectQuery.isError)
+    if (projectQuery.isError) {
         return (
             <p className="p-4 text-red-600">
                 Error loading project: {projectQuery.error?.message}
             </p>
         )
-    if (sectionsQuery.isError)
+    }
+    if (sectionsQuery.isError) {
         return (
             <p className="p-4 text-red-600">
                 Error loading sections: {sectionsQuery.error?.message}
             </p>
         )
-
-    // clear subsection when changing section
-    const onSelectSection = (secId: string) => {
-        setSelectedSectionId(secId)
-        setSelectedSubsectionId(null)
     }
-    const onSelectSubsection = (subId: string) => setSelectedSubsectionId(subId)
 
-    // pick which pane to show
+    // pick which editor to show
     let editorPane
-    if (selectedSubsectionId && selectedSectionId) {
+    if (selectedSubsectionId) {
         editorPane = (
             <SubsectionEditor
-                // sectionId={selectedSectionId}
                 subsectionId={selectedSubsectionId}
                 onBack={() => setSelectedSubsectionId(null)}
             />
@@ -91,7 +95,6 @@ export default function ProjectEditorPage() {
             <SectionEditor
                 sectionId={selectedSectionId}
                 onBack={() => setSelectedSectionId(null)}
-                onPickSub={onSelectSubsection}
             />
         )
     } else {
@@ -101,43 +104,8 @@ export default function ProjectEditorPage() {
     return (
         <>
             <div className="flex h-full">
-                <aside className="w-64 border-r p-4 hidden md:block">
-                    <h2 className="mb-4 text-lg font-semibold">Outline</h2>
-                    {sections.length === 0 ? (
-                        <div className="space-y-2">
-                            <p className="text-sm text-gray-600">
-                                No sections yet.
-                            </p>
-                            <Button onClick={() => setIsOutlineOpen(true)}>
-                                Generate Outline
-                            </Button>
-                        </div>
-                    ) : (
-                        <ul className="space-y-1">
-                            {sections.map((sec) => (
-                                <li
-                                    key={sec.id}
-                                    className={`cursor-pointer rounded px-2 py-1 ${sec.id === selectedSectionId
-                                        ? "bg-blue-100"
-                                        : "hover:bg-gray-100"
-                                        }`}
-                                    onClick={() => onSelectSection(sec.id)}
-                                >
-                                    {sec.title}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                <OutlinePanel onGenerateOutline={() => setIsOutlineOpen(true)} />
 
-                    {project?.has_images && (
-                        <div className="mt-6">
-                            <h3 className="mb-2 text-sm font-medium">Images</h3>
-                            {/* <ImageDrawer projectId={project.id} /> */}
-                        </div>
-                    )}
-                </aside>
-
-                {/* ─── MAIN ──────────────────────────────────────────────────────────── */}
                 <main className="flex-1 flex flex-col h-full overflow-hidden">
                     {/* HEADER */}
                     <div className="border-b p-6 flex items-center justify-between">
@@ -162,7 +130,7 @@ export default function ProjectEditorPage() {
                         </div>
                     </div>
 
-                    {/* SCROLLABLE EDITOR AREA */}
+                    {/* EDITOR PANE */}
                     <div className="flex-1 overflow-auto p-6">{editorPane}</div>
                 </main>
             </div>
