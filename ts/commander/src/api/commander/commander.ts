@@ -841,7 +841,6 @@ export function useCorporaCommanderApiProjectGetProject<
 }
 
 /**
- * Update the given fields on a project.
  * @summary Update Project
  */
 export const corporaCommanderApiProjectUpdateProject = (
@@ -2615,8 +2614,6 @@ export const useCorporaCommanderApiDraftDraftBook = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * Export the entire book for a project as a PDF.
-Any unexpected error will propagate as a 500.
  * @summary Export Pdf
  */
 export const corporaCommanderApiExportExportPdf = (

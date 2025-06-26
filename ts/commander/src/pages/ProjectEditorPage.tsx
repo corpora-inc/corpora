@@ -1,3 +1,4 @@
+// ts/commander/src/pages/ProjectEditorPage.tsx
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { Loader2 } from "lucide-react"
@@ -25,35 +26,30 @@ export default function ProjectEditorPage() {
         query: { enabled: !!id },
     })
 
-    // project data + outline‐panel state live in the same store:
+    // global store
     const project = useProjectStore((s) => s.project)
+    const setProject = useProjectStore((s) => s.setProject)
     const sections = useProjectStore((s) => s.sections)
+    const setSections = useProjectStore((s) => s.setSections)
+
+    // editor UI state
     const selectedSectionId = useProjectStore((s) => s.selectedSectionId)
     const selectedSubsectionId = useProjectStore((s) => s.selectedSubsectionId)
-
-    const setProject = useProjectStore((s) => s.setProject)
-    const setSections = useProjectStore((s) => s.setSections)
-    const setSelectedSectionId = useProjectStore(
-        (s) => s.setSelectedSectionId
-    )
+    const setSelectedSectionId = useProjectStore((s) => s.setSelectedSectionId)
     const setSelectedSubsectionId = useProjectStore(
         (s) => s.setSelectedSubsectionId
     )
 
+    // outline/draft modals
     const [isOutlineOpen, setIsOutlineOpen] = useState(false)
     const [isDraftOpen, setIsDraftOpen] = useState(false)
 
-    // hydrate on mount / response
+    // hydrate store from API
     useEffect(() => {
-        if (projectQuery.data) {
-            setProject(projectQuery.data.data)
-        }
+        if (projectQuery.data) setProject(projectQuery.data.data)
     }, [projectQuery.data, setProject])
-
     useEffect(() => {
-        if (sectionsQuery.data) {
-            setSections(sectionsQuery.data.data)
-        }
+        if (sectionsQuery.data) setSections(sectionsQuery.data.data)
     }, [sectionsQuery.data, setSections])
 
     if (!id) {
@@ -81,7 +77,7 @@ export default function ProjectEditorPage() {
         )
     }
 
-    // pick which editor to show
+    // pick our editor pane
     let editorPane
     if (selectedSubsectionId) {
         editorPane = (
@@ -98,7 +94,8 @@ export default function ProjectEditorPage() {
             />
         )
     } else {
-        editorPane = <ProjectMetadataEditor projectId={project!.id} />
+        // pass the string-ID, not project!.id
+        editorPane = <ProjectMetadataEditor projectId={id!} />
     }
 
     return (
@@ -107,7 +104,7 @@ export default function ProjectEditorPage() {
                 <OutlinePanel onGenerateOutline={() => setIsOutlineOpen(true)} />
 
                 <main className="flex-1 flex flex-col h-full overflow-hidden">
-                    {/* HEADER */}
+                    {/* ─── HEADER ─── */}
                     <div className="border-b p-6 flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-bold">{project?.title}</h1>
@@ -121,16 +118,14 @@ export default function ProjectEditorPage() {
                                     Draft book
                                 </Button>
                             )}
-                            <Button onClick={() => setIsOutlineOpen(true)}>
-                                Outline
-                            </Button>
+                            <Button onClick={() => setIsOutlineOpen(true)}>Outline</Button>
                             {sections.length > 0 && (
-                                <ExportPdfButton projectId={project!.id} />
+                                <ExportPdfButton projectId={id!} />
                             )}
                         </div>
                     </div>
 
-                    {/* EDITOR PANE */}
+                    {/* ─── EDITOR PANE ─── */}
                     <div className="flex-1 overflow-auto p-6">{editorPane}</div>
                 </main>
             </div>

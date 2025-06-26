@@ -1,14 +1,12 @@
-import type { FC } from "react"
+// ts/commander/src/components/OutlinePanel.tsx
 import { Button } from "@/components/ui/button"
 import { useProjectStore } from "@/stores/ProjectStore"
 
-interface OutlinePanelProps {
-    onGenerateOutline: () => void
-}
-
-export const OutlinePanel: FC<OutlinePanelProps> = ({
+export function OutlinePanel({
     onGenerateOutline,
-}) => {
+}: {
+    onGenerateOutline: () => void
+}) {
     const sections = useProjectStore((s) => s.sections)
     const selectedSectionId = useProjectStore((s) => s.selectedSectionId)
     const selectedSubsectionId = useProjectStore((s) => s.selectedSubsectionId)
@@ -17,7 +15,6 @@ export const OutlinePanel: FC<OutlinePanelProps> = ({
         (s) => s.setSelectedSubsectionId
     )
 
-    // no sections yet
     if (sections.length === 0) {
         return (
             <aside className="w-64 border-r p-4 hidden md:block">
@@ -31,50 +28,42 @@ export const OutlinePanel: FC<OutlinePanelProps> = ({
     }
 
     return (
-
-        <aside
-            className="
-            hidden md:block
-            w-64 border-r p-4
-            h-full             /* full height of flex parent */
-            overflow-auto      /* scroll contents internally */
-            flex flex-col      /* ensure contents stack vertically */
-            "
-        >
+        <aside className="w-64 border-r p-4 hidden md:block overflow-y-auto">
             <h2 className="mb-4 text-lg font-semibold">Outline</h2>
             <ul className="space-y-1">
-                {sections.map((sec) => {
-                    const isOpen = sec.id === selectedSectionId
-                    return (
-                        <li key={sec.id}>
-                            <button
-                                className={`w-full text-left rounded px-2 py-1 ${isOpen ? "bg-blue-100" : "hover:bg-gray-100"
-                                    }`}
-                                onClick={() => setSelectedSectionId(sec.id)}
-                            >
-                                {sec.title}
-                            </button>
+                {sections.map((sec) => (
+                    <li key={sec.id}>
+                        <div
+                            className={`cursor-pointer rounded px-2 py-1 ${sec.id === selectedSectionId
+                                    ? "bg-blue-100"
+                                    : "hover:bg-gray-100"
+                                }`}
+                            onClick={() => {
+                                setSelectedSectionId(sec.id)
+                                setSelectedSubsectionId(null)
+                            }}
+                        >
+                            {sec.title}
+                        </div>
 
-                            {isOpen && sec.subsections.length > 0 && (
-                                <ul className="ml-4 mt-1 space-y-1">
-                                    {sec.subsections.map((sub) => (
-                                        <li key={sub.id}>
-                                            <button
-                                                className={`w-full text-left rounded px-2 py-1 ${sub.id === selectedSubsectionId
-                                                    ? "bg-blue-200"
-                                                    : "hover:bg-gray-100"
-                                                    }`}
-                                                onClick={() => setSelectedSubsectionId(sub.id)}
-                                            >
-                                                {sub.title}
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </li>
-                    )
-                })}
+                        {sec.id === selectedSectionId && sec.subsections.length > 0 && (
+                            <ul className="pl-4 mt-1 space-y-1">
+                                {sec.subsections.map((sub) => (
+                                    <li
+                                        key={sub.id}
+                                        className={`cursor-pointer rounded px-2 py-1 ${sub.id === selectedSubsectionId
+                                                ? "bg-blue-50"
+                                                : "hover:bg-gray-100"
+                                            }`}
+                                        onClick={() => setSelectedSubsectionId(sub.id)}
+                                    >
+                                        {sub.title}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </li>
+                ))}
             </ul>
         </aside>
     )

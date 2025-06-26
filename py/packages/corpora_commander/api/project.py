@@ -36,17 +36,19 @@ class ProjectOut(ProjectIn):
 
 
 class ProjectUpdate(BaseModel):
-    title: Optional[str]
-    subtitle: Optional[str]
-    purpose: Optional[str]
-    author: Optional[str]
-    publisher: Optional[str]
-    isbn: Optional[str]
-    language: Optional[str]
-    publication_date: Optional[date]
-    instructions: Optional[str]
-    voice: Optional[str]
-    has_images: Optional[bool]  # allow patching this flag
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
+    purpose: Optional[str] = None
+    instructions: Optional[str] = None
+    voice: Optional[str] = None
+    has_images: Optional[bool] = None
+    author: Optional[str] = None
+    publisher: Optional[str] = None
+    isbn: Optional[str] = None
+    language: Optional[str] = None
+    publication_date: Optional[date] = None
+
+    model_config = {"from_attributes": True}
 
 
 @router.get("/projects/", response=List[ProjectOut])
@@ -77,15 +79,12 @@ def get_project(request, project_id: UUID):
 
 @router.put("/projects/{project_id}", response=ProjectOut)
 def update_project(request, project_id: UUID, payload: ProjectUpdate):
-    """
-    Update the given fields on a project.
-    """
-    project = get_object_or_404(Project, id=project_id)
-    data = payload.model_dump(exclude_unset=True)
+    proj = get_object_or_404(Project, id=project_id)
+    data = payload.model_dump(exclude_unset=True)  # <— only the provided fields
     for field, value in data.items():
-        setattr(project, field, value)
-    project.save()
-    return project
+        setattr(proj, field, value)
+    proj.save()
+    return proj
 
 
 @router.delete("/projects/{project_id}")

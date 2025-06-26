@@ -8,25 +8,25 @@
 import type { ProjectUpdateTitle } from "./projectUpdateTitle";
 import type { ProjectUpdateSubtitle } from "./projectUpdateSubtitle";
 import type { ProjectUpdatePurpose } from "./projectUpdatePurpose";
+import type { ProjectUpdateInstructions } from "./projectUpdateInstructions";
+import type { ProjectUpdateVoice } from "./projectUpdateVoice";
+import type { ProjectUpdateHasImages } from "./projectUpdateHasImages";
 import type { ProjectUpdateAuthor } from "./projectUpdateAuthor";
 import type { ProjectUpdatePublisher } from "./projectUpdatePublisher";
 import type { ProjectUpdateIsbn } from "./projectUpdateIsbn";
 import type { ProjectUpdateLanguage } from "./projectUpdateLanguage";
 import type { ProjectUpdatePublicationDate } from "./projectUpdatePublicationDate";
-import type { ProjectUpdateInstructions } from "./projectUpdateInstructions";
-import type { ProjectUpdateVoice } from "./projectUpdateVoice";
-import type { ProjectUpdateHasImages } from "./projectUpdateHasImages";
 
 export interface ProjectUpdate {
-  title: ProjectUpdateTitle;
-  subtitle: ProjectUpdateSubtitle;
-  purpose: ProjectUpdatePurpose;
-  author: ProjectUpdateAuthor;
-  publisher: ProjectUpdatePublisher;
-  isbn: ProjectUpdateIsbn;
-  language: ProjectUpdateLanguage;
-  publication_date: ProjectUpdatePublicationDate;
-  instructions: ProjectUpdateInstructions;
-  voice: ProjectUpdateVoice;
-  has_images: ProjectUpdateHasImages;
+  title?: ProjectUpdateTitle;
+  subtitle?: ProjectUpdateSubtitle;
+  purpose?: ProjectUpdatePurpose;
+  instructions?: ProjectUpdateInstructions;
+  voice?: ProjectUpdateVoice;
+  has_images?: ProjectUpdateHasImages;
+  author?: ProjectUpdateAuthor;
+  publisher?: ProjectUpdatePublisher;
+  isbn?: ProjectUpdateIsbn;
+  language?: ProjectUpdateLanguage;
+  publication_date?: ProjectUpdatePublicationDate;
 }
