@@ -31,7 +31,16 @@ export const OutlinePanel: FC<OutlinePanelProps> = ({
     }
 
     return (
-        <aside className="w-64 border-r p-4 hidden md:block">
+
+        <aside
+            className="
+            hidden md:block
+            w-64 border-r p-4
+            h-full             /* full height of flex parent */
+            overflow-auto      /* scroll contents internally */
+            flex flex-col      /* ensure contents stack vertically */
+            "
+        >
             <h2 className="mb-4 text-lg font-semibold">Outline</h2>
             <ul className="space-y-1">
                 {sections.map((sec) => {
