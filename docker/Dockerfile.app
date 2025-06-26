@@ -2,15 +2,16 @@
 
 FROM mcr.microsoft.com/devcontainers/python:3.12
 
-# Install system deps: PostgreSQL client, Redis tools, Pandoc + XeLaTeX + Noto fonts
+# Install system deps: PostgreSQL client, Redis tools, Pandoc + XeLaTeX + CJK + Noto fonts
 RUN apt-get update && \
     apt-get install -y \
     postgresql-client \
     redis-tools \
     pandoc \
     texlive-xetex \
-    texlive-fonts-recommended \
     texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
     texlive-lang-cjk \
     fonts-noto \
     fonts-noto-cjk \
@@ -27,7 +28,4 @@ COPY py/packages/corpora/requirements.txt /workspace/packages/corpora/requiremen
 COPY py/packages/corpora_ai_openai/requirements.txt /workspace/packages/corpora_ai_openai/requirements.txt
 RUN pip install --no-cache-dir -r /workspace/requirements-app.txt
 
-# Development entrypoint
-# CMD ["python", "manage.py", "runserver", "0.0.0.0:8877"]
-# CMD ["celery", "-A", "corpora_proj.celery_app.app", "worker", "--loglevel=info"]
 CMD ["sleep", "infinity"]
