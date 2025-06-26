@@ -210,7 +210,7 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                                 return (
                                     <div key={key} onClick={() => isLong && toggleField(key)}>
                                         <div className="font-medium">{key}</div>
-                                        <div className="text-sm break-words">{preview}</div>
+                                        <div className="text-sm whitespace-pre-wrap break-words">{preview}</div>
                                         {isLong && (
                                             <div className="text-xs text-blue-500 cursor-pointer">
                                                 {isOpen ? "Show less" : "Show more"}
