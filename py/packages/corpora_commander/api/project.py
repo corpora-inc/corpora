@@ -5,7 +5,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from django.shortcuts import get_object_or_404
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from corpora_commander.models import Project
 
@@ -49,6 +49,14 @@ class ProjectUpdate(BaseModel):
     publication_date: Optional[date] = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("publication_date", mode="before")
+    @classmethod
+    def _empty_to_none(cls, v):
+        # turn empty‐string or all‐whitespace into None
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
 
 
 @router.get("/projects/", response=List[ProjectOut])
