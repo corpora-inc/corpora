@@ -78,7 +78,7 @@ export function SectionEditor({
                     <Zap className="mr-1 h-4 w-4" /> Enhance
                 </Button>
                 <Button size="sm" onClick={handleSave} disabled={saveSection.isPending}>
-                    {saveSection.isPending ? "Saving…" : "Save Intro"}
+                    {saveSection.isPending ? "Saving ..." : "Save Intro"}
                 </Button>
             </div>
 
@@ -92,6 +92,7 @@ export function SectionEditor({
                     setEnhanceOpen(false)
                 }}
                 onClose={() => setEnhanceOpen(false)}
+            // extraContext=""
             />
         </div>
     )

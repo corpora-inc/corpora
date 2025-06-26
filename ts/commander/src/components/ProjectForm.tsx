@@ -1,7 +1,10 @@
 // ts/commander/src/components/ProjectForm.tsx
+
+import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { LLMEnhanceModal } from "./LLMEnhanceModal"
 
 export type ProjectFields = {
     title: string
@@ -40,6 +43,16 @@ export function ProjectForm({
     submitDisabled = false,
     onCancel,
 }: ProjectFormProps) {
+    const [enhanceOpen, setEnhanceOpen] = useState(false)
+
+    const enhanceSchema = {
+        title: "str",
+        subtitle: "str",
+        purpose: "str",
+        instructions: "str",
+        voice: "str",
+    } as const
+
     return (
         <div className="space-y-6">
             {/* Title */}
@@ -152,15 +165,41 @@ export function ProjectForm({
 
             {/* Actions */}
             <div className="flex justify-between items-center">
-                {onCancel && (
-                    <Button variant="secondary" onClick={onCancel}>
-                        Cancel
-                    </Button>
-                )}
-                <Button onClick={onSubmit} disabled={submitDisabled}>
-                    {submitLabel}
+                <Button
+                    variant="outline"
+                    onClick={() => setEnhanceOpen(true)}
+                    disabled={!values.title.trim()}
+                >
+                    Mutate with AI
                 </Button>
+                <div className="space-x-2">
+                    {onCancel && (
+                        <Button variant="secondary" onClick={onCancel}>
+                            Cancel
+                        </Button>
+                    )}
+                    <Button onClick={onSubmit} disabled={submitDisabled}>
+                        {submitLabel}
+                    </Button>
+                </div>
             </div>
+
+            <LLMEnhanceModal<Pick<ProjectFields, keyof typeof enhanceSchema>>
+                open={enhanceOpen}
+                schema={enhanceSchema}
+                initialData={{
+                    title: values.title,
+                    subtitle: values.subtitle ?? "",
+                    purpose: values.purpose ?? "",
+                    instructions: values.instructions ?? "",
+                    voice: values.voice ?? "",
+                }}
+                onAccept={(suggested) => {
+                    onChange(suggested as Partial<ProjectFields>)
+                    setEnhanceOpen(false)
+                }}
+                onClose={() => setEnhanceOpen(false)}
+            />
         </div>
     )
 }
