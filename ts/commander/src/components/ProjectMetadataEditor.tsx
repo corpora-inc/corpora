@@ -74,8 +74,7 @@ export function ProjectMetadataEditor({ projectId }: { projectId: string }) {
     }
 
     return (
-        <div className="p-4">
-            <h2 className="text-xl font-semibold mb-4">Project Settings</h2>
+        <div className="px-4 py-2">
             <ProjectForm
                 values={values!}
                 onChange={handleChange}

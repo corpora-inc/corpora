@@ -164,7 +164,8 @@ export function ProjectForm({
             </div>
 
             {/* Actions */}
-            <div className="flex justify-between items-center">
+            {/* Add class to make the buttons be on the right */}
+            <div className="flex items-center gap-2 justify-end">
                 <Button
                     variant="outline"
                     onClick={() => setEnhanceOpen(true)}

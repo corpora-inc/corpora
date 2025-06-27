@@ -113,14 +113,13 @@ export function SubsectionEditor({
                 <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back">
                     <ChevronLeft className="h-5 w-5" />
                 </Button>
-                <div className="flex-1 px-4">
+                <div className="flex-1">
                     <Input
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Subsection Title"
                     />
                 </div>
-                <div className="w-8" />
             </div>
 
             {/* Content editor */}

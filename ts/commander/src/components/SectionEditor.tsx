@@ -101,7 +101,7 @@ export function SectionEditor({
                 >
                     <ChevronLeft className="h-5 w-5" />
                 </Button>
-                <div className="flex-1 px-4">
+                <div className="flex-1">
                     <Input
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
@@ -109,7 +109,6 @@ export function SectionEditor({
                         className="text-xl font-semibold"
                     />
                 </div>
-                <div className="w-8" />
             </div>
 
             {/* BODY */}
@@ -133,7 +132,7 @@ export function SectionEditor({
                     <Zap className="mr-1 h-4 w-4" /> Enhance
                 </Button>
                 <Button size="sm" onClick={handleSave} disabled={saveSection.isPending}>
-                    {saveSection.isPending ? "Saving…" : "Save Section"}
+                    {saveSection.isPending ? "..." : "Save"}
                 </Button>
             </div>
 
