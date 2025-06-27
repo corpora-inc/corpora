@@ -1,6 +1,5 @@
 // ts/commander/src/components/LLMEnhanceModal.tsx
-
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, memo } from "react"
 import { useMutation } from "@tanstack/react-query"
 import {
     Dialog,
@@ -59,6 +58,39 @@ export interface LLMEnhanceModalProps<T extends Record<string, any>> {
     extraContext?: string
 }
 
+// memoized suggestions panel
+const Suggestions = memo(function Suggestions({
+    data,
+    expanded,
+    toggleField,
+}: {
+    data: Record<string, any>
+    expanded: Record<string, boolean>
+    toggleField: (key: string) => void
+}) {
+    return (
+        <div className="border rounded bg-gray-50 p-2 space-y-3 my-5 overflow-auto max-h-96">
+            {Object.entries(data).map(([key, val]) => {
+                const str = String(val)
+                const isLong = str.length > 300
+                const isOpen = !!expanded[key]
+                const preview = isOpen ? str : str.slice(0, 300) + (isLong ? "…" : "")
+                return (
+                    <div key={key} onClick={() => isLong && toggleField(key)}>
+                        <div className="font-medium">{key}</div>
+                        <div className="text-sm whitespace-pre-wrap break-words">{preview}</div>
+                        {isLong && (
+                            <div className="text-xs text-blue-500 cursor-pointer">
+                                {isOpen ? "Show less" : "Show more"}
+                            </div>
+                        )}
+                    </div>
+                )
+            })}
+        </div>
+    )
+})
+
 export function LLMEnhanceModal<T extends Record<string, any>>({
     open,
     schema,
@@ -86,11 +118,9 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
 
     const generic = useGenericCompleteMutation<T>()
 
-    // Static system messages: only once per open
+    // build static system messages once per open
     const systemMessages = useMemo<ChatMessage[]>(() => {
-        const msgs: ChatMessage[] = [
-            { role: "system", text: "You are a helpful assistant." },
-        ]
+        const msgs: ChatMessage[] = [{ role: "system", text: "You are a helpful assistant." }]
         if (extraContext) {
             msgs.push({ role: "system", text: extraContext })
         }
@@ -98,13 +128,12 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
             role: "system",
             text: `When asked, return only a JSON object with keys: ${Object.keys(schema).join(
                 ", "
-            )
-                }. Do not include any extra text.`,
+            )}. Do not include any extra text.`,
         })
         return msgs
     }, [extraContext, schema])
 
-    // Handlers for provider/model
+    // model/provider handlers
     const onProviderChange = (prov: ProviderType) => {
         _setProvider(prov)
         setDefault(prov)
@@ -116,7 +145,7 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
         setDefaultModel(provider, m)
     }
 
-    // Reset when opened
+    // reset whenever modal opens
     useEffect(() => {
         if (!open) return
         onProviderChange(defaultProv ?? providers[0]!)
@@ -131,7 +160,7 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
         setExpanded({})
     }, [open])
 
-    // Append assistant responses
+    // append each assistant reply
     useEffect(() => {
         if (!generic.data) return
         setHistory((h) => [
@@ -140,7 +169,6 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
         ])
     }, [generic.data])
 
-    // Generate call
     const handleGenerate = () => {
         generic.mutate({
             provider,
@@ -155,7 +183,7 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
 
     return (
         <Dialog open={open} onOpenChange={(ok) => !ok && onClose()}>
-            <DialogContent className="w-full sm:max-w-md lg:max-w-xl max-h-[80vh] overflow-hidden p-6">
+            <DialogContent className="w-full sm:max-w-md md:max-w-xl lg:max-w-2xl max-h-[90vh] p-6 overflow-y-auto">
                 <div className="relative">
                     {generic.isPending && (
                         <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center">
@@ -168,6 +196,7 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                         <DialogClose className="cursor-pointer" />
                     </header>
 
+                    {/* provider/model */}
                     <LLMModelSelector
                         provider={provider}
                         model={model}
@@ -175,10 +204,11 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                         onModelChange={onModelChange}
                     />
 
+                    {/* uncontrolled prompt textarea */}
                     <Textarea
                         className="min-h-[6rem] mt-4"
                         placeholder="Extra prompt..."
-                        value={prompt}
+                        defaultValue={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         disabled={generic.isPending}
                     />
@@ -192,34 +222,25 @@ export function LLMEnhanceModal<T extends Record<string, any>>({
                             {generic.data ? "Regenerate" : "Generate"}
                         </Button>
                         {generic.data && (
-                            <Button onClick={() => onAccept(generic.data as Partial<T>)} disabled={generic.isPending}>
+                            <Button
+                                onClick={() => onAccept(generic.data as Partial<T>)}
+                                disabled={generic.isPending}
+                            >
                                 Accept
                             </Button>
                         )}
                     </div>
 
-                    {generic.isError && <p className="text-red-600 mt-2">{generic.error!.message}</p>}
+                    {generic.isError && (
+                        <p className="text-red-600 mt-2">{generic.error!.message}</p>
+                    )}
 
                     {generic.data && (
-                        <div className="border rounded bg-gray-50 p-4 space-y-3 mt-4 overflow-auto max-h-48">
-                            {Object.entries(generic.data).map(([key, val]) => {
-                                const str = String(val)
-                                const isLong = str.length > 100
-                                const isOpen = !!expanded[key]
-                                const preview = isOpen ? str : str.slice(0, 100) + (isLong ? "…" : "")
-                                return (
-                                    <div key={key} onClick={() => isLong && toggleField(key)}>
-                                        <div className="font-medium">{key}</div>
-                                        <div className="text-sm whitespace-pre-wrap break-words">{preview}</div>
-                                        {isLong && (
-                                            <div className="text-xs text-blue-500 cursor-pointer">
-                                                {isOpen ? "Show less" : "Show more"}
-                                            </div>
-                                        )}
-                                    </div>
-                                )
-                            })}
-                        </div>
+                        <Suggestions
+                            data={generic.data as Record<string, any>}
+                            expanded={expanded}
+                            toggleField={toggleField}
+                        />
                     )}
                 </div>
             </DialogContent>

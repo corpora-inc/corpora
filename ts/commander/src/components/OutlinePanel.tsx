@@ -19,8 +19,7 @@ export const OutlinePanel: FC = () => {
         // <aside className="w-64 border-r p-4 hidden md:flex flex-col h-full">
         <aside className="w-full md:w-64 md:border-r flex flex-col h-full">
             {sections.length === 0 ? (
-                <div className="space-y-2">
-                    <p className="text-sm text-gray-600">No sections yet.</p>
+                <div className="flex-1 flex items-center justify-center">
                     <Button onClick={() => setOutlineOpen(true)}>
                         Generate Outline
                     </Button>

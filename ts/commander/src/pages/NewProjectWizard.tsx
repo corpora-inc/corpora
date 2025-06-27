@@ -27,11 +27,17 @@ export default function NewProjectWizard() {
     const errorMessage = (createProject.error as Error | null)?.message ?? null
 
     const handleSubmit = async () => {
-        const res = await createProject.mutateAsync({
-            data: formValues,
-        })
-        navigate(`/project/${res.data.id}`)
-    }
+        // build a clean payload that omits publication_date if blank
+        const payload = {
+            ...formValues,
+            publication_date: formValues.publication_date?.trim()
+                ? formValues.publication_date
+                : undefined,
+        };
+
+        const res = await createProject.mutateAsync({ data: payload });
+        navigate(`/project/${res.data.id}`);
+    };
 
     return (
         <div className="p-6 max-w-xl mx-auto">
