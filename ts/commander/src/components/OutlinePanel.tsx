@@ -1,53 +1,46 @@
+// ts/commander/src/components/OutlinePanel.tsx
 import type { FC } from "react"
 import { Button } from "@/components/ui/button"
+import { useProjectStore } from "@/stores/ProjectStore"
 
-interface Sub {
-    id: string
-    title: string
-}
 
-interface Section {
-    id: string
-    title: string
-    subsections: Sub[]
-}
+export const OutlinePanel: FC = () => {
+    // grab everything we need from the store
+    const sections = useProjectStore((s) => s.sections)
+    const selectedSectionId = useProjectStore((s) => s.selectedSectionId)
+    const selectedSubsectionId = useProjectStore((s) => s.selectedSubsectionId)
+    const setSelectedSectionId = useProjectStore((s) => s.setSelectedSectionId)
+    const setSelectedSubsectionId = useProjectStore(
+        (s) => s.setSelectedSubsectionId
+    )
+    const setOutlineOpen = useProjectStore((s) => s.setOutlineOpen)
 
-interface OutlinePanelProps {
-    sections: Section[]
-    selectedSectionId: string | null
-    selectedSubsectionId: string | null
-    onSelectSection: (id: string) => void
-    onSelectSubsection: (id: string) => void
-    onGenerateOutline: () => void
-}
-
-export const OutlinePanel: FC<OutlinePanelProps> = ({
-    sections,
-    selectedSectionId,
-    selectedSubsectionId,
-    onSelectSection,
-    onSelectSubsection,
-    onGenerateOutline,
-}) => {
     return (
-        <div className="h-full flex flex-col">
-            <h2 className="mb-4 text-lg font-semibold">Outline</h2>
-
+        // <aside className="w-64 border-r p-4 hidden md:flex flex-col h-full">
+        <aside className="w-full md:w-64 md:border-r flex flex-col h-full">
             {sections.length === 0 ? (
                 <div className="space-y-2">
                     <p className="text-sm text-gray-600">No sections yet.</p>
-                    <Button onClick={onGenerateOutline}>Generate Outline</Button>
+                    <Button onClick={() => setOutlineOpen(true)}>
+                        Generate Outline
+                    </Button>
                 </div>
             ) : (
-                <ul className="space-y-1 flex-1 overflow-y-auto">
+                <ul className="flex-1 overflow-y-auto space-y-1 p-3">
                     {sections.map((sec) => (
                         <li key={sec.id}>
                             <div
-                                className={`cursor-pointer rounded px-2 py-1 ${sec.id === selectedSectionId
+                                className={
+                                    "cursor-pointer rounded px-2 py-1 " +
+                                    (sec.id === selectedSectionId
                                         ? "bg-blue-100"
-                                        : "hover:bg-gray-100"
-                                    }`}
-                                onClick={() => onSelectSection(sec.id)}
+                                        : "hover:bg-gray-100")
+                                }
+                                onClick={() => {
+                                    // select section *and* clear any subsection
+                                    setSelectedSectionId(sec.id)
+                                    setSelectedSubsectionId(null)
+                                }}
                             >
                                 {sec.title}
                             </div>
@@ -55,15 +48,18 @@ export const OutlinePanel: FC<OutlinePanelProps> = ({
                             {sec.id === selectedSectionId && sec.subsections.length > 0 && (
                                 <ul className="pl-4 mt-1 space-y-1">
                                     {sec.subsections.map((sub) => (
-                                        <li
-                                            key={sub.id}
-                                            className={`cursor-pointer rounded px-2 py-1 ${sub.id === selectedSubsectionId
-                                                    ? "bg-blue-50"
-                                                    : "hover:bg-gray-100"
-                                                }`}
-                                            onClick={() => onSelectSubsection(sub.id)}
-                                        >
-                                            {sub.title}
+                                        <li key={sub.id}>
+                                            <div
+                                                className={
+                                                    "cursor-pointer rounded px-2 py-1 " +
+                                                    (sub.id === selectedSubsectionId
+                                                        ? "bg-blue-50"
+                                                        : "hover:bg-gray-100")
+                                                }
+                                                onClick={() => setSelectedSubsectionId(sub.id)}
+                                            >
+                                                {sub.title}
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>
@@ -72,6 +68,6 @@ export const OutlinePanel: FC<OutlinePanelProps> = ({
                     ))}
                 </ul>
             )}
-        </div>
+        </aside>
     )
 }
