@@ -1,6 +1,7 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import { Loader2 } from "lucide-react"
+import { Loader2, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import {
     useCorporaCommanderApiProjectGetProject,
     useCorporaCommanderApiSectionListSections,
@@ -37,13 +38,15 @@ export default function ProjectEditorPage() {
     }, [sectionsQuery.data, setSections])
 
     // selectors
-    // const project = useProjectStore((s) => s.project)
     const selectedSectionId = useProjectStore((s) => s.selectedSectionId)
     const selectedSubsectionId = useProjectStore((s) => s.selectedSubsectionId)
     const isOutlineOpen = useProjectStore((s) => s.isOutlineOpen)
     const isDraftOpen = useProjectStore((s) => s.isDraftOpen)
     const setOutlineOpen = useProjectStore((s) => s.setOutlineOpen)
     const setDraftOpen = useProjectStore((s) => s.setDraftOpen)
+
+    // mobile drawer state
+    const [mobileOutlineOpen, setMobileOutlineOpen] = useState(false)
 
     if (!id) {
         return <p className="p-4 text-red-600">No project ID provided.</p>
@@ -70,13 +73,15 @@ export default function ProjectEditorPage() {
         )
     }
 
-    // pick pane
+    // choose editor pane
     let editorPane
     if (selectedSubsectionId) {
         editorPane = (
             <SubsectionEditor
                 subsectionId={selectedSubsectionId}
-                onBack={() => useProjectStore.getState().setSelectedSubsectionId(null)}
+                onBack={() =>
+                    useProjectStore.getState().setSelectedSubsectionId(null)
+                }
             />
         )
     } else if (selectedSectionId) {
@@ -93,15 +98,62 @@ export default function ProjectEditorPage() {
     return (
         <>
             <div className="flex h-full">
-                <OutlinePanel />
+                {/* Desktop outline sidebar */}
+                <div className="hidden md:flex w-64 border-r p-4">
+                    <OutlinePanel
+                        sections={useProjectStore.getState().sections}
+                        selectedSectionId={selectedSectionId}
+                        selectedSubsectionId={selectedSubsectionId}
+                        onSelectSection={(sec) =>
+                            useProjectStore.getState().setSelectedSectionId(sec)
+                        }
+                        onSelectSubsection={(sub) =>
+                            useProjectStore.getState().setSelectedSubsectionId(sub)
+                        }
+                        onGenerateOutline={() => setOutlineOpen(true)}
+                    />
+                </div>
 
-                <main className="flex-1 flex flex-col h-full overflow-hidden">
-                    <TopBar />
+                {/* Mobile outline drawer */}
+                {mobileOutlineOpen && (
+                    <div className="fixed inset-0 z-50 bg-white">
+                        {/* floating close button */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setMobileOutlineOpen(false)}
+                            aria-label="Close outline"
+                            className="absolute top-4 right-4"
+                        >
+                            <X className="h-5 w-5" />
+                        </Button>
 
-                    {/* editor */}
-                    <div className="flex-1 overflow-auto p-6">
-                        {editorPane}
+                        {/* scrollable outline, padded under the X */}
+                        <div className="h-full overflow-auto p-4">
+                            <OutlinePanel
+                                sections={useProjectStore.getState().sections}
+                                selectedSectionId={selectedSectionId}
+                                selectedSubsectionId={selectedSubsectionId}
+                                onSelectSection={(sec) => {
+                                    useProjectStore.getState().setSelectedSectionId(sec)
+                                    setMobileOutlineOpen(false)
+                                }}
+                                onSelectSubsection={(sub) => {
+                                    useProjectStore.getState().setSelectedSubsectionId(sub)
+                                    setMobileOutlineOpen(false)
+                                }}
+                                onGenerateOutline={() => {
+                                    setOutlineOpen(true)
+                                    setMobileOutlineOpen(false)
+                                }}
+                            />
+                        </div>
                     </div>
+                )}
+                <main className="flex-1 flex flex-col h-full overflow-hidden">
+                    <TopBar onToggleOutlinePanel={() => setMobileOutlineOpen(true)} />
+
+                    <div className="flex-1 overflow-auto p-6">{editorPane}</div>
                 </main>
             </div>
 
