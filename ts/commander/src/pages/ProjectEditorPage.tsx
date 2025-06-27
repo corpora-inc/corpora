@@ -1,8 +1,8 @@
 // ts/commander/src/pages/ProjectEditorPage.tsx
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import { Loader2, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
+// import { Button } from "@/components/ui/button"
 import {
     useCorporaCommanderApiProjectGetProject,
     useCorporaCommanderApiSectionListSections,
@@ -48,6 +48,13 @@ export default function ProjectEditorPage() {
 
     // mobile drawer state
     const [mobileOutlineOpen, setMobileOutlineOpen] = useState(false)
+
+    useEffect(() => {
+        // close the mobile outline when the selected section or subsection changes
+        if (selectedSectionId || selectedSubsectionId) {
+            setMobileOutlineOpen(false)
+        }
+    }, [selectedSectionId, selectedSubsectionId])
 
     if (!id) {
         return <p className="p-4 text-red-600">No project ID provided.</p>
@@ -109,18 +116,6 @@ export default function ProjectEditorPage() {
                 {/* Mobile outline drawer */}
                 {mobileOutlineOpen && (
                     <div className="fixed inset-0 z-50 bg-white">
-                        {/* floating close button */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setMobileOutlineOpen(false)}
-                            aria-label="Close outline"
-                            className="absolute top-4 right-4"
-                        >
-                            <X className="h-5 w-5" />
-                        </Button>
-
-                        {/* scrollable outline, padded under the X */}
                         <div className="h-full overflow-auto">
                             <OutlinePanel />
                         </div>
