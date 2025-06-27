@@ -38,12 +38,6 @@ class CompletionResponse(BaseModel):
 @router.post("/complete", response=CompletionResponse)
 def text_completion(request, data: CompletionRequest):
     # 1) Load the correct LLM provider (this can raise ValueError on bad config)
-    print(f"Loading LLM provider: {data.provider}")
-    print(f"Using model: {data.model}")
-    print(f"Using base URL: {data.base_url}")
-    print(f"Using API key: {data.api_key}")
-    print(f"Using messages: {data.messages}")
-    # return
     try:
         llm = load_llm_provider(
             provider_name=data.provider,
