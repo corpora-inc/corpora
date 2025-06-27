@@ -26,32 +26,48 @@ export default function NewProjectWizard() {
     const isError = createProject.isError
     const errorMessage = (createProject.error as Error | null)?.message ?? null
 
-    const handleSubmit = async () => {
-        // build a clean payload that omits publication_date if blank
+    const handleSaveAndContinue = async () => {
         const payload = {
             ...formValues,
             publication_date: formValues.publication_date?.trim()
                 ? formValues.publication_date
                 : undefined,
-        };
+        }
+        const res = await createProject.mutateAsync({ data: payload })
+        navigate(`/project/${res.data.id}`)
+    }
 
-        const res = await createProject.mutateAsync({ data: payload });
-        navigate(`/project/${res.data.id}`);
-    };
+    const handleSaveAndAnother = async () => {
+        const payload = {
+            ...formValues,
+            publication_date: formValues.publication_date?.trim()
+                ? formValues.publication_date
+                : undefined,
+        }
+        await createProject.mutateAsync({ data: payload })
+        // keep metadata, only clear title
+        setFormValues((v) => ({ ...v, title: "" }))
+    }
 
     return (
-        <div className="p-6 max-w-xl mx-auto">
+        <div className="p-6 max-w-2xl mx-auto">
             <h1 className="text-2xl font-semibold mb-6">Create New Project</h1>
 
             <ProjectForm
                 values={formValues}
                 onChange={(patch) => setFormValues((v) => ({ ...v, ...patch }))}
-                submitLabel={isPending ? "Creating…" : "Create Project"}
+                submitLabel={isPending ? "Saving…" : "Save & Continue"}
+                submitDisabled={isPending}
+                onSubmit={handleSaveAndContinue}
                 onCancel={() => navigate(-1)}
-                onSubmit={handleSubmit}
+                secondaryAction={{
+                    label: isPending ? "Saving & Another…" : "Save & Create Another",
+                    action: handleSaveAndAnother,
+                    disabled: isPending,
+                }}
             />
 
-            {isError && errorMessage && (
+            {isError && (
                 <p className="mt-4 text-red-600">{errorMessage}</p>
             )}
         </div>

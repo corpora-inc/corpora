@@ -1,5 +1,4 @@
 // ts/commander/src/components/ProjectForm.tsx
-
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -25,14 +24,21 @@ export interface ProjectFormProps {
     values: ProjectFields
     /** Called when any one field changes */
     onChange: (patch: Partial<ProjectFields>) => void
-    /** When user clicks “Save” */
+    /** Primary action (e.g. “Save & Continue”) */
     onSubmit: () => void
-    /** Label for the submit button */
+    /** Label for the primary submit button */
     submitLabel: string
-    /** Disable the submit button while saving */
+    /** Disable the primary submit button while saving */
     submitDisabled?: boolean
     /** Optional “Cancel” handler */
     onCancel?: () => void
+    /** Optional secondary action (e.g. “Save & Create Another”) */
+    secondaryAction?: {
+        label: string
+        action: () => void
+        disabled?: boolean
+        variant?: "outline" | "secondary" | "default"
+    }
 }
 
 export function ProjectForm({
@@ -42,6 +48,7 @@ export function ProjectForm({
     submitLabel,
     submitDisabled = false,
     onCancel,
+    secondaryAction,
 }: ProjectFormProps) {
     const [enhanceOpen, setEnhanceOpen] = useState(false)
 
@@ -163,9 +170,8 @@ export function ProjectForm({
                 />
             </div>
 
-            {/* Actions */}
-            {/* Add class to make the buttons be on the right */}
-            <div className="flex items-center gap-2 justify-end">
+            {/* Row 1: AI + Cancel */}
+            <div className="flex items-center justify-end gap-2">
                 <Button
                     variant="outline"
                     onClick={() => setEnhanceOpen(true)}
@@ -173,16 +179,27 @@ export function ProjectForm({
                 >
                     Mutate with AI
                 </Button>
-                <div className="space-x-2">
-                    {onCancel && (
-                        <Button variant="secondary" onClick={onCancel}>
-                            Cancel
-                        </Button>
-                    )}
-                    <Button onClick={onSubmit} disabled={submitDisabled}>
-                        {submitLabel}
+                {onCancel && (
+                    <Button variant="secondary" onClick={onCancel}>
+                        Cancel
                     </Button>
-                </div>
+                )}
+            </div>
+
+            {/* Row 2: Secondary + Primary */}
+            <div className="flex items-center justify-end gap-2">
+                {secondaryAction && (
+                    <Button
+                        variant={secondaryAction.variant ?? "outline"}
+                        onClick={secondaryAction.action}
+                        disabled={secondaryAction.disabled}
+                    >
+                        {secondaryAction.label}
+                    </Button>
+                )}
+                <Button onClick={onSubmit} disabled={submitDisabled}>
+                    {submitLabel}
+                </Button>
             </div>
 
             <LLMEnhanceModal<Pick<ProjectFields, keyof typeof enhanceSchema>>
