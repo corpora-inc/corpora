@@ -4,7 +4,8 @@ from corpora_ai.llm_interface import LLMBaseInterface
 from corpora_ai.provider_loader import load_llm_provider
 
 
-def build_llm(provider: str, config: Dict[str, Any]) -> LLMBaseInterface:
+# TODO: fix/split this function. It is too complex and hacky at that.
+def build_llm(provider: str, config: Dict[str, Any]) -> LLMBaseInterface:  # noqa: C901
     p = provider.lower()
     kwargs: Dict[str, Any] = {}
 
