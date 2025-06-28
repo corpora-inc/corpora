@@ -8,8 +8,8 @@ from corpora_ai.llm_interface import (
     GeneratedImage,
     LLMBaseInterface,
 )
-from openai import OpenAI, OpenAIError
-from pydantic import BaseModel
+from openai import OpenAI
+from pydantic import BaseModel, ValidationError
 
 if TYPE_CHECKING:
     from openai.types.images_response import ImagesResponse
@@ -107,82 +107,54 @@ class LocalClient(LLMBaseInterface):
         retries: int = 3,
     ) -> T:
         """
-        Uses tool-calling to return a Pydantic-validated model.
+        Uses LM Studio structured response to return a Pydantic-validated model.
 
         Args:
             messages: chat messages
             model: the Pydantic model class for output
-            retries: how many times to retry if the tool call fails
+            retries: how many times to retry if the response is invalid
 
         Returns:
-            An instance of the model populated from the tool_call arguments.
+            An instance of the model populated from structured JSON.
         """
         if not issubclass(model, BaseModel):
             raise ValueError("Schema must be a subclass of pydantic.BaseModel.")
         if not messages:
             raise ValueError("Input messages must not be empty.")
 
-        tool_name = model.__name__
-        tool_description = f"Generate data based on the {tool_name} schema."
-
         payload = [{"role": msg.role, "content": msg.text} for msg in messages]
-        schema = model.model_json_schema()
 
-        tool_def = {
-            "type": "function",
-            "function": {
-                "name": tool_name,
-                "description": tool_description,
-                "parameters": schema,
-            },
-        }
-
-        # tool_choice = {
-        #     "type": "function",
-        #     "function": {
-        #         "name": tool_name,
-        #     },
-        # }
-
-        for attempt in range(retries):
+        for attempt in range(1, retries + 1):
             try:
+                print(f"[Attempt {attempt}] Sending completion request...")
                 response = self.client.chat.completions.create(
                     model=self.completion_model,
                     messages=payload,
-                    tools=[tool_def],
-                    # TODO: for some reason, LM Studio doesn't like
-                    # maybe later version will work.
-                    # tool_choice=tool_choice,
-                    # tool_choice="required",
-                    tool_choice="auto",
+                    response_format=model,
+                    max_tokens=512,
+                    temperature=0.2,
                 )
 
-                msg = response.choices[0].message
+                content = response.choices[0].message.content
+                print(f"[Attempt {attempt}] Raw model content: {content}")
 
-                try:
-                    arguments = get_tool_args(msg)
-                    return model.model_validate_json(arguments)
-                except Exception as e:  # noqa
-                    print(f"Failed to validate tool_call arguments: {e}")
-                    # print(tool.function.arguments)
-                    if attempt == retries - 1:
-                        raise RuntimeError(
-                            f"Failed to validate tool_call arguments: {e}",
-                        )
-                    continue
+                parsed = model.model_validate_json(content)
+                print(
+                    f"[Attempt {attempt}] Successfully validated structured response.",
+                )
+                return parsed
 
-            except OpenAIError as e:
-                print(f"Request failed: {e}")
-                if attempt == retries - 1:
-                    raise RuntimeError(f"Request failed: {e}")
-                continue
-            except json.JSONDecodeError as e:
-                print(f"Failed to parse tool_call arguments: {e}")
-                if attempt == retries - 1:
-                    raise RuntimeError(
-                        f"Failed to parse tool_call arguments: {e}",
-                    )
-                continue
+            except ValidationError as ve:
+                print(f"[Attempt {attempt}] Validation failed: {ve}")
+            except json.JSONDecodeError as je:
+                print(f"[Attempt {attempt}] JSON decode error: {je}")
+            except Exception as e:  # noqa: BLE001
+                print(f"[Attempt {attempt}] Unexpected error: {e}")
+
+            if attempt == retries:
+                raise RuntimeError(
+                    f"Failed to get valid structured response after {retries} attempts.",
+                )
 
     def get_image(
         self,
