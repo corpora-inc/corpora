@@ -44,6 +44,13 @@ def generic_data_completion(request, payload: GenericCompletionRequest):
     except ValidationError as e:
         raise ValueError(f"Invalid schema description: {e}")
 
+    print(
+        "building LLM with provider:",
+        payload.provider,
+        "and config:",
+        payload.config,
+    )
     llm = build_llm(payload.provider, payload.config)
+    print("LLM built successfully", llm)
     result = llm.get_data_completion(payload.messages, DynamicModel)
     return result.model_dump()

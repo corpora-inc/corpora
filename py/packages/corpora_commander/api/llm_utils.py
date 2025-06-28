@@ -24,10 +24,17 @@ def build_llm(provider: str, config: Dict[str, Any]) -> LLMBaseInterface:
     elif p in ("lmstudio", "local"):
         base_url = config.get("base_url") or config.get("baseUrl")
         api_key = config.get("api_key") or config.get("apiKey")
+        model = (
+            config.get("completion_model")
+            or config.get("model")
+            or config.get("defaultModel")
+        )
         if base_url:
             kwargs["base_url"] = base_url
         if api_key:
             kwargs["api_key"] = api_key
+        if model:
+            kwargs["completion_model"] = model
 
     else:
         raise ValueError(f"Unknown provider: {provider!r}")

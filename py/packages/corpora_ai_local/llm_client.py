@@ -127,18 +127,28 @@ class LocalClient(LLMBaseInterface):
         for attempt in range(1, retries + 1):
             try:
                 print(f"[Attempt {attempt}] Sending completion request...")
-                response = self.client.chat.completions.create(
+                response = self.client.beta.chat.completions.parse(
                     model=self.completion_model,
                     messages=payload,
                     response_format=model,
-                    max_tokens=512,
-                    temperature=0.2,
+                    # max_tokens=512,
+                    temperature=0,
                 )
 
-                content = response.choices[0].message.content
-                print(f"[Attempt {attempt}] Raw model content: {content}")
+                parsed = response.parsed
 
-                parsed = model.model_validate_json(content)
+                # response = self.client.chat.completions.create(
+                #     model=self.completion_model,
+                #     messages=payload,
+                #     response_format=model,
+                #     max_tokens=512,
+                #     temperature=0.2,
+                # )
+
+                # content = response.choices[0].message.content
+                # print(f"[Attempt {attempt}] Raw model content: {content}")
+
+                # parsed = model.model_validate_json(content)
                 print(
                     f"[Attempt {attempt}] Successfully validated structured response.",
                 )
