@@ -53,9 +53,7 @@ export function GenerateOutlineDialog({
     const outlineGen = useCorporaCommanderApiOutlineGenerateOutline()
 
     // Local UI state
-    const [provider, setProvider] = useState<ProviderType>(
-        defaultProvider!
-    )
+    const [provider, setProvider] = useState<ProviderType>(defaultProvider!)
     const [model, setModel] = useState<string>("")
     const [userPrompt, setUserPrompt] = useState<string>("")
     const [history, setHistory] = useState<
@@ -180,7 +178,7 @@ export function GenerateOutlineDialog({
 
     return (
         <Dialog open={open} onOpenChange={(ok) => !ok && onClose()}>
-            <DialogContent className="max-w-2xl p-6 space-y-4">
+            <DialogContent className="w-full max-w-6xl max-h-[100vh] overflow-auto p-6 space-y-4 min-w-[300px] md:min-w-[400px] lg:min-w-[600px] xl:min-w-[800px]">
                 <DialogHeader>
                     <DialogTitle>Generate Book Outline</DialogTitle>
                     <DialogClose />
@@ -209,11 +207,11 @@ export function GenerateOutlineDialog({
                 />
 
                 {/* Chat history */}
-                <div className="border rounded bg-gray-50 p-3 max-h-40 overflow-auto text-xs space-y-2">
+                <div className="border rounded bg-gray-50 p-3 max-h-96 overflow-auto text-xs space-y-2">
                     {history.map((m, i) => (
                         <div key={i}>
                             <span className="font-semibold">{m.role}: </span>
-                            <span>{m.text}</span>
+                            <span className="whitespace-pre-wrap">{m.text}</span>
                         </div>
                     ))}
                 </div>
