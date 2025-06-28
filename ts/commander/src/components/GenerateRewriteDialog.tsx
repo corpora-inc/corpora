@@ -102,6 +102,7 @@ export const GenerateRewriteDialog: React.FC<GenerateRewriteDialogProps> = ({
 
     const handleAccept = async () => {
         if (!proposals) return
+        console.log("scope", scope)
         try {
             if (scope === "sections") {
                 for (const sec of proposals as RewriteSection[]) {
@@ -113,7 +114,7 @@ export const GenerateRewriteDialog: React.FC<GenerateRewriteDialogProps> = ({
             } else {
                 for (const sub of proposals as RewriteSubsection[]) {
                     await updateSub.mutateAsync({
-                        subsectionId: sub.subsection_id,
+                        subsectionId: sub.id,
                         data: { content: sub.content },
                     })
                 }
@@ -189,11 +190,11 @@ export const GenerateRewriteDialog: React.FC<GenerateRewriteDialogProps> = ({
                                     const parentTitle =
                                         sections
                                             .flatMap((s) => s.subsections)
-                                            .find((x) => x.id === sub.subsection_id)?.title ??
+                                            .find((x) => x.id === sub.id)?.title ??
                                         "Untitled"
                                     return (
                                         <section
-                                            key={sub.subsection_id}
+                                            key={sub.id}
                                             className="space-y-2 border-b pb-4"
                                         >
                                             <h3 className="text-lg font-semibold">

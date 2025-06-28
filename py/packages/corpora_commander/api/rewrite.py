@@ -7,7 +7,7 @@ from corpora_ai.llm_interface import ChatCompletionTextMessage
 from django.shortcuts import get_object_or_404
 from pydantic import BaseModel
 
-from corpora_commander.models import Project
+from corpora_commander.models import Project, Section, Subsection
 
 from .llm_utils import build_llm
 from .router import router
@@ -21,8 +21,9 @@ class RewriteSection(BaseModel):
 
 
 class RewriteSubsection(BaseModel):
-    subsection_id: UUID
+    id: UUID
     content: str
+    title: str = ""
 
 
 class RewriteRequest(BaseModel):
@@ -111,18 +112,18 @@ def rewrite_subsections(request, project_id: UUID, payload: RewriteRequest):
     results: List[RewriteSubsection] = []
 
     for sec in sections:
+        sec: Section
         for sub in sec.subsections.all().order_by("order"):
+            sub: Subsection
             logger.info("Rewriting subsection %s (%s)", sub.id, sub.title)
             system_msg = ChatCompletionTextMessage(
                 role="system",
-                text=(
-                    "You are an expert book editor. Rewrite the subsection content "
-                    "to improve clarity and style, preserving original meaning."
-                ),
+                text=("You are an expert book editor."),
             )
             ctx = [
                 f"Project Title: {proj.title}",
                 f"Section Title: {sec.title}",
+                f"Subsection ID: {sub.id}",
                 f"Subsection Title: {sub.title}",
                 f"Instructions: {sub.instructions}",
                 f"Original Content: {sub.content}",
@@ -135,6 +136,7 @@ def rewrite_subsections(request, project_id: UUID, payload: RewriteRequest):
                     f"{context}\n"
                     f"Prompt: {payload.prompt}\n\n"
                     f"Return a JSON object matching schema: {RewriteSubsection.model_json_schema()}"
+                    f"Preserve the original subsection ID ({sub.id})"
                 ),
             )
             sub_result = llm.get_data_completion(

@@ -7,6 +7,7 @@
  */
 
 export interface RewriteSubsection {
-  subsection_id: string;
+  id: string;
   content: string;
+  title?: string;
 }
