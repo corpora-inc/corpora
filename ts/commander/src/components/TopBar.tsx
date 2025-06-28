@@ -1,3 +1,4 @@
+// src/components/TopBar.tsx
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
@@ -14,8 +15,16 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
     const sections = useProjectStore((s) => s.sections)
     const setOutlineOpen = useProjectStore((s) => s.setOutlineOpen)
     const setDraftOpen = useProjectStore((s) => s.setDraftOpen)
+    const setRewriteOpen = useProjectStore((s) => s.setRewriteOpen) // new store action
 
     if (!project) return null
+
+    const hasSections = sections.length > 0
+    const hasContent = sections.some(
+        (sec) =>
+            (sec.introduction?.trim() ?? "") !== "" ||
+            sec.subsections?.some((sub) => (sub.content?.trim() ?? "") !== "")
+    )
 
     return (
         <div className="border-b p-6 flex items-center justify-between">
@@ -50,11 +59,16 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
 
             {/* Right: action buttons */}
             <div className="space-x-2">
-                {sections.length > 0 && (
+                {!hasSections && (
+                    <Button onClick={() => setOutlineOpen(true)}>Outline</Button>
+                )}
+                {hasSections && !hasContent && (
                     <Button onClick={() => setDraftOpen(true)}>Draft book</Button>
                 )}
-                <Button onClick={() => setOutlineOpen(true)}>Outline</Button>
-                {sections.length > 0 && (
+                {hasContent && (
+                    <Button onClick={() => setRewriteOpen(true)}>Rewrite</Button>
+                )}
+                {hasSections && (
                     <ExportPdfButton projectId={project.id} />
                 )}
             </div>

@@ -11,4 +11,5 @@ from . import (  # noqa
     outline,
     draft,
     export,
+    rewrite,
 )

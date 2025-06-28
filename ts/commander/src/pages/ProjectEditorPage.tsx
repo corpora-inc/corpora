@@ -16,6 +16,7 @@ import { ProjectMetadataEditor } from "@/components/ProjectMetadataEditor"
 import { SectionEditor } from "@/components/SectionEditor"
 import { SubsectionEditor } from "@/components/SubsectionEditor"
 import { TopBar } from "@/components/TopBar"
+import { GenerateRewriteDialog } from "@/components/GenerateRewriteDialog"
 
 export default function ProjectEditorPage() {
     const { id } = useParams<{ id: string }>()
@@ -43,8 +44,10 @@ export default function ProjectEditorPage() {
     const selectedSubsectionId = useProjectStore((s) => s.selectedSubsectionId)
     const isOutlineOpen = useProjectStore((s) => s.isOutlineOpen)
     const isDraftOpen = useProjectStore((s) => s.isDraftOpen)
+    const isRewriteOpen = useProjectStore((s) => s.isRewriteOpen)
     const setOutlineOpen = useProjectStore((s) => s.setOutlineOpen)
     const setDraftOpen = useProjectStore((s) => s.setDraftOpen)
+    const setRewriteOpen = useProjectStore((s) => s.setRewriteOpen)
 
     // mobile drawer state
     const [mobileOutlineOpen, setMobileOutlineOpen] = useState(false)
@@ -138,6 +141,10 @@ export default function ProjectEditorPage() {
             <GenerateDraftDialog
                 open={isDraftOpen}
                 onClose={() => setDraftOpen(false)}
+            />
+            <GenerateRewriteDialog
+                open={isRewriteOpen}
+                onClose={() => setRewriteOpen(false)}
             />
         </>
     )

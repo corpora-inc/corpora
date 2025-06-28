@@ -116,3 +116,7 @@ export * from "./updateFilesBodyDeleteFiles";
 export * from "./xAIModelsRequest";
 export * from "./xAIModelsRequestBaseUrl";
 export * from "./xAIModelsResponse";
+export * from "./rewriteRequest";
+export * from "./rewriteRequestConfig";
+export * from "./rewriteSection";
+export * from "./rewriteSubsection";

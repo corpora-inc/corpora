@@ -38,6 +38,9 @@ import type {
   ProjectIn,
   ProjectOut,
   ProjectUpdate,
+  RewriteRequest,
+  RewriteSection,
+  RewriteSubsection,
   SectionIn,
   SectionOut,
   SectionUpdate,
@@ -2786,3 +2789,196 @@ export function useCorporaCommanderApiExportExportPdf<
 
   return query;
 }
+
+/**
+ * Rewrite all section introductions based on existing instructions and original intros.
+Returns proposed new introductions for review.
+ * @summary Rewrite Sections
+ */
+export const corporaCommanderApiRewriteRewriteSections = (
+  projectId: string,
+  rewriteRequest: RewriteRequest,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<RewriteSection[]>> => {
+  return axios.default.post(
+    `/api/commander/projects/${projectId}/rewrite/sections`,
+    rewriteRequest,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiRewriteRewriteSectionsMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSections>>,
+    TError,
+    { projectId: string; data: RewriteRequest },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSections>>,
+  TError,
+  { projectId: string; data: RewriteRequest },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiRewriteRewriteSections"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSections>>,
+    { projectId: string; data: RewriteRequest }
+  > = (props) => {
+    const { projectId, data } = props ?? {};
+
+    return corporaCommanderApiRewriteRewriteSections(
+      projectId,
+      data,
+      axiosOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiRewriteRewriteSectionsMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSections>>
+  >;
+export type CorporaCommanderApiRewriteRewriteSectionsMutationBody =
+  RewriteRequest;
+export type CorporaCommanderApiRewriteRewriteSectionsMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Rewrite Sections
+ */
+export const useCorporaCommanderApiRewriteRewriteSections = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSections>>,
+      TError,
+      { projectId: string; data: RewriteRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSections>>,
+  TError,
+  { projectId: string; data: RewriteRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiRewriteRewriteSectionsMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Rewrite all subsection content based on existing instructions and original content.
+Returns proposed new content for review.
+ * @summary Rewrite Subsections
+ */
+export const corporaCommanderApiRewriteRewriteSubsections = (
+  projectId: string,
+  rewriteRequest: RewriteRequest,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<RewriteSubsection[]>> => {
+  return axios.default.post(
+    `/api/commander/projects/${projectId}/rewrite/subsections`,
+    rewriteRequest,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiRewriteRewriteSubsectionsMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSubsections>>,
+    TError,
+    { projectId: string; data: RewriteRequest },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSubsections>>,
+  TError,
+  { projectId: string; data: RewriteRequest },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiRewriteRewriteSubsections"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSubsections>>,
+    { projectId: string; data: RewriteRequest }
+  > = (props) => {
+    const { projectId, data } = props ?? {};
+
+    return corporaCommanderApiRewriteRewriteSubsections(
+      projectId,
+      data,
+      axiosOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiRewriteRewriteSubsectionsMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSubsections>>
+  >;
+export type CorporaCommanderApiRewriteRewriteSubsectionsMutationBody =
+  RewriteRequest;
+export type CorporaCommanderApiRewriteRewriteSubsectionsMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Rewrite Subsections
+ */
+export const useCorporaCommanderApiRewriteRewriteSubsections = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSubsections>>,
+      TError,
+      { projectId: string; data: RewriteRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSubsections>>,
+  TError,
+  { projectId: string; data: RewriteRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiRewriteRewriteSubsectionsMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
