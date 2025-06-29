@@ -34,6 +34,7 @@ export function SectionEditor({
     // local editable state
     const [title, setTitle] = useState("")
     const [intro, setIntro] = useState("")
+    const [instructions, setInstructions] = useState("")
     const [enhanceOpen, setEnhanceOpen] = useState(false)
 
     // seed state when section loads
@@ -42,6 +43,7 @@ export function SectionEditor({
             const sec = sectionQ.data.data
             setTitle(sec.title)
             setIntro(sec.introduction ?? "")
+            setInstructions(sec.instructions ?? "")
         }
     }, [sectionQ.data])
 
@@ -63,8 +65,6 @@ export function SectionEditor({
         )
     }
 
-    // compute extraContext
-    // const section = sectionQ.data!.data
     const subs = subsQ.data!.data
     const subsectionTitles =
         subs.length > 0
@@ -80,13 +80,15 @@ export function SectionEditor({
         .filter(Boolean)
         .join("\n\n")
 
-    // console.log("Extra context for LLM:", extraContext)
-
     // save handler
     const handleSave = () =>
         saveSection.mutate({
             sectionId,
-            data: { title, introduction: intro },
+            data: {
+                title,
+                introduction: intro,
+                instructions,
+            },
         })
 
     return (
@@ -113,12 +115,25 @@ export function SectionEditor({
 
             {/* BODY */}
             <div className="flex-1 flex flex-col overflow-hidden">
-                <label className="block mb-2 font-medium">Introduction</label>
-                <Textarea
-                    className="flex-1 resize-none"
-                    value={intro}
-                    onChange={(e) => setIntro(e.target.value)}
-                />
+                {/* Instructions: fixed ~3 lines */}
+                <div className="mb-4">
+                    <label className="block mb-1 font-medium">Instructions</label>
+                    <Textarea
+                        className="h-24 resize-none w-full"
+                        value={instructions}
+                        onChange={(e) => setInstructions(e.target.value)}
+                    />
+                </div>
+
+                {/* Introduction: fill remaining space */}
+                <div className="flex-1 flex flex-col">
+                    <label className="block mb-1 font-medium">Introduction</label>
+                    <Textarea
+                        className="flex-1 resize-none w-full"
+                        value={intro}
+                        onChange={(e) => setIntro(e.target.value)}
+                    />
+                </div>
             </div>
 
             {/* FOOTER */}
@@ -127,24 +142,45 @@ export function SectionEditor({
                     variant="outline"
                     size="sm"
                     onClick={() => setEnhanceOpen(true)}
-                    disabled={!(title.trim() || intro.trim())}
+                    disabled={!(
+                        title.trim() ||
+                        intro.trim() ||
+                        instructions.trim()
+                    )}
                 >
                     <Zap className="mr-1 h-4 w-4" /> Enhance
                 </Button>
-                <Button size="sm" onClick={handleSave} disabled={saveSection.isPending}>
-                    {saveSection.isPending ? "..." : "Save"}
+                <Button
+                    size="sm"
+                    onClick={handleSave}
+                    disabled={saveSection.isPending}
+                >
+                    {saveSection.isPending ? "Saving…" : "Save"}
                 </Button>
             </div>
 
             {/* AI ENHANCE DIALOG */}
-            <LLMEnhanceModal<{ title: string; introduction: string }>
+            <LLMEnhanceModal<{
+                title: string
+                instructions: string
+                introduction: string
+            }>
                 open={enhanceOpen}
-                schema={{ title: "str", introduction: "str" }}
-                initialData={{ title, introduction: intro }}
+                schema={{
+                    title: "str",
+                    instructions: "str",
+                    introduction: "str",
+                }}
+                initialData={{
+                    title,
+                    instructions,
+                    introduction: intro,
+                }}
                 extraContext={extraContext}
-                onAccept={({ title: newTitle, introduction: newIntro }) => {
+                onAccept={({ title: newTitle, introduction: newIntro, instructions: newInst }) => {
                     if (newTitle) setTitle(newTitle)
                     if (newIntro) setIntro(newIntro)
+                    if (newInst) setInstructions(newInst)
                     setEnhanceOpen(false)
                 }}
                 onClose={() => setEnhanceOpen(false)}
