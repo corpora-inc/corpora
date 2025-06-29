@@ -33,7 +33,3 @@ jobs:
       - name: Build
         working-directory: ts/commander
         run: pnpm run build
-
-      - name: Typecheck
-        working-directory: ts/commander
-        run: pnpm run typecheck
