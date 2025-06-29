@@ -26,8 +26,11 @@ def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
         provider_name = os.getenv("LLM_PROVIDER", "openai")
 
     # Check for the OpenAI provider
-    if provider_name == "openai" and OpenAIClient:
-        api_key = os.getenv("OPENAI_API_KEY")
+    if provider_name == "openai":
+        api_key = kwargs.pop("api_key", None)
+        kwargs.pop("base_url", None)
+        if not api_key:
+            api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY environment variable is not set.")
         return OpenAIClient(
@@ -37,8 +40,12 @@ def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
             **kwargs,
         )
 
-    if provider_name == "xai" and XAIClient:
-        api_key = os.getenv("XAI_API_KEY")
+    if provider_name == "xai":
+        api_key = kwargs.pop("api_key", None)
+        # ... XAIClient has base_url :shrug:
+        kwargs.pop("base_url", None)
+        if not api_key:
+            api_key = os.getenv("XAI_API_KEY")
         if not api_key:
             raise ValueError("XAI_API_KEY environment variable is not set.")
         return XAIClient(
@@ -47,6 +54,7 @@ def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
         )
 
     if provider_name == "local":
+        kwargs.pop("api_key", None)
         return LocalClient(**kwargs)
 
     # Placeholder for additional providers (e.g., Anthropic)

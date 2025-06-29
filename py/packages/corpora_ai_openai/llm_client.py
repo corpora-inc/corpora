@@ -111,6 +111,7 @@ class OpenAIClient(LLMBaseInterface):
             # Extract and parse function arguments
             function_args = response.choices[0].message.function_call.arguments
             data_dict = json.loads(function_args)
+            print(f"Function arguments: {data_dict}")
             return model.model_validate(data_dict)
         except OpenAIError as e:
             raise RuntimeError(f"Failed to generate data completion: {e}")

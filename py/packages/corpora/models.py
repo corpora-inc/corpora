@@ -40,6 +40,7 @@ class Corpus(models.Model):
     )
     url = models.URLField(
         blank=True,
+        default="",
         help_text="Optional URL associated with the corpus, e.g., a GitHub repository.",
     )
     created_at = models.DateTimeField(

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "oauth2_provider",
     "ninja",
     "corpora",
+    "corpora_commander",
 ]
 
 MIDDLEWARE = [
@@ -73,7 +74,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "corpora_proj.wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

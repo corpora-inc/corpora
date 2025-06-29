@@ -1,6 +1,5 @@
 import base64
 import json
-import re
 from typing import TYPE_CHECKING, List, Type, TypeVar  # , get_origin
 
 from corpora_ai.llm_interface import (
@@ -8,61 +7,14 @@ from corpora_ai.llm_interface import (
     GeneratedImage,
     LLMBaseInterface,
 )
-from openai import OpenAI, OpenAIError
-from pydantic import BaseModel
+from openai import OpenAI
+from pydantic import BaseModel, ValidationError
 
 if TYPE_CHECKING:
     from openai.types.images_response import ImagesResponse
 
 
 T = TypeVar("T", bound=BaseModel)
-
-
-def extract_last_arguments_json(text: str) -> str:
-    og = text
-    # Remove <think>...</think> and <tool_call>...</tool_call>
-    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
-    text = re.sub(r"<tool_call>.*?</tool_call>", "", text, flags=re.DOTALL)
-    text = text.strip()
-
-    decoder = json.JSONDecoder()
-    idx = 0
-    last_arguments = None
-    last_json = None
-
-    while idx < len(text):
-        # Find next '{' or '['
-        match = re.search(r"[\{\[]", text[idx:])
-        if not match:
-            break
-        start = idx + match.start()
-        try:
-            obj, end = decoder.raw_decode(text[start:])
-            if isinstance(obj, dict) and "arguments" in obj:
-                last_arguments = obj["arguments"]
-            last_json = obj
-            idx = start + end
-        except json.JSONDecodeError:
-            idx = start + 1  # Move forward and try again
-
-    if last_arguments is not None:
-        return json.dumps(last_arguments, ensure_ascii=False)
-    elif last_json is not None:
-        return json.dumps(last_json, ensure_ascii=False)
-    else:
-        print(og)
-        raise ValueError("No valid JSON found.")
-
-
-# Usage example:
-def get_tool_args(msg):
-    # Try tool_calls first (if API ever returns it)
-    tool_calls = getattr(msg, "tool_calls", None)
-    if tool_calls:
-        # your normal tool call logic here
-        return tool_calls[0].function.arguments
-    # Fallback: generic JSON extraction from message content
-    return extract_last_arguments_json(msg.content)
 
 
 class LocalClient(LLMBaseInterface):
@@ -107,82 +59,51 @@ class LocalClient(LLMBaseInterface):
         retries: int = 3,
     ) -> T:
         """
-        Uses tool-calling to return a Pydantic-validated model.
+        Uses LM Studio structured response to return a Pydantic-validated model.
 
         Args:
             messages: chat messages
             model: the Pydantic model class for output
-            retries: how many times to retry if the tool call fails
+            retries: how many times to retry if the response is invalid
 
         Returns:
-            An instance of the model populated from the tool_call arguments.
+            An instance of the model populated from structured JSON.
         """
         if not issubclass(model, BaseModel):
             raise ValueError("Schema must be a subclass of pydantic.BaseModel.")
         if not messages:
             raise ValueError("Input messages must not be empty.")
 
-        tool_name = model.__name__
-        tool_description = f"Generate data based on the {tool_name} schema."
-
         payload = [{"role": msg.role, "content": msg.text} for msg in messages]
-        schema = model.model_json_schema()
 
-        tool_def = {
-            "type": "function",
-            "function": {
-                "name": tool_name,
-                "description": tool_description,
-                "parameters": schema,
-            },
-        }
-
-        # tool_choice = {
-        #     "type": "function",
-        #     "function": {
-        #         "name": tool_name,
-        #     },
-        # }
-
-        for attempt in range(retries):
+        for attempt in range(1, retries + 1):
             try:
-                response = self.client.chat.completions.create(
+                print(f"[Attempt {attempt}] Sending completion request...")
+                response = self.client.beta.chat.completions.parse(
                     model=self.completion_model,
                     messages=payload,
-                    tools=[tool_def],
-                    # TODO: for some reason, LM Studio doesn't like
-                    # maybe later version will work.
-                    # tool_choice=tool_choice,
-                    # tool_choice="required",
-                    tool_choice="auto",
+                    response_format=model,
+                    # max_tokens=512,
+                    temperature=0,
                 )
+                parsed = response.choices[0].message.parsed
 
-                msg = response.choices[0].message
+                print(
+                    f"[Attempt {attempt}] Successfully validated structured response.",
+                )
+                return parsed
 
-                try:
-                    arguments = get_tool_args(msg)
-                    return model.model_validate_json(arguments)
-                except Exception as e:  # noqa
-                    print(f"Failed to validate tool_call arguments: {e}")
-                    # print(tool.function.arguments)
-                    if attempt == retries - 1:
-                        raise RuntimeError(
-                            f"Failed to validate tool_call arguments: {e}",
-                        )
-                    continue
+            except ValidationError as ve:
+                print(f"[Attempt {attempt}] Validation failed: {ve}")
+            except json.JSONDecodeError as je:
+                print(f"[Attempt {attempt}] JSON decode error: {je}")
+            except Exception as e:  # noqa: BLE001
+                print(f"[Attempt {attempt}] Unexpected error: {e}")
 
-            except OpenAIError as e:
-                print(f"Request failed: {e}")
-                if attempt == retries - 1:
-                    raise RuntimeError(f"Request failed: {e}")
-                continue
-            except json.JSONDecodeError as e:
-                print(f"Failed to parse tool_call arguments: {e}")
-                if attempt == retries - 1:
-                    raise RuntimeError(
-                        f"Failed to parse tool_call arguments: {e}",
-                    )
-                continue
+            if attempt == retries:
+                raise RuntimeError(
+                    f"Failed to get valid structured response after {retries} attempts.",
+                )
 
     def get_image(
         self,
