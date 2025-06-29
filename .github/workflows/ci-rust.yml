@@ -36,7 +36,7 @@ jobs:
 
       - name: Lint the code
         working-directory: rs
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: cargo clippy --workspace --all-targets -- -A clippy::uninlined-format-args -D warnings
 
       - name: Run tests
         working-directory: rs
