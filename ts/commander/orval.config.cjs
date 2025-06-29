@@ -1,4 +1,5 @@
-const { defineConfig } = require('orval');
+// ts/commander/orval.config.cjs
+const { defineConfig } = require('orval')
 
 module.exports = defineConfig({
     corpora: {
@@ -15,6 +16,14 @@ module.exports = defineConfig({
                 name: 'customClient',
             },
             prettier: true,
+
+            override: {
+                formData: {
+                    // point at your own formData builder:
+                    path: './src/api/mutator/formData.ts',
+                    name: 'createFormData',
+                },
+            },
         },
     },
-});
+})

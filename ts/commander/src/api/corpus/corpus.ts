@@ -33,6 +33,8 @@ import type {
   UpdateFilesBody,
 } from ".././schemas";
 
+import { createFormData } from ".././mutator/formData";
+
 /**
  * Create a new Corpus with an uploaded tarball.
  * @summary Create Corpus
@@ -41,13 +43,7 @@ export const createCorpus = (
   createCorpusBody: CreateCorpusBody,
   options?: AxiosRequestConfig,
 ): Promise<AxiosResponse<CorpusResponseSchema>> => {
-  const formData = new FormData();
-  formData.append(`name`, createCorpusBody.name);
-  if (createCorpusBody.url !== undefined && createCorpusBody.url !== null) {
-    formData.append(`url`, createCorpusBody.url);
-  }
-  formData.append(`tarball`, createCorpusBody.tarball);
-
+  const formData = createFormData(createCorpusBody);
   return axios.default.post(`/api/corpora/corpus`, formData, options);
 };
 
@@ -429,15 +425,7 @@ export const updateFiles = (
   updateFilesBody: UpdateFilesBody,
   options?: AxiosRequestConfig,
 ): Promise<AxiosResponse<string>> => {
-  const formData = new FormData();
-  if (
-    updateFilesBody.delete_files !== undefined &&
-    updateFilesBody.delete_files !== null
-  ) {
-    formData.append(`delete_files`, updateFilesBody.delete_files);
-  }
-  formData.append(`tarball`, updateFilesBody.tarball);
-
+  const formData = createFormData(updateFilesBody);
   return axios.default.post(
     `/api/corpora/corpus/${corpusId}/files`,
     formData,
