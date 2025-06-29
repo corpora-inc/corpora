@@ -114,7 +114,7 @@ export function SectionEditor({
             </div>
 
             {/* BODY */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0">
                 {/* Instructions: fixed ~3 lines */}
                 <div className="mb-4">
                     <label className="block mb-1 font-medium">Instructions</label>
@@ -125,11 +125,11 @@ export function SectionEditor({
                     />
                 </div>
 
-                {/* Introduction: fill remaining space */}
-                <div className="flex-1 flex flex-col">
+                {/* Introduction: fills remaining space & scrolls internally */}
+                <div className="flex-1 flex flex-col min-h-0">
                     <label className="block mb-1 font-medium">Introduction</label>
                     <Textarea
-                        className="flex-1 resize-none w-full"
+                        className="flex-1 h-full min-h-0 w-full resize-none overflow-y-auto"
                         value={intro}
                         onChange={(e) => setIntro(e.target.value)}
                     />
@@ -137,7 +137,7 @@ export function SectionEditor({
             </div>
 
             {/* FOOTER */}
-            <div className="flex justify-end space-x-2 py-4 border-t">
+            <div className="flex justify-end space-x-2 my-2 py-2 border-t">
                 <Button
                     variant="outline"
                     size="sm"
@@ -177,7 +177,11 @@ export function SectionEditor({
                     introduction: intro,
                 }}
                 extraContext={extraContext}
-                onAccept={({ title: newTitle, introduction: newIntro, instructions: newInst }) => {
+                onAccept={({
+                    title: newTitle,
+                    introduction: newIntro,
+                    instructions: newInst,
+                }) => {
                     if (newTitle) setTitle(newTitle)
                     if (newIntro) setIntro(newIntro)
                     if (newInst) setInstructions(newInst)

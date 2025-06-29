@@ -103,12 +103,7 @@ export function SubsectionEditor({
         <div className="flex flex-col h-full">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onBack}
-                    aria-label="Back"
-                >
+                <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back">
                     <ChevronLeft className="h-5 w-5" />
                 </Button>
                 <div className="flex-1">
@@ -122,12 +117,10 @@ export function SubsectionEditor({
             </div>
 
             {/* Body */}
-            <div className="flex-1 flex flex-col overflow-hidden space-y-4">
+            <div className="flex-1 flex flex-col overflow-hidden space-y-4 min-h-0">
                 {/* Instructions (fixed ~3 lines) */}
                 <div>
-                    <label className="block mb-1 font-medium">
-                        Instructions
-                    </label>
+                    <label className="block mb-1 font-medium">Instructions</label>
                     <Textarea
                         className="h-24 resize-none w-full"
                         value={instructions}
@@ -135,13 +128,11 @@ export function SubsectionEditor({
                     />
                 </div>
 
-                {/* Content (fills remaining space) */}
-                <div className="flex-1 flex flex-col">
-                    <label className="block mb-1 font-medium">
-                        Content
-                    </label>
+                {/* Content (fills remaining space & scrolls internally) */}
+                <div className="flex-1 flex flex-col min-h-0">
+                    <label className="block mb-1 font-medium">Content</label>
                     <Textarea
-                        className="flex-1 resize-none w-full"
+                        className="flex-1 resize-none w-full min-h-0 overflow-y-auto"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                     />
@@ -149,7 +140,7 @@ export function SubsectionEditor({
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-white border-t pt-3 pb-4 flex justify-end space-x-2">
+            <div className="sticky bottom-0 bg-white border-t py-2 my-2 flex justify-end space-x-2">
                 <Button
                     variant="outline"
                     size="sm"
@@ -162,11 +153,7 @@ export function SubsectionEditor({
                 >
                     <Zap className="mr-1 h-4 w-4" /> Enhance
                 </Button>
-                <Button
-                    size="sm"
-                    onClick={handleSave}
-                    disabled={saveSub.isPending}
-                >
+                <Button size="sm" onClick={handleSave} disabled={saveSub.isPending}>
                     {saveSub.isPending ? "Saving…" : "Save"}
                 </Button>
             </div>
