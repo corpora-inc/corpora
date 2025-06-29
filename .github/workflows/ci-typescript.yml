@@ -1,0 +1,42 @@
+# .github/workflows/ci-typescript.yml
+name: TypeScript CI
+
+on:
+  pull_request:
+    paths:
+      - 'ts/commander/**'
+      - '.github/**'
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7
+
+      - name: Install dependencies
+        working-directory: ts/commander
+        run: pnpm install --frozen-lockfile
+
+      - name: Build ts/commander
+        working-directory: ts/commander
+        run: pnpm run build
+
+      - name: Typecheck ts/commander
+        working-directory: ts/commander
+        run: pnpm run typecheck
