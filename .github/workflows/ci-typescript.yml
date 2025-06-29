@@ -24,19 +24,17 @@ jobs:
           node-version: '18'
           cache: 'pnpm'
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 7
+      - name: Enable corepack (for pnpm)
+        run: corepack enable
 
       - name: Install dependencies
         working-directory: ts/commander
         run: pnpm install --frozen-lockfile
 
-      - name: Build ts/commander
+      - name: Build
         working-directory: ts/commander
         run: pnpm run build
 
-      - name: Typecheck ts/commander
+      - name: Typecheck
         working-directory: ts/commander
         run: pnpm run typecheck
