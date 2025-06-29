@@ -1,3 +1,4 @@
+// ts/commander/src/components/ExportPdfButton.tsx
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,12 +13,9 @@ export function ExportPdfButton({ projectId }: ExportPdfButtonProps) {
     const handleDownload = async () => {
         setIsDownloading(true)
         try {
-            // hit our PDF-export endpoint
             const res = await fetch(
                 `/api/commander/projects/${projectId}/export/pdf`,
-                {
-                    credentials: "include",
-                }
+                { credentials: "include" }
             )
             if (!res.ok) {
                 throw new Error(`Download failed: ${res.status} ${res.statusText}`)
@@ -38,9 +36,19 @@ export function ExportPdfButton({ projectId }: ExportPdfButtonProps) {
         }
     }
 
+    const label = "Download PDF"
+
     return (
-        <Button onClick={handleDownload} disabled={isDownloading}>
-            {isDownloading ? <Loader2 className="animate-spin h-4 w-4" /> : "Download PDF"}
+        <Button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="relative inline-flex items-center justify-center"
+        >
+            {/* Invisible label keeps the button width constant */}
+            <span className={isDownloading ? "invisible" : ""}>{label}</span>
+            {isDownloading && (
+                <Loader2 className="absolute animate-spin h-4 w-4" />
+            )}
         </Button>
     )
 }
