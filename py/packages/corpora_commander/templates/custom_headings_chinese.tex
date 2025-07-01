@@ -1,0 +1,55 @@
+% templates/custom_headings.tex
+
+\usepackage{fontspec}
+\usepackage{xeCJK}
+
+% Main (Latin) font
+\setmainfont{Noto Serif}
+
+% CJK font (Simplified Chinese, Japanese, Korean)
+\setCJKmainfont{Noto Serif CJK SC}
+
+% Page geometry
+\usepackage[
+  paperwidth=6in,
+  paperheight=9in,
+  left=0.75in,
+  right=0.75in,
+  top=0.6in,
+  bottom=1.0in,
+  heightrounded
+]{geometry}
+
+\raggedbottom
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+
+% Turn off section numbering
+\setcounter{secnumdepth}{0}
+
+% TOC styling
+\usepackage{titlesec}
+\makeatletter
+\renewcommand\tableofcontents{%
+  \begingroup
+    \setlength{\parskip}{1pt}%
+    \setlength{\parindent}{0pt}%
+    \vspace{5em}%
+    {\LARGE \bfseries Contents\par}%
+    \vspace{2em}%
+    \@starttoc{toc}%
+  \endgroup
+}
+\makeatother
+
+% Section spacing
+\titlespacing*{\section}{0pt}{0.8em}{0.1em}
+\titlespacing*{\subsection}{0pt}{0.7em}{0em}
+
+% Header/footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[LE,RO]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
