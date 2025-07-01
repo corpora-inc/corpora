@@ -121,7 +121,7 @@ export const GenerateDraftDialog: React.FC<GenerateDraftDialogProps> = ({
                 <div className="space-y-4 mt-4">
                     {!draft ? (
                         <Textarea
-                            className="h-32"
+                            className="h-64"
                             placeholder="Additional instructions (optional)"
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
@@ -147,7 +147,7 @@ export const GenerateDraftDialog: React.FC<GenerateDraftDialogProps> = ({
                                                 key={sub.subsection_id}
                                                 className="ml-4 space-y-1"
                                             >
-                                                <h4 className="text-md font-medium">
+                                                <h4 className="text-md font-medium whitespace-pre-wrap">
                                                     {
                                                         sections
                                                             .flatMap((s) => s.subsections)

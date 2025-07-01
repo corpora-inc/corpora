@@ -32,6 +32,10 @@ def export_pdf(request, project_id: UUID):
     md_file = build_dir / "book.md"
     md_file.write_text(md_content, encoding="utf-8")
 
+    # write the md to disk for debugging:
+    with open("debug_book.md", "w", encoding="utf-8") as f:
+        f.write(md_content)
+
     # 3) Render custom headings (TeX) and cover (TeX)
     (build_dir / "custom_headings.tex").write_text(
         render_to_string("custom_headings.tex", {}),

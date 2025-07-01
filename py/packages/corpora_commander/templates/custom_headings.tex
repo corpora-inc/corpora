@@ -177,3 +177,19 @@
 % \newenvironment{centeredtikz}
 %   {\par\vspace{2em}\begin{center}\begin{tikzpicture}}
 %   {\end{tikzpicture}\end{center}\par\vspace{2em}}
+
+
+% \usepackage{xeCJK}
+% \XeCJKsetup{PunctStyle=plain}
+
+% preamble.tex
+\usepackage{fontspec}
+\usepackage{xeCJK}
+
+% set your Latin font for everything ASCII
+\setmainfont{Noto Serif}
+
+% set your CJK font for Chinese glyphs
+\setCJKmainfont{Noto Serif CJK SC}
+
+\XeCJKsetup{PunctStyle=plain}

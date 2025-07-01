@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import List
+import json
+from typing import List, Union
 
 from corpora_ai.llm_interface import ChatCompletionTextMessage
 
@@ -23,7 +24,7 @@ MARKDOWN_RULES = """
 # Markdown Rules
 - Use CommonMark. Do **not** include raw HTML tags.
 - Section introductions contain **no** markdown headers.
-- Each subsection body **must** start with a level‑2 header: `## {title}`.
+- Each subsection body **must** start with a level-2 header: `## {title}`.
 - Separate logical blocks with blank lines.
 """.strip()
 
@@ -47,6 +48,10 @@ Insert an image placeholder where it truly enhances comprehension:
 """.strip()
 
 # ── Internal helpers ────────────────────────────────────────────
+
+
+def _schema_text(schema: Union[str, dict]) -> str:
+    return schema if isinstance(schema, str) else json.dumps(schema, indent=2)
 
 
 def _system_text(role: str, project: Project) -> str:
@@ -99,7 +104,7 @@ def _draft_user_text(
         f"Prompt: {user_prompt}",
         "",
         "Return a JSON object matching this schema exactly:",
-        schema_json,
+        _schema_text(schema_json),
     ]
     return "\n".join(lines)
 
@@ -124,7 +129,6 @@ def _rewrite_section_user_text(
     lines.append("")
     lines.append("Subsections:")
     for sub in section.subsections.all().order_by("order"):
-        # just append the titles
         lines.append(f"- {sub.title}")
 
     lines.append("")
@@ -136,7 +140,7 @@ def _rewrite_section_user_text(
         f"Prompt: {user_prompt}",
         "",
         "Return a JSON object matching this schema exactly:",
-        schema_json,
+        _schema_text(schema_json),
     ]
     return "\n".join(lines)
 
@@ -162,7 +166,7 @@ def _rewrite_sub_user_text(
         f"Prompt: {user_prompt}",
         "",
         "Return a JSON object matching this schema exactly:",
-        schema_json,
+        _schema_text(schema_json),
     ]
     return "\n".join(lines)
 
@@ -180,7 +184,7 @@ def _outline_user_text(
         f"Prompt: {user_prompt}",
         "",
         "Return a JSON object matching this schema exactly:",
-        schema_json,
+        _schema_text(schema_json),
     ]
     return "\n".join(lines)
 
