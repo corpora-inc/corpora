@@ -13,7 +13,7 @@ services:
       XAI_API_KEY: "${XAI_API_KEY}"
       # LLM_PROVIDER: xai
     command: uvicorn corpora_proj.asgi:application --host 0.0.0.0 --port 8877 --timeout-keep-alive 3600 --reload
-    working_dir: /workspace/py/packages/corpora_proj
+    working_dir: /workspace/py/packages
     depends_on:
       - corpora-db
       - corpora-redis

@@ -3,11 +3,6 @@ from: markdown
 to: pdf
 variables:
   documentclass: memoir
-  # mainfont: "Noto Serif"
-  # mainfont: "Noto Serif CJK SC"
-  # CJKmainfont: "Noto Serif CJK SC"
-  # CJKoptions:
-  #   - "PunctStyle=plain"
   classoption:
     - oneside
     - 11pt

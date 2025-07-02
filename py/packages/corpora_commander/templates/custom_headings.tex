@@ -178,18 +178,27 @@
 %   {\par\vspace{2em}\begin{center}\begin{tikzpicture}}
 %   {\end{tikzpicture}\end{center}\par\vspace{2em}}
 
+% % do chinese and mixed fonts
+% \usepackage[CJKspace=false]{xeCJK}
+% \setmainfont{Noto Serif}
+% \setCJKmainfont{Noto Sans CJK SC}
+% \setCJKfamilyfont{cjk}{Noto Sans CJK SC}
+% \newcommand{\chinese}[1]{\CJKfamily{cjk}#1}
 
-% \usepackage{xeCJK}
-% \XeCJKsetup{PunctStyle=plain}
+% \usepackage[CJKspace=false]{xeCJK}         % Load xeCJK, disable CJK spacing
+% \setmainfont{Noto Serif}                   % Main font for Latin text
+% \setCJKmainfont{Noto Sans CJK SC}          % Font for Chinese text
+% \setCJKfamilyfont{cjk}{Noto Sans CJK SC}   % Define a CJK family for switching
+% \setCJKpunctfont{Noto Serif}               % Use Noto Serif for punctuation
+% \newcommand{\chinese}[1]{\CJKfamily{cjk}#1} % Command for Chinese text
 
-% preamble.tex
-\usepackage{fontspec}
 \usepackage{xeCJK}
-
-% set your Latin font for everything ASCII
 \setmainfont{Noto Serif}
-
-% set your CJK font for Chinese glyphs
-\setCJKmainfont{Noto Serif CJK SC}
-
-\XeCJKsetup{PunctStyle=plain}
+\setCJKmainfont{Noto Sans CJK SC}
+\AtBeginDocument{%
+  \XeTeXcharclass`‘=0  % Left single quotation mark (U+2018)
+  \XeTeXcharclass`’=0  % Right single quotation mark / apostrophe (U+2019)
+  \XeTeXcharclass`“=0  % Left double quotation mark (U+201C)
+  \XeTeXcharclass`”=0  % Right double quotation mark (U+201D)
+  \XeTeXcharclass`…=0  % Ellipsis (U+2026)
+}
