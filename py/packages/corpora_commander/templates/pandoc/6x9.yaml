@@ -1,0 +1,17 @@
+pdf-engine: xelatex
+from: markdown
+to: pdf
+variables:
+  documentclass: memoir
+  classoption:
+    - oneside
+    - 11pt
+  papersize: 6in,9in
+include-in-header:
+  - custom_headings.tex
+include-before-body:
+  - custom_cover.tex
+# lua-filter:
+#   - hrule.lua
+toc: true
+toc-depth: 2

@@ -1,14 +1,17 @@
+import logging
 from typing import Any, Dict, List
 from uuid import UUID
 
-from corpora_ai.llm_interface import ChatCompletionTextMessage
 from django.shortcuts import get_object_or_404
 from pydantic import BaseModel
 
 from corpora_commander.models import Project
+from corpora_commander.prompts.builder import build_outline_messages
 
 from .llm_utils import build_llm
 from .router import router
+
+logger = logging.getLogger(__name__)
 
 
 class OutlineRequest(BaseModel):
@@ -35,33 +38,18 @@ class OutlineResponse(BaseModel):
 
 
 @router.post("/projects/{project_id}/outline", response=OutlineResponse)
-def generate_outline(
-    request,
-    project_id: UUID,
-    payload: OutlineRequest,
-):
-    proj = get_object_or_404(Project, id=project_id)
+def generate_outline(request, project_id: UUID, payload: OutlineRequest):
+    proj: Project = get_object_or_404(Project, id=project_id)
 
-    messages = [
-        ChatCompletionTextMessage(
-            role="system",
-            text="You are an expert book-outliner.",
-        ),
-        ChatCompletionTextMessage(
-            role="user",
-            text=(
-                f"title: {proj.title}\n"
-                f"subtitle: {proj.subtitle}\n"
-                f"purpose: {proj.purpose}\n"
-                f"General Instructions: {proj.instructions}\n\n"
-                f"Voice: {proj.voice}\n\n"
-                f"Prompt: {payload.prompt}\n\n"
-                f"Return JSON matching schema:\n"
-                f"{OutlineResponse.model_json_schema()}"
-            ),
-        ),
-    ]
+    messages = build_outline_messages(
+        project=proj,
+        user_prompt=payload.prompt,
+        schema_json=OutlineResponse.model_json_schema(),
+    )
 
     llm = build_llm(payload.provider, payload.config)
-    outline = llm.get_data_completion(messages, OutlineResponse)
+    outline: OutlineResponse = llm.get_data_completion(
+        messages,
+        OutlineResponse,
+    )
     return outline.model_dump()

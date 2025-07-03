@@ -26,6 +26,10 @@ TYPE_MAP: Dict[str, Type[Any]] = {
 
 @router.post("/generic/complete", response=Dict[str, Any])
 def generic_data_completion(request, payload: GenericCompletionRequest):
+    """
+    Generic data completion endpoint that accepts a schema description
+    and returns a model instance based on the provided schema.
+    """
     missing = [t for t in payload.fields_schema.values() if t not in TYPE_MAP]
     if missing:
         raise ValueError(f"Unsupported field type(s): {missing}")
@@ -44,13 +48,6 @@ def generic_data_completion(request, payload: GenericCompletionRequest):
     except ValidationError as e:
         raise ValueError(f"Invalid schema description: {e}")
 
-    print(
-        "building LLM with provider:",
-        payload.provider,
-        "and config:",
-        payload.config,
-    )
     llm = build_llm(payload.provider, payload.config)
-    print("LLM built successfully", llm)
     result = llm.get_data_completion(payload.messages, DynamicModel)
     return result.model_dump()

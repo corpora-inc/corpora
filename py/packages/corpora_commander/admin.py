@@ -99,6 +99,7 @@ class SectionAdmin(admin.ModelAdmin):
     list_filter = ("project",)
     ordering = ("project", "order")
     inlines = (SubsectionInline,)
+    search_fields = ("title", "instructions", "introduction")
 
 
 @admin.register(Subsection)
@@ -106,3 +107,4 @@ class SubsectionAdmin(admin.ModelAdmin):
     list_display = ("title", "section", "order", "created_at")
     list_filter = ("section__project", "section")
     ordering = ("section__order", "order")
+    search_fields = ("title", "instructions", "content")
