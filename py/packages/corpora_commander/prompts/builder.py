@@ -25,7 +25,7 @@ MARKDOWN_RULES = """
 - Use CommonMark. Do **not** include raw HTML tags.
 - Section introductions contain **no** markdown headers.
 - Each subsection body **must** start with a level-2 header: `## {title}`.
-- Separate logical blocks with blank lines.
+- Separate logical blocks with blank lines. You MUST put a blank line before a bullet list.
 """.strip()
 
 JSON_RULES = """

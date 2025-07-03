@@ -27,13 +27,20 @@
 \clearpage
 \vspace*{1.5in}
 \begin{center}
-  {\Huge\bfseries {{title}}} \\[4em]
-  {\Large\itshape {{subtitle}}} \\[4em]
-  \vspace{1.5in}
-  {\large {{author}}} \\[1em]
-  {\large {{publisher}}} \\[1em]
+  \begin{minipage}{\textwidth}
+    \centering
+    \Huge\bfseries
+    \linespread{1.25}\selectfont  % Cranks up the line height—fuck with 1.5 if you want more or less
+    {{title}}
+  \end{minipage}
+  \\[5em]
+  {\Large\itshape {{subtitle}}}
+  \\[9em]
+  {\large {{author}}}
+  \\[1em]
+  {\large {{publisher}}}
+  \\[1em]
   \vfill
-  {\large \today\par}
+  {\large \today}
 \end{center}
 \clearpage
-
