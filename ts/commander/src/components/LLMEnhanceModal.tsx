@@ -69,21 +69,37 @@ const Suggestions = memo(function Suggestions({
     toggleField: (key: string) => void
 }) {
     return (
-        <div className="border rounded bg-gray-50 p-2 space-y-3 my-5 overflow-auto max-h-96">
+        <div className="border border-gray-200 rounded-md bg-gradient-to-br from-gray-50 to-gray-100 p-4 space-y-4 my-6 overflow-auto max-h-96 shadow-xs">
+            <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    AI Suggestions
+                </h3>
+            </div>
             {Object.entries(data).map(([key, val]) => {
                 const str = String(val)
                 const isLong = str.length > 300
                 const isOpen = !!expanded[key]
                 const preview = isOpen ? str : str.slice(0, 300) + (isLong ? "…" : "")
                 return (
-                    <div key={key} onClick={() => isLong && toggleField(key)}>
-                        <div className="font-medium">{key}</div>
-                        <div className="text-sm whitespace-pre-wrap break-words">{preview}</div>
-                        {isLong && (
-                            <div className="text-xs text-blue-500 cursor-pointer">
-                                {isOpen ? "Show less" : "Show more"}
+                    <div 
+                        key={key} 
+                        className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all duration-200 hover:border-blue-300"
+                        onClick={() => isLong && toggleField(key)}
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="font-semibold text-gray-800 text-sm uppercase tracking-wide">
+                                {key}
                             </div>
-                        )}
+                            {isLong && (
+                                <button className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors cursor-pointer">
+                                    {isOpen ? "Show less" : "Show more"}
+                                </button>
+                            )}
+                        </div>
+                        <div className="text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed">
+                            {preview}
+                        </div>
                     </div>
                 )
             })}
