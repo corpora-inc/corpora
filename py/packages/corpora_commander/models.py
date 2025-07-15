@@ -1,11 +1,17 @@
-# src/models.py
 import uuid
 
 from django.db import models
 
 
+# TODO: cloud storage?
+def project_image_upload_to(instance, filename):
+    """
+    Store images under MEDIA_ROOT/projects/<project_uuid>/filename
+    """
+    return f"projects/{instance.project.id}/{filename}"
+
+
 class Project(models.Model):
-    # 1) UUID primary key
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -89,3 +95,34 @@ class Subsection(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ProjectImage(models.Model):
+    """
+    Images belonging to a Project, matching markdown tokens {{IMAGE: caption}}
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(
+        Project,
+        related_name="images",
+        on_delete=models.CASCADE,
+    )
+    image = models.ImageField(
+        upload_to=project_image_upload_to,
+        help_text="Image file to fulfill markdown placeholder caption",
+    )
+    caption = models.CharField(
+        max_length=1000,
+        help_text="Exact text matching the {{IMAGE: caption}} token",
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    # width = models.PositiveIntegerField(null=True, blank=True, editable=False)
+    # height = models.PositiveIntegerField(null=True, blank=True, editable=False)
+
+    class Meta:
+        unique_together = ("project", "caption")
+        ordering = ["uploaded_at"]
+
+    def __str__(self):
+        return f"{self.project.title} - {self.caption}"
