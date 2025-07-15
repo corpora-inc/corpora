@@ -12,4 +12,5 @@ from . import (  # noqa
     draft,
     export,
     rewrite,
+    images,
 )
