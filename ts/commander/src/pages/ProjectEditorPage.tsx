@@ -136,15 +136,27 @@ export default function ProjectEditorPage() {
 
             <GenerateOutlineDialog
                 open={isOutlineOpen}
-                onClose={() => setOutlineOpen(false)}
+                onClose={() => {
+                    setOutlineOpen(false)
+                    // invalidate the sections query to refresh the outline
+                    sectionsQuery.refetch()
+                }}
             />
             <GenerateDraftDialog
                 open={isDraftOpen}
-                onClose={() => setDraftOpen(false)}
+                onClose={() => {
+                    setDraftOpen(false)
+                    // invalidate the sections query to refresh the draft
+                    sectionsQuery.refetch()
+                }}
             />
             <GenerateRewriteDialog
                 open={isRewriteOpen}
-                onClose={() => setRewriteOpen(false)}
+                onClose={() => {
+                    setRewriteOpen(false)
+                    // invalidate the sections query to refresh the rewrite
+                    sectionsQuery.refetch()
+                }}
             />
         </>
     )

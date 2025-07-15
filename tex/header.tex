@@ -1,0 +1,30 @@
+% \usepackage[CJKspace=false]{xeCJK}
+% \setmainfont{Noto Serif}
+% \setCJKmainfont{Noto Sans CJK SC}
+% \setCJKfamilyfont{cjk}{Noto Sans CJK SC}
+% \newcommand{\chinese}[1]{\CJKfamily{cjk}#1}
+
+% \usepackage{xeCJK}
+% \setmainfont{Noto Serif}
+% \setCJKmainfont[CharacterWidth=Proportional]{Noto Sans CJK SC}
+% \xeCJKsetup{PunctStyle=plain}
+
+% \usepackage{xeCJK}
+% \setmainfont{Noto Serif}
+% \setCJKmainfont{Noto Sans CJK SC}
+% \AtBeginDocument{%
+%   \XeTeXcharclass`’=0
+%   \XeTeXcharclass`“=0
+%   \XeTeXcharclass`”=0
+% }
+
+\usepackage{xeCJK}
+\setmainfont{Noto Serif}
+\setCJKmainfont{Noto Sans CJK SC}
+\AtBeginDocument{%
+  \XeTeXcharclass`‘=0  % Left single quotation mark (U+2018)
+  \XeTeXcharclass`’=0  % Right single quotation mark / apostrophe (U+2019)
+  \XeTeXcharclass`“=0  % Left double quotation mark (U+201C)
+  \XeTeXcharclass`”=0  % Right double quotation mark (U+201D)
+  \XeTeXcharclass`…=0  % Ellipsis (U+2026)
+}

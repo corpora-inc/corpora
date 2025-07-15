@@ -1,4 +1,5 @@
 .pnpm-store
+debug*.*
 host-shared/
 # test-corpora/
 apps/
