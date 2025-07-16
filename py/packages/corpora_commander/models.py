@@ -8,7 +8,7 @@ def project_image_upload_to(instance, filename):
     """
     Store images under MEDIA_ROOT/projects/<project_uuid>/filename
     """
-    return f"projects/{instance.project.id}/{filename}"
+    return f"uploads/{instance.project.id}/{filename}"
 
 
 class Project(models.Model):

@@ -5,7 +5,7 @@ from uuid import UUID
 
 from django.shortcuts import get_object_or_404
 from ninja import File, Form, UploadedFile
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from corpora_commander.models import Project, ProjectImage
 
@@ -20,6 +20,14 @@ class ProjectImageOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @field_validator("image", mode="before")
+    @classmethod
+    def _extract_image_url(cls, v):
+        # v is an ImageFieldFile: return its URL or path
+        if hasattr(v, "url"):
+            return v.url
+        return str(v)
 
 
 class ProjectImageUpdate(BaseModel):
