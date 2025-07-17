@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-from .models import Project, Section, Subsection
+from .models import Project, ProjectImage, Section, Subsection
 
 
 @admin.register(Project)
@@ -108,3 +108,26 @@ class SubsectionAdmin(admin.ModelAdmin):
     list_filter = ("section__project", "section")
     ordering = ("section__order", "order")
     search_fields = ("title", "instructions", "content")
+
+
+@admin.register(ProjectImage)
+class ProjectImageAdmin(admin.ModelAdmin):
+    list_display = ("caption", "project", "uploaded_at")
+    search_fields = ("caption",)
+    list_filter = ("project", "uploaded_at")
+    readonly_fields = ("uploaded_at",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ("project", "image", "caption"),
+            },
+        ),
+        (
+            "Metadata",
+            {
+                "fields": ("uploaded_at",),
+                "classes": ("collapse",),
+            },
+        ),
+    )

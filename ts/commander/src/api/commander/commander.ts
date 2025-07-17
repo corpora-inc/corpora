@@ -27,14 +27,18 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import type {
   CompletionRequest,
   CompletionResponse,
+  CorporaCommanderApiImagesCreateImageBody,
   CorporaCommanderApiLlmGenericDataCompletion200,
   DraftBookRequest,
   DraftBookResponse,
   GenericCompletionRequest,
+  ImageToken,
   LMStudioPing,
   OpenAIModelsRequest,
   OutlineRequest,
   OutlineResponse,
+  ProjectImageOut,
+  ProjectImageUpdate,
   ProjectIn,
   ProjectOut,
   ProjectUpdate,
@@ -51,6 +55,8 @@ import type {
   XAIModelsRequest,
   XAIModelsResponse,
 } from ".././schemas";
+
+import { createFormData } from ".././mutator/formData";
 
 /**
  * @summary Text Completion
@@ -1023,6 +1029,8 @@ export const useCorporaCommanderApiProjectDeleteProject = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
+ * Generic data completion endpoint that accepts a schema description
+and returns a model instance based on the provided schema.
  * @summary Generic Data Completion
  */
 export const corporaCommanderApiLlmGenericDataCompletion = (
@@ -2526,9 +2534,8 @@ export const useCorporaCommanderApiOutlineGenerateOutline = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * Iterate over each section of the project, invoke the LLM to draft that section
-(with strict enforcement of no markdown headers in introductions and subsections
-starting with '## {title}'), and return all drafts together.
+ * Generate a draft for every section in the project, using the shared
+prompt-builder to enforce all markdown, image-token, and JSON rules.
  * @summary Draft Book
  */
 export const corporaCommanderApiDraftDraftBook = (
@@ -2791,8 +2798,6 @@ export function useCorporaCommanderApiExportExportPdf<
 }
 
 /**
- * Rewrite all section introductions based on existing instructions and original intros.
-Returns proposed new introductions for review.
  * @summary Rewrite Sections
  */
 export const corporaCommanderApiRewriteRewriteSections = (
@@ -2887,8 +2892,6 @@ export const useCorporaCommanderApiRewriteRewriteSections = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * Rewrite all subsection content based on existing instructions and original content.
-Returns proposed new content for review.
  * @summary Rewrite Subsections
  */
 export const corporaCommanderApiRewriteRewriteSubsections = (
@@ -2982,3 +2985,819 @@ export const useCorporaCommanderApiRewriteRewriteSubsections = <
 
   return useMutation(mutationOptions, queryClient);
 };
+/**
+ * @summary List Images
+ */
+export const corporaCommanderApiImagesListImages = (
+  projectId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<ProjectImageOut[]>> => {
+  return axios.default.get(
+    `/api/commander/projects/${projectId}/images/`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiImagesListImagesQueryKey = (
+  projectId: string,
+) => {
+  return [`/api/commander/projects/${projectId}/images/`] as const;
+};
+
+export const getCorporaCommanderApiImagesListImagesQueryOptions = <
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCorporaCommanderApiImagesListImagesQueryKey(projectId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>
+  > = ({ signal }) =>
+    corporaCommanderApiImagesListImages(projectId, {
+      signal,
+      ...axiosOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!projectId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CorporaCommanderApiImagesListImagesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>
+>;
+export type CorporaCommanderApiImagesListImagesQueryError =
+  AxiosError<unknown>;
+
+export function useCorporaCommanderApiImagesListImages<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiImagesListImages<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiImagesListImages<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List Images
+ */
+
+export function useCorporaCommanderApiImagesListImages<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesListImages>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCorporaCommanderApiImagesListImagesQueryOptions(
+    projectId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Create Image
+ */
+export const corporaCommanderApiImagesCreateImage = (
+  projectId: string,
+  corporaCommanderApiImagesCreateImageBody: CorporaCommanderApiImagesCreateImageBody,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<ProjectImageOut>> => {
+  const formData = createFormData(corporaCommanderApiImagesCreateImageBody);
+  return axios.default.post(
+    `/api/commander/projects/${projectId}/images/`,
+    formData,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiImagesCreateImageMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesCreateImage>>,
+    TError,
+    { projectId: string; data: CorporaCommanderApiImagesCreateImageBody },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesCreateImage>>,
+  TError,
+  { projectId: string; data: CorporaCommanderApiImagesCreateImageBody },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiImagesCreateImage"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesCreateImage>>,
+    { projectId: string; data: CorporaCommanderApiImagesCreateImageBody }
+  > = (props) => {
+    const { projectId, data } = props ?? {};
+
+    return corporaCommanderApiImagesCreateImage(projectId, data, axiosOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiImagesCreateImageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesCreateImage>>
+>;
+export type CorporaCommanderApiImagesCreateImageMutationBody =
+  CorporaCommanderApiImagesCreateImageBody;
+export type CorporaCommanderApiImagesCreateImageMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Create Image
+ */
+export const useCorporaCommanderApiImagesCreateImage = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiImagesCreateImage>>,
+      TError,
+      { projectId: string; data: CorporaCommanderApiImagesCreateImageBody },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesCreateImage>>,
+  TError,
+  { projectId: string; data: CorporaCommanderApiImagesCreateImageBody },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiImagesCreateImageMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Get Image
+ */
+export const corporaCommanderApiImagesGetImage = (
+  projectId: string,
+  imageId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<ProjectImageOut>> => {
+  return axios.default.get(
+    `/api/commander/projects/${projectId}/images/${imageId}`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiImagesGetImageQueryKey = (
+  projectId: string,
+  imageId: string,
+) => {
+  return [`/api/commander/projects/${projectId}/images/${imageId}`] as const;
+};
+
+export const getCorporaCommanderApiImagesGetImageQueryOptions = <
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  imageId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCorporaCommanderApiImagesGetImageQueryKey(projectId, imageId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>
+  > = ({ signal }) =>
+    corporaCommanderApiImagesGetImage(projectId, imageId, {
+      signal,
+      ...axiosOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(projectId && imageId),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CorporaCommanderApiImagesGetImageQueryResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>
+>;
+export type CorporaCommanderApiImagesGetImageQueryError = AxiosError<unknown>;
+
+export function useCorporaCommanderApiImagesGetImage<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  imageId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiImagesGetImage<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  imageId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiImagesGetImage<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  imageId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get Image
+ */
+
+export function useCorporaCommanderApiImagesGetImage<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  imageId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesGetImage>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCorporaCommanderApiImagesGetImageQueryOptions(
+    projectId,
+    imageId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Update Image
+ */
+export const corporaCommanderApiImagesUpdateImage = (
+  projectId: string,
+  imageId: string,
+  projectImageUpdate: ProjectImageUpdate,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<ProjectImageOut>> => {
+  return axios.default.patch(
+    `/api/commander/projects/${projectId}/images/${imageId}`,
+    projectImageUpdate,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiImagesUpdateImageMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesUpdateImage>>,
+    TError,
+    { projectId: string; imageId: string; data: ProjectImageUpdate },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesUpdateImage>>,
+  TError,
+  { projectId: string; imageId: string; data: ProjectImageUpdate },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiImagesUpdateImage"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesUpdateImage>>,
+    { projectId: string; imageId: string; data: ProjectImageUpdate }
+  > = (props) => {
+    const { projectId, imageId, data } = props ?? {};
+
+    return corporaCommanderApiImagesUpdateImage(
+      projectId,
+      imageId,
+      data,
+      axiosOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiImagesUpdateImageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesUpdateImage>>
+>;
+export type CorporaCommanderApiImagesUpdateImageMutationBody =
+  ProjectImageUpdate;
+export type CorporaCommanderApiImagesUpdateImageMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Update Image
+ */
+export const useCorporaCommanderApiImagesUpdateImage = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiImagesUpdateImage>>,
+      TError,
+      { projectId: string; imageId: string; data: ProjectImageUpdate },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesUpdateImage>>,
+  TError,
+  { projectId: string; imageId: string; data: ProjectImageUpdate },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiImagesUpdateImageMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Delete Image
+ */
+export const corporaCommanderApiImagesDeleteImage = (
+  projectId: string,
+  imageId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<void>> => {
+  return axios.default.delete(
+    `/api/commander/projects/${projectId}/images/${imageId}`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiImagesDeleteImageMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesDeleteImage>>,
+    TError,
+    { projectId: string; imageId: string },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesDeleteImage>>,
+  TError,
+  { projectId: string; imageId: string },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiImagesDeleteImage"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesDeleteImage>>,
+    { projectId: string; imageId: string }
+  > = (props) => {
+    const { projectId, imageId } = props ?? {};
+
+    return corporaCommanderApiImagesDeleteImage(
+      projectId,
+      imageId,
+      axiosOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiImagesDeleteImageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesDeleteImage>>
+>;
+
+export type CorporaCommanderApiImagesDeleteImageMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Delete Image
+ */
+export const useCorporaCommanderApiImagesDeleteImage = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiImagesDeleteImage>>,
+      TError,
+      { projectId: string; imageId: string },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesDeleteImage>>,
+  TError,
+  { projectId: string; imageId: string },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiImagesDeleteImageMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary List Image Tokens
+ */
+export const corporaCommanderApiImagesListImageTokens = (
+  projectId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<ImageToken[]>> => {
+  return axios.default.get(
+    `/api/commander/projects/${projectId}/image-tokens/`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiImagesListImageTokensQueryKey = (
+  projectId: string,
+) => {
+  return [`/api/commander/projects/${projectId}/image-tokens/`] as const;
+};
+
+export const getCorporaCommanderApiImagesListImageTokensQueryOptions = <
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCorporaCommanderApiImagesListImageTokensQueryKey(projectId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>
+  > = ({ signal }) =>
+    corporaCommanderApiImagesListImageTokens(projectId, {
+      signal,
+      ...axiosOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!projectId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CorporaCommanderApiImagesListImageTokensQueryResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>
+>;
+export type CorporaCommanderApiImagesListImageTokensQueryError =
+  AxiosError<unknown>;
+
+export function useCorporaCommanderApiImagesListImageTokens<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiImagesListImageTokens<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiImagesListImageTokens<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List Image Tokens
+ */
+
+export function useCorporaCommanderApiImagesListImageTokens<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiImagesListImageTokens>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCorporaCommanderApiImagesListImageTokensQueryOptions(
+    projectId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}

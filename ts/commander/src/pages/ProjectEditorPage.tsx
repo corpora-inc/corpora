@@ -17,6 +17,7 @@ import { SectionEditor } from "@/components/SectionEditor"
 import { SubsectionEditor } from "@/components/SubsectionEditor"
 import { TopBar } from "@/components/TopBar"
 import { GenerateRewriteDialog } from "@/components/GenerateRewriteDialog"
+import ImageDrawer from "@/components/ImageDrawer"
 
 export default function ProjectEditorPage() {
     const { id } = useParams<{ id: string }>()
@@ -158,6 +159,7 @@ export default function ProjectEditorPage() {
                     sectionsQuery.refetch()
                 }}
             />
+            <ImageDrawer projectId={id!} />
         </>
     )
 }
