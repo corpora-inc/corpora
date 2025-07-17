@@ -1,42 +1,48 @@
-import { useImageStore } from "@/stores/ImageStore";
+import { useState } from "react";
 import { useProjectStore } from "@/stores/ProjectStore";
 import { useUploadImage } from "@/hooks/useImages";
-import { CheckCircle, XCircle } from "lucide-react";
 
-export default function ImageTokenList() {
-    const tokens = useImageStore((s) => s.tokens);
+export default function ImageUploadDropzone() {
     const projectId = useProjectStore((s) => s.project?.id!);
     const upload = useUploadImage(projectId);
+    const [caption, setCaption] = useState("");
+    const [file, setFile] = useState<File | null>(null);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (file && caption) {
+            upload.mutate(caption, file);
+            setCaption("");
+            setFile(null);
+        }
+    };
 
     return (
-        <div>
-            <ul className="space-y-2">
-                {tokens.map((token) => (
-                    <li key={token.caption} className="flex items-center justify-between">
-                        <span className="flex-1 truncate">{token.caption}</span>
-                        {token.fulfilled ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" aria-label="Fulfilled" />
-                        ) : (
-                            <button
-                                className="flex items-center space-x-1 text-blue-600 hover:underline"
-                                onClick={() => {
-                                    const fileInput = document.createElement("input");
-                                    fileInput.type = "file";
-                                    fileInput.accept = "image/*";
-                                    fileInput.onchange = () => {
-                                        const file = fileInput.files?.[0];
-                                        if (file) upload.mutate(token.caption, file);
-                                    };
-                                    fileInput.click();
-                                }}
-                            >
-                                <XCircle className="h-5 w-5" />
-                                <span>Upload</span>
-                            </button>
-                        )}
-                    </li>
-                ))}
-            </ul>
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-2">
+            <label className="block text-sm font-medium">Caption</label>
+            <input
+                type="text"
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                className="w-full border rounded p-2"
+                placeholder="Enter caption"
+            />
+
+            <label className="block text-sm font-medium">Select Image</label>
+            <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="w-full"
+            />
+
+            <button
+                type="submit"
+                disabled={!caption || !file || upload.isPending}
+                className="mt-2 w-full bg-green-600 text-white p-2 rounded disabled:opacity-50"
+            >
+                {upload.isPending ? "Uploading..." : "Upload Image"}
+            </button>
+        </form>
     );
 }
