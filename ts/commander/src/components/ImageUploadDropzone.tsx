@@ -10,7 +10,6 @@ export default function ImageTokenList() {
 
     return (
         <div>
-            <h3 className="text-lg font-semibold mb-2">Image Tokens</h3>
             <ul className="space-y-2">
                 {tokens.map((token) => (
                     <li key={token.caption} className="flex items-center justify-between">
