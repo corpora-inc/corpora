@@ -10,6 +10,15 @@ export default defineConfig({
     tailwind()
   ],
   server: {
+    host: true, // Listen on all addresses
+    port: 5173,
+    watch: {
+      usePolling: true, // Enable polling for file system watching
+      interval: 1000,   // Poll every 1 second
+    },
+    hmr: {
+      port: 5173, // Hot Module Replacement port
+    },
     proxy: {
       // any request starting with /api will be forwarded
       "/api": {
