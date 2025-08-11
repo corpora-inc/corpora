@@ -1,7 +1,7 @@
 // src/components/TopBar.tsx
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import { ArrowLeftIcon, Menu } from "lucide-react"
 import { useProjectStore } from "@/stores/ProjectStore"
 import { ExportPdfButton } from "@/components/ExportPdfButton"
 
@@ -47,7 +47,7 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
                     asChild
                     aria-label="Back to projects"
                 >
-                    <Link to="/projects">←</Link>
+                    <Link to="/projects"><ArrowLeftIcon className="w-4 h-4"/></Link>
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold">{project.title}</h1>
