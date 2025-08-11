@@ -19,6 +19,7 @@ interface ImageStore {
 
     setTokens: (toks: ImageToken[]) => void;
     updateTokenFulfilled: (caption: string, imageId: string) => void;
+    updateTokenUnfulfilled: (caption: string) => void;
 
     setDrawerOpen: (open: boolean) => void;
 
@@ -47,6 +48,12 @@ export const useImageStore = create<ImageStore>((set) => ({
         set((state) => ({
             tokens: state.tokens.map((t) =>
                 t.caption === caption ? { ...t, fulfilled: true, image_id: imageId } : t,
+            ),
+        })),
+    updateTokenUnfulfilled: (caption) =>
+        set((state) => ({
+            tokens: state.tokens.map((t) =>
+                t.caption === caption ? { ...t, fulfilled: false, image_id: undefined } : t,
             ),
         })),
     setDrawerOpen: (open) => set({ isDrawerOpen: open }),

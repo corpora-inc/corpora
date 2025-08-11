@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -25,9 +24,12 @@ export default function ImageDrawer({ projectId }: ImageDrawerProps) {
   const tokensQuery = useImageTokens(projectId);
   // Reset store when project changes
   useEffect(() => {
+    if (!projectId) return;
     useImageStore.getState().reset();
     imagesQuery.refetch();
     tokensQuery.refetch();
+    // it's safe to omit queries' changing fields because refetch is called explicitly on projectId change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
   return (

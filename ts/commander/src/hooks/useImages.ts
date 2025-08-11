@@ -55,10 +55,14 @@ export function useImageTokens(projectId?: string) {
  */
 export function useUploadImage(projectId: string) {
     const addImage = useImageStore((s) => s.addImage);
+    const updateTokenFulfilled = useImageStore((s) => s.updateTokenFulfilled);
     const mutation = useCorporaCommanderApiImagesCreateImage({
         mutation: {
             onSuccess: (response) => {
-                addImage(response.data as ProjectImageOut);
+                const img = response.data as ProjectImageOut;
+                addImage(img);
+                // Fulfill matching token across the project
+                updateTokenFulfilled(img.caption, img.id);
             },
         },
     });
@@ -75,10 +79,20 @@ export function useUploadImage(projectId: string) {
  */
 export function useUpdateImage(projectId: string, imageId: string) {
     const updateImage = useImageStore((s) => s.updateImage);
+    const images = useImageStore((s) => s.images);
+    const updateTokenFulfilled = useImageStore((s) => s.updateTokenFulfilled);
+    const updateTokenUnfulfilled = useImageStore((s) => s.updateTokenUnfulfilled);
     const mutation = useCorporaCommanderApiImagesUpdateImage({
         mutation: {
             onSuccess: (response) => {
-                updateImage(response.data as ProjectImageOut);
+                const updated = response.data as ProjectImageOut;
+                const prev = images.find((i) => i.id === updated.id);
+                updateImage(updated);
+                // If caption changed, move fulfillment to new caption
+                if (prev && prev.caption !== updated.caption) {
+                    updateTokenUnfulfilled(prev.caption);
+                    updateTokenFulfilled(updated.caption, updated.id);
+                }
             },
         },
     });
@@ -95,9 +109,16 @@ export function useUpdateImage(projectId: string, imageId: string) {
  */
 export function useDeleteImage(projectId: string, imageId: string) {
     const removeImage = useImageStore((s) => s.removeImage);
+    const images = useImageStore((s) => s.images);
+    const updateTokenUnfulfilled = useImageStore((s) => s.updateTokenUnfulfilled);
     const mutation = useCorporaCommanderApiImagesDeleteImage({
         mutation: {
             onSuccess: () => {
+                const deleted = images.find((i) => i.id === imageId);
+                if (deleted) {
+                    // Un-fulfill matching token across the project
+                    updateTokenUnfulfilled(deleted.caption);
+                }
                 removeImage(imageId);
             },
         },
