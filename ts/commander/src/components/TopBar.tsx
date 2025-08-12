@@ -1,7 +1,6 @@
-// src/components/TopBar.tsx
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import { ArrowLeftIcon, Menu, FileText, BookOpen, PencilIcon } from "lucide-react"
 import { useProjectStore } from "@/stores/ProjectStore"
 import { ExportPdfButton } from "@/components/ExportPdfButton"
 
@@ -27,18 +26,18 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
     )
 
     return (
-        <div className="border-b p-6 flex items-center justify-between">
+        <div className="border-b px-3 py-4 sm:px-4 sm:py-5 lg:px-6 lg:py-6 flex items-center justify-between gap-3 sm:gap-4">
             {/* Left: mobile burger + back + title */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-0 flex-1">
                 {onToggleOutlinePanel && (
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={onToggleOutlinePanel}
-                        className="md:hidden"
+                        className="md:hidden flex-shrink-0"
                         aria-label="Open outline"
                     >
-                        <Menu className="h-5 w-5" />
+                        <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:h-5 sm:w-5" />
                     </Button>
                 )}
                 <Button
@@ -46,27 +45,53 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
                     size="icon"
                     asChild
                     aria-label="Back to projects"
+                    className="flex-shrink-0"
                 >
-                    <Link to="/projects">←</Link>
+                    <Link to="/projects"><ArrowLeftIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4"/></Link>
                 </Button>
-                <div>
-                    <h1 className="text-2xl font-bold">{project.title}</h1>
+                <div className="min-w-0 flex-1">
+                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
+                        {project.title}
+                    </h1>
                     {project.subtitle && (
-                        <p className="mt-1 text-gray-600">{project.subtitle}</p>
+                        <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-600 truncate">
+                            {project.subtitle}
+                        </p>
                     )}
                 </div>
             </div>
 
             {/* Right: action buttons */}
-            <div className="space-x-2">
+            <div className="flex flex-col gap-1 sm:gap-2 flex-shrink-0">
                 {!hasSections && (
-                    <Button onClick={() => setOutlineOpen(true)}>Outline</Button>
+                    <Button 
+                        onClick={() => setOutlineOpen(true)}
+                        size="sm"
+                        
+                    >
+                        <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4   sm:mr-2" />
+                        <span className="hidden sm:inline">Outline</span>
+                    </Button>
                 )}
                 {hasSections && !hasContent && (
-                    <Button onClick={() => setDraftOpen(true)}>Draft book</Button>
+                    <Button 
+                        onClick={() => setDraftOpen(true)}
+                        size="sm"
+                        
+                    >
+                        <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4  sm:mr-2" />
+                        <span className="hidden sm:inline">Draft book</span>
+                    </Button>
                 )}
                 {hasContent && (
-                    <Button onClick={() => setRewriteOpen(true)}>Rewrite</Button>
+                    <Button 
+                        onClick={() => setRewriteOpen(true)}
+                        size="sm"
+                        
+                    >
+                        <PencilIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4  sm:mr-2" />
+                        <span className="hidden sm:inline">Rewrite</span>
+                    </Button>
                 )}
                 {hasSections && (
                     <ExportPdfButton projectId={project.id} />

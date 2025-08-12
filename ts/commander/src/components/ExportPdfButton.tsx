@@ -1,6 +1,6 @@
 // ts/commander/src/components/ExportPdfButton.tsx
 import { useState } from "react"
-import { Loader2 } from "lucide-react"
+import { Loader2, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface ExportPdfButtonProps {
@@ -42,10 +42,16 @@ export function ExportPdfButton({ projectId }: ExportPdfButtonProps) {
         <Button
             onClick={handleDownload}
             disabled={isDownloading}
-            className="relative inline-flex items-center justify-center"
+            size="sm"
+            className="relative inline-flex items-center justify-center text-xs sm:text-sm px-2 sm:px-3"
         >
+            {!isDownloading && (
+                <Download className="h-4 w-4 sm:mr-2 flex-shrink-0" />
+            )}
             {/* Invisible label keeps the button width constant */}
-            <span className={isDownloading ? "invisible" : ""}>{label}</span>
+            <span className={`${isDownloading ? "invisible" : ""} hidden sm:inline`}>
+                {label}
+            </span>
             {isDownloading && (
                 <Loader2 className="absolute animate-spin h-4 w-4" />
             )}
