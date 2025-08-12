@@ -1,8 +1,6 @@
-// ts/commander/src/pages/ProjectEditorPage.tsx
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { Loader2 } from "lucide-react"
-// import { Button } from "@/components/ui/button"
 import {
     useCorporaCommanderApiProjectGetProject,
     useCorporaCommanderApiSectionListSections,
@@ -48,16 +46,6 @@ export default function ProjectEditorPage() {
     const setOutlineOpen = useProjectStore((s) => s.setOutlineOpen)
     const setDraftOpen = useProjectStore((s) => s.setDraftOpen)
     const setRewriteOpen = useProjectStore((s) => s.setRewriteOpen)
-
-    // mobile drawer state
-    const [mobileOutlineOpen, setMobileOutlineOpen] = useState(false)
-
-    useEffect(() => {
-        // close the mobile outline when the selected section or subsection changes
-        if (selectedSectionId || selectedSubsectionId) {
-            setMobileOutlineOpen(false)
-        }
-    }, [selectedSectionId, selectedSubsectionId])
 
     if (!id) {
         return <p className="p-4 text-red-600">No project ID provided.</p>
@@ -113,20 +101,13 @@ export default function ProjectEditorPage() {
             <div className="flex h-full">
                 {/* Desktop outline sidebar */}
                 <div className="hidden md:flex">
-                    <OutlinePanel />
+                    <aside className="w-full md:w-64 md:border-r flex flex-col h-full">
+                        <OutlinePanel />
+                    </aside>
                 </div>
 
-                {/* Mobile outline drawer */}
-                {mobileOutlineOpen && (
-                    <div className="fixed inset-0 z-50 bg-white">
-                        <div className="h-full overflow-auto">
-                            <OutlinePanel />
-                        </div>
-                    </div>
-                )}
-
                 <main className="flex-1 flex flex-col h-full overflow-hidden">
-                    <TopBar onToggleOutlinePanel={() => setMobileOutlineOpen(true)} />
+                    <TopBar />
 
                     <div className="flex-1 overflow-auto p-6">
                         {editorPane}

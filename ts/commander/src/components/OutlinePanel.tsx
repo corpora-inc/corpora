@@ -1,4 +1,3 @@
-// ts/commander/src/components/OutlinePanel.tsx
 import type { FC } from "react"
 import { Button } from "@/components/ui/button"
 import { useProjectStore } from "@/stores/ProjectStore"
@@ -17,7 +16,7 @@ export const OutlinePanel: FC = () => {
 
     return (
         // <aside className="w-64 border-r p-4 hidden md:flex flex-col h-full">
-        <aside className="w-full md:w-64 md:border-r flex flex-col h-full">
+        <>
             {sections.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center">
                     <Button onClick={() => setOutlineOpen(true)}>
@@ -67,6 +66,6 @@ export const OutlinePanel: FC = () => {
                     ))}
                 </ul>
             )}
-        </aside>
+        </>
     )
 }
