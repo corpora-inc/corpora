@@ -78,7 +78,7 @@ export function TopBar() {
                     <Button
                         onClick={() => setOutlineOpen(true)}
                         size="sm"
-
+                        className="justify-start"
                     >
                         <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4   sm:mr-2" />
                         <span className="hidden sm:inline">Outline</span>
@@ -88,7 +88,7 @@ export function TopBar() {
                     <Button
                         onClick={() => setDraftOpen(true)}
                         size="sm"
-
+                        className="justify-start"
                     >
                         <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4  sm:mr-2" />
                         <span className="hidden sm:inline">Draft book</span>
