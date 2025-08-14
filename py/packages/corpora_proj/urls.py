@@ -4,6 +4,7 @@ from corpora.router import api as corpora_router
 from corpora.views import BinaryView
 from corpora_commander.api import commander_router
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from ninja import NinjaAPI
@@ -31,3 +32,4 @@ if settings.DEBUG:
     from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
     urlpatterns += staticfiles_urlpatterns()
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -26,6 +26,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      // serve user-uploaded media from Django during dev
+      "/media": {
+        target: "http://corpora-app:8877",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   resolve: {

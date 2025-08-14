@@ -3,8 +3,20 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
+import os
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import (
+    UploadedFile as DjangoUploadedFile,
+)
 from django.shortcuts import get_object_or_404
+from django.utils.text import get_valid_filename
 from ninja import File, Form, UploadedFile
+from django.db import IntegrityError
+
+try:
+    from PIL import Image as PILImage  # noqa: F401
+except ImportError:  # pragma: no cover
+    PILImage = None  # type: ignore
 from pydantic import BaseModel, field_validator
 
 from corpora_commander.models import Project, ProjectImage
@@ -60,11 +72,49 @@ def create_image(
     image: UploadedFile = File(...),
 ):
     project = get_object_or_404(Project, id=project_id)
-    img = ProjectImage.objects.create(
-        project=project,
-        caption=caption,
-        image=image,
-    )
+    # Basic validation: caption non-empty
+    if not caption.strip():
+        raise ValidationError("Caption is required")
+    # Validate content type and extension
+    allowed_content_types = {
+        "image/png",
+        "image/jpeg",
+        "image/gif",
+        "image/webp",
+        "image/tiff",
+        "image/bmp",
+        "image/svg+xml",
+    }
+    if isinstance(image, DjangoUploadedFile):
+        ctype = (image.content_type or "").lower()
+        if ctype not in allowed_content_types:
+            raise ValidationError(f"Unsupported image type: {ctype}")
+        # sanitize filename
+        image.name = get_valid_filename(image.name)
+
+    # Enforce max size (default 15MB, override via MAX_IMAGE_SIZE_MB)
+    try:
+        max_mb = float(os.environ.get("MAX_IMAGE_SIZE_MB", "15"))
+    except ValueError:
+        max_mb = 15.0
+    max_bytes = int(max_mb * 1024 * 1024)
+    size = getattr(image, "size", None)
+    if size is not None and size > max_bytes:
+        raise ValidationError(
+            f"Image too large: {size} bytes (max {max_bytes} bytes)"
+        )
+
+    # Create model; storage backend (local or S3) handles the file
+    try:
+        img = ProjectImage.objects.create(
+            project=project,
+            caption=caption,
+            image=image,
+        )
+    except IntegrityError:
+        raise ValidationError(
+            "An image with this caption already exists for the project."
+        )
     return img
 
 

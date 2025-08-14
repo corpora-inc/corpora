@@ -12,8 +12,13 @@ This is just a test project for corpora app.
 """
 
 import os
+from pathlib import Path
 
-print(f"Using {os.environ.get("LLM_PROVIDER")}")
+# Base directory for resolving relative paths (…/py/packages)
+BASE_DIR = Path(__file__).resolve().parents[1]
+
+# Avoid syntax error from nested quotes
+print(f"Using {os.environ.get('LLM_PROVIDER')}")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -127,6 +132,24 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "static/"
+
+# Media (user-uploaded files, e.g. ProjectImage)
+# Local filesystem by default. For production, set AWS_* env vars to enable S3.
+if os.environ.get("AWS_STORAGE_BUCKET_NAME"):
+    INSTALLED_APPS += ["storages"]
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    AWS_STORAGE_BUCKET_NAME = os.environ["AWS_STORAGE_BUCKET_NAME"]
+    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "us-east-1")
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = False
+    MEDIA_URL = os.environ.get(
+        "MEDIA_URL",
+        f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/",
+    )
+else:
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = str(BASE_DIR / "media")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

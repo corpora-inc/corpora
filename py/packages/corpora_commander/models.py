@@ -1,13 +1,16 @@
 import uuid
 
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 
 # TODO: cloud storage?
 def project_image_upload_to(instance, filename):
     """
-    Store images under MEDIA_ROOT/projects/<project_uuid>/filename
+    Store images under MEDIA_ROOT/uploads/<project_uuid>/<filename>
     """
+    # Django sanitizes the final name; keep a stable, bucket-friendly path
     return f"uploads/{instance.project.id}/{filename}"
 
 
@@ -126,3 +129,14 @@ class ProjectImage(models.Model):
 
     def __str__(self):
         return f"{self.project.title} - {self.caption}"
+
+
+@receiver(post_delete, sender=ProjectImage)
+def _delete_file_on_image_delete(sender, instance: "ProjectImage", **kwargs):
+    # Remove file from storage when the model is deleted
+    if instance.image:
+        try:
+            instance.image.delete(save=False)
+        except FileNotFoundError:
+            # Non-fatal: storage might already be missing the file
+            pass

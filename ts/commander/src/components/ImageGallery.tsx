@@ -8,6 +8,7 @@ export default function ImageGallery() {
     const images = useImageStore((s) => s.images);
     const projectId = useProjectStore((s) => s.project?.id);
     if (!projectId) return null;
+    console.log(images)
 
     return (
         <div>
