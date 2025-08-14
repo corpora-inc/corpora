@@ -34,7 +34,7 @@ export default function ImageDrawer({ projectId }: ImageDrawerProps) {
 
   return (
     <Sheet>
-      <SheetTrigger>
+      <SheetTrigger asChild>
         <Button
           variant="default"
           size="icon"
