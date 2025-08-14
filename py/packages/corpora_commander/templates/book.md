@@ -1,7 +1,8 @@
 {% autoescape off %}
+{% load tex %}
 
 {% for section in project.sections.all %}
-# {{ section.title }}
+# {{ section.title|latex_escape }}
 
 {{ section.introduction }}
 

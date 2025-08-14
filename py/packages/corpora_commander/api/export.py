@@ -26,7 +26,7 @@ def export_pdf(request, project_id: UUID):
         id=project_id,
     )
     md_content = render_to_string("book.md", {"project": proj})
-
+    print(md_content)
     # 2) Prepare a build directory
     build_dir = Path(tempfile.mkdtemp(prefix="corpora-export-"))
     md_file = build_dir / "book.md"
@@ -64,18 +64,31 @@ def export_pdf(request, project_id: UUID):
     pdf_file = build_dir / f"{proj.id}.pdf"
     pandoc_bin = shutil.which("pandoc") or "pandoc"
     logger.info("Running pandoc --defaults %s", defaults_file)
-    subprocess.run(
-        [
-            pandoc_bin,
-            md_file.name,
-            "--defaults",
-            defaults_file.name,
-            "-o",
-            pdf_file.name,
-        ],
-        check=True,
-        cwd=build_dir,
-    )
+    try:
+        completed = subprocess.run(
+            [
+                pandoc_bin,
+                md_file.name,
+                "--defaults",
+                defaults_file.name,
+                "-o",
+                pdf_file.name,
+            ],
+            check=True,
+            cwd=build_dir,
+            capture_output=True,
+            text=True,
+        )
+        logger.debug("pandoc stdout: %s", completed.stdout)
+        logger.debug("pandoc stderr: %s", completed.stderr)
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Pandoc failed (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s",
+            e.returncode,
+            e.stdout,
+            e.stderr,
+        )
+        raise
 
     # 6) Stream back the PDF
     return FileResponse(
