@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeftIcon, Menu } from "lucide-react"
 import { useProjectStore } from "@/stores/ProjectStore"
 import { ExportPdfButton } from "@/components/ExportPdfButton"
+import { SettingsDialog } from "@/components/SettingsDialog"
 
 export interface TopBarProps {
     /** Show mobile outline drawer */
@@ -57,8 +58,8 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
                 </div>
             </div>
 
-            {/* Right: action buttons */}
-            <div className="space-x-2">
+            {/* Right: action buttons + settings */}
+            <div className="flex items-center space-x-2">
                 {!hasSections && (
                     <Button onClick={() => setOutlineOpen(true)}>Outline</Button>
                 )}
@@ -71,6 +72,7 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
                 {hasSections && (
                     <ExportPdfButton projectId={project.id} />
                 )}
+                <SettingsDialog />
             </div>
         </div>
     )

@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { SettingsDialog } from "@/components/SettingsDialog";
 import {
     useCorporaCommanderApiProjectListProjects,
 } from "@/api/commander/commander";
@@ -69,7 +70,10 @@ export default function ProjectListPage() {
     return (
         <div className="p-6 space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
-                <h1 className="text-2xl font-semibold">Projects</h1>
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-semibold">Projects</h1>
+                    <SettingsDialog />
+                </div>
                 <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
