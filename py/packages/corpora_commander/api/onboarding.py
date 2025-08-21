@@ -18,7 +18,7 @@ class ChatMessageSchema(BaseModel):
 
 
 class CompletionRequest(BaseModel):
-    provider: str = Field(..., description="one of: openai, xai, local")
+    provider: str = Field(..., description="one of: openai, xai, local, claude")
     model: str = Field(..., description="model name to use")
     base_url: Optional[HttpUrl] = Field(
         None,
@@ -136,3 +136,44 @@ def list_xai_models(request, data: XAIModelsRequest):
         raise HttpError(404, "No models found at that endpoint")
 
     return XAIModelsResponse(models=ids)
+
+
+class ClaudeModelsRequest(BaseModel):
+    api_key: str = Field(..., description="Your Anthropic API key")
+    base_url: Optional[HttpUrl] = Field(
+        "https://api.anthropic.com",
+        description="Base URL for Anthropic API (defaults to https://api.anthropic.com)",
+    )
+
+
+class ClaudeModelsResponse(BaseModel):
+    models: List[str]
+
+
+@router.post("/claude/models", response=ClaudeModelsResponse)
+def list_claude_models(request, data: ClaudeModelsRequest):
+    """
+    Fetch the list of available Claude model IDs via GET /v1/models.
+    """
+    url = f"{data.base_url.rstrip('/')}/v1/models"
+    headers = {
+        "Authorization": f"Bearer {data.api_key}",
+        "anthropic-version": "2023-06-01",  # Required header for Anthropic API
+    }
+
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        raise HttpError(502, f"Anthropic API request failed: {e}")
+
+    payload = resp.json()
+    # According to Anthropic API reference, the response is:
+    # { "data": [ { "id": "claude-3-haiku-20240307" }, { "id": "claude-3-sonnet-20240229" }, … ] }
+    raw_list = payload.get("data", [])
+    ids = [m.get("id") for m in raw_list if isinstance(m, dict) and "id" in m]
+
+    if not ids:
+        raise HttpError(404, "No models found at that endpoint")
+
+    return ClaudeModelsResponse(models=ids)

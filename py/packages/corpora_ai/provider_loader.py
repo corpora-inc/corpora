@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+from corpora_ai_claude.llm_client import ClaudeClient
 from corpora_ai_local.llm_client import LocalClient
 from corpora_ai_openai.llm_client import OpenAIClient
 from corpora_ai_xai.llm_client import XAIClient
@@ -8,7 +9,7 @@ from corpora_ai_xai.llm_client import XAIClient
 from corpora_ai.llm_interface import LLMBaseInterface
 
 # Future imports for other providers,
-# e.g., Anthropic or Cohere, would follow the same pattern
+# e.g., Cohere, would follow the same pattern
 
 
 def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
@@ -57,8 +58,21 @@ def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
         kwargs.pop("api_key", None)
         return LocalClient(**kwargs)
 
-    # Placeholder for additional providers (e.g., Anthropic)
-    # elif provider_name == "anthropic" and AnthropicClient:
-    #     return AnthropicClient(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    if provider_name == "claude":
+        api_key = kwargs.pop("api_key", None)
+        base_url = kwargs.pop("base_url", None)
+        if not api_key:
+            api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "ANTHROPIC_API_KEY environment variable is not set."
+            )
+        return ClaudeClient(
+            api_key=api_key,
+            base_url=base_url or "https://api.anthropic.com",
+            **kwargs,
+        )
+
+    # Placeholder for additional providers (e.g., Cohere)
 
     raise ValueError("No valid LLM provider found.")
