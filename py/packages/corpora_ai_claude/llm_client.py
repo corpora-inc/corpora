@@ -1,4 +1,5 @@
 import json
+import re
 from typing import List, Type, TypeVar
 
 import requests
@@ -83,15 +84,76 @@ class ClaudeClient(LLMBaseInterface):
         model: Type[T],
     ) -> T:
         """Get structured data completion from Claude."""
-        # For now, just get text completion and try to parse it as JSON
-        completion_text = self.get_text_completion(messages)
+        # Add specific instructions for JSON output
+        enhanced_messages = []
+        system_message = None
+
+        for msg in messages:
+            if msg.role == "system":
+                system_message = (
+                    msg.text
+                    + "\n\nIMPORTANT: Respond ONLY with valid JSON. Do not include any explanatory text before or after the JSON. The response must be a single, valid JSON object that matches the required schema."
+                )
+            else:
+                enhanced_messages.append(msg)
+
+        # If no system message, create one
+        if system_message is None:
+            system_message = "You are a helpful assistant. IMPORTANT: Respond ONLY with valid JSON. Do not include any explanatory text before or after the JSON. The response must be a single, valid JSON object."
+
+        # Add the enhanced system message
+        final_messages = [
+            ChatCompletionTextMessage(role="system", text=system_message)
+        ] + enhanced_messages
+
+        completion_text = self.get_text_completion(final_messages)
+
+        # Try to extract JSON from the response
+        json_text = self._extract_json(completion_text)
+
         try:
-            data_dict = json.loads(completion_text)
+            data_dict = json.loads(json_text)
             return model.model_validate(data_dict)
         except (json.JSONDecodeError, ValueError) as e:
             raise RuntimeError(
-                f"Failed to parse Claude response as structured data: {e}",
+                f"Failed to parse Claude response as structured data: {e}. "
+                f"Raw response: {completion_text[:500]}...",
             )
+
+    def _extract_json(self, text: str) -> str:
+        """Extract JSON from Claude's response, handling cases where there's extra text."""
+        text = text.strip()
+
+        # If the text starts and ends with braces, assume it's pure JSON
+        if text.startswith("{") and text.endswith("}"):
+            return text
+
+        # Try to find JSON within the text
+
+        # First, try to extract from markdown code blocks
+        code_block_pattern = r"```(?:json)?\s*(\{.*?\})\s*```"
+        code_matches = re.findall(code_block_pattern, text, re.DOTALL)
+        if code_matches:
+            # Return the longest match (most likely to be the complete JSON)
+            return max(code_matches, key=len)
+
+        # Look for JSON objects (starting with { and ending with })
+        json_pattern = r"\{.*\}"
+        matches = re.findall(json_pattern, text, re.DOTALL)
+
+        if matches:
+            # Return the longest match (most likely to be the complete JSON)
+            return max(matches, key=len)
+
+        # Look for JSON arrays (starting with [ and ending with ])
+        array_pattern = r"\[.*\]"
+        matches = re.findall(array_pattern, text, re.DOTALL)
+
+        if matches:
+            return max(matches, key=len)
+
+        # If we can't find JSON structure, return the original text and let JSON parsing fail with a better error
+        return text
 
     def get_image(
         self,
