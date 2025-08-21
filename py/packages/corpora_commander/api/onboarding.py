@@ -157,8 +157,8 @@ def list_claude_models(request, data: ClaudeModelsRequest):
     """
     url = f"{data.base_url.rstrip('/')}/v1/models"
     headers = {
-        "Authorization": f"Bearer {data.api_key}",
-        "anthropic-version": "2023-06-01",  # Required header for Anthropic API
+        "x-api-key": data.api_key,
+        "anthropic-version": "2023-06-01",
     }
 
     try:
