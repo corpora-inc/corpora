@@ -29,7 +29,7 @@ export default function ClaudeConfigPage() {
 
     // 1) build initial list: either full list or just your stored default
     const initialModels =
-        availableModels.claude.length > 0
+        availableModels.claude?.length > 0
             ? availableModels.claude
             : existing?.defaultModel
                 ? [existing.defaultModel]
