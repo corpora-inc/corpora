@@ -44,7 +44,7 @@ class ClaudeClient(LLMBaseInterface):
                     {
                         "role": msg.role,
                         "content": msg.text,
-                    }
+                    },
                 )
 
         payload = {
@@ -57,7 +57,7 @@ class ClaudeClient(LLMBaseInterface):
             payload["system"] = system_message
 
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "x-api-key": self.api_key,
             "anthropic-version": "2023-06-01",
             "Content-Type": "application/json",
         }
@@ -71,7 +71,7 @@ class ClaudeClient(LLMBaseInterface):
 
         if response.status_code != 200:
             raise RuntimeError(
-                f"Claude API error: {response.status_code} - {response.text}"
+                f"Claude API error: {response.status_code} - {response.text}",
             )
 
         result = response.json()
@@ -90,7 +90,7 @@ class ClaudeClient(LLMBaseInterface):
             return model.model_validate(data_dict)
         except (json.JSONDecodeError, ValueError) as e:
             raise RuntimeError(
-                f"Failed to parse Claude response as structured data: {e}"
+                f"Failed to parse Claude response as structured data: {e}",
             )
 
     def get_image(
