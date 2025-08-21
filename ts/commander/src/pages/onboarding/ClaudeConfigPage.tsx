@@ -1,8 +1,7 @@
-// src/pages/onboarding/XAIConfigPage.tsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLLMConfigStore } from "@/stores/LLMConfigStore";
-import type { XAIConfig } from "@/stores/LLMConfigStore";
+import type { ClaudeConfig } from "@/stores/LLMConfigStore";
 import { OnboardingContainer } from "@/components/OnboardingContainer";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, ChevronRight } from "lucide-react";
@@ -15,7 +14,9 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 
-export default function XAIConfigPage() {
+const DEFAULT_MODEL = "claude-3-haiku-20240307";
+
+export default function ClaudeConfigPage() {
     const navigate = useNavigate();
     const {
         configs,
@@ -23,21 +24,21 @@ export default function XAIConfigPage() {
         availableModels,
         setAvailableModels,
     } = useLLMConfigStore();
-    const existing = configs.xai;
 
-    // 1) build initial model list: persisted list or last default
+    const existing = configs.claude;
+
+    // 1) build initial list: either full list or just your stored default
     const initialModels =
-        availableModels.xai.length > 0
-            ? availableModels.xai
+        availableModels.claude.length > 0
+            ? availableModels.claude
             : existing?.defaultModel
                 ? [existing.defaultModel]
                 : [];
 
-    // 2) component state
     const [apiKey, setApiKey] = useState(existing?.apiKey || "");
     const [models, setModels] = useState<string[]>(initialModels);
     const [selectedModel, setSelectedModel] = useState(
-        existing?.defaultModel || ""
+        existing?.defaultModel || DEFAULT_MODEL
     );
     const [validated, setValidated] = useState<boolean>(
         Boolean(existing?.defaultModel)
@@ -46,35 +47,32 @@ export default function XAIConfigPage() {
     const [error, setError] = useState<string | null>(null);
     const [ping, setPing] = useState<string | null>(null);
 
-    // 3) whenever we truly discover a list, persist it
+    // 2) persist list whenever it changes for real discovery
     useEffect(() => {
         if (
             models.length > 1 ||
             (existing?.defaultModel && models[0] !== existing.defaultModel)
         ) {
-            setAvailableModels("xai", models);
+            setAvailableModels("claude", models);
         }
     }, [models, existing?.defaultModel, setAvailableModels]);
 
-    // 4) re-validate flag whenever selection changes
+    // 3) if you pick a new model, clear your validation
     useEffect(() => {
         setValidated(selectedModel === existing?.defaultModel);
     }, [selectedModel, existing?.defaultModel]);
 
-    // 5) discover available XAI models
+    // 4) fetch model list
     const discoverModels = async () => {
         setLoading(true);
         setError(null);
-        setPing(null);
         try {
-            const res = await fetch("/api/commander/xai/models", {
+            const res = await fetch("/api/commander/claude/models", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ api_key: apiKey }),
             });
-            if (!res.ok) {
-                throw new Error((await res.text()) || "Fetch models failed");
-            }
+            if (!res.ok) throw new Error(await res.text() || "Fetch failed");
             const { models: list }: { models: string[] } = await res.json();
             if (!list.length) throw new Error("No models returned");
             setModels(list);
@@ -86,8 +84,8 @@ export default function XAIConfigPage() {
         }
     };
 
-    // 6) validate selected model via completion endpoint
-    const validateModel = async () => {
+    // 5) quick "ping" through your /complete endpoint
+    const validate = async () => {
         setLoading(true);
         setError(null);
         setPing(null);
@@ -96,7 +94,7 @@ export default function XAIConfigPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    provider: "xai",
+                    provider: "claude",
                     api_key: apiKey,
                     model: selectedModel,
                     messages: [
@@ -105,51 +103,52 @@ export default function XAIConfigPage() {
                     ],
                 }),
             });
-            if (!res.ok) throw new Error((await res.text()) || "Validation failed");
+            if (!res.ok) throw new Error(await res.text() || "Validation failed");
             const { text } = await res.json();
             setPing(text);
             setValidated(true);
         } catch (e) {
             setError(e instanceof Error ? e.message : String(e));
+            setValidated(false);
         } finally {
             setLoading(false);
         }
     };
 
-    // 7) commit config and advance
+    // 6) save and go
     const handleNext = () => {
-        const cfg: XAIConfig = {
-            provider: "xai",
+        const cfg: ClaudeConfig = {
+            provider: "claude",
             apiKey,
             defaultModel: selectedModel,
         };
         addConfig(cfg);
-        navigate("/onboarding/claude");
+        navigate("/onboarding/complete");
     };
 
     return (
         <OnboardingContainer
-            title="Configure XAI"
-            subtitle="Provide your XAI API key and choose a default model."
-            skip="/onboarding/claude"
+            title="Configure Claude (Anthropic)"
+            subtitle="Connect your Anthropic API key and select a Claude model."
+            skip="/onboarding/complete"
             footer={
                 <>
                     <Button
                         variant="secondary"
-                        onClick={() => navigate("/onboarding/openai")}
+                        onClick={() => navigate("/onboarding/xai")}
                     >
                         Back
                     </Button>
                     <div className="flex items-center space-x-2">
                         {!validated && (
                             <Button
-                                onClick={models.length ? validateModel : discoverModels}
+                                onClick={models.length ? validate : discoverModels}
                                 disabled={loading || !apiKey.trim()}
                             >
                                 {loading ? (
                                     <Loader2 className="animate-spin h-4 w-4" />
                                 ) : models.length ? (
-                                    "Validate model"
+                                    "Validate"
                                 ) : (
                                     "Fetch models"
                                 )}
@@ -164,15 +163,33 @@ export default function XAIConfigPage() {
             }
         >
             <p className="text-neutral-600">
-                Enter your XAI API key and pick your default Grok model.
+                Claude models are great for reasoning, analysis, and creative tasks.
+                Your default model is used for all completions unless overridden.
             </p>
-            <Input
-                type="password"
-                placeholder="xai-…"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="w-full"
-            />
+
+            <div className="space-y-1">
+                <label className="block text-sm font-medium text-neutral-700">
+                    Anthropic API Key
+                </label>
+                <Input
+                    type="password"
+                    placeholder="sk-ant-api03-..."
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="w-full"
+                />
+                <p className="text-xs text-neutral-500">
+                    Get your API key from the{" "}
+                    <a 
+                        href="https://console.anthropic.com/account/keys" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                    >
+                        Anthropic Console
+                    </a>
+                </p>
+            </div>
 
             {error && <p className="text-red-600">{error}</p>}
 

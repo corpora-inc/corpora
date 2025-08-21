@@ -1,8 +1,7 @@
-// src/stores/LLMConfigStore.ts
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-export type ProviderType = 'openai' | 'lmstudio' | 'xai'
+export type ProviderType = 'openai' | 'lmstudio' | 'xai' | 'claude'
 
 export interface OpenAIConfig {
     provider: 'openai'
@@ -25,7 +24,14 @@ export interface XAIConfig {
     baseUrl?: string
 }
 
-export type LLMConfig = OpenAIConfig | LMStudioConfig | XAIConfig
+export interface ClaudeConfig {
+    provider: 'claude'
+    apiKey: string
+    defaultModel?: string
+    baseUrl?: string
+}
+
+export type LLMConfig = OpenAIConfig | LMStudioConfig | XAIConfig | ClaudeConfig
 
 interface LLMState {
     configs: Record<ProviderType, LLMConfig | null>
@@ -43,9 +49,9 @@ interface LLMState {
 export const useLLMConfigStore = create<LLMState>()(
     persist(
         (set) => ({
-            configs: { openai: null, lmstudio: null, xai: null },
+            configs: { openai: null, lmstudio: null, xai: null, claude: null },
             defaultProvider: null,
-            availableModels: { openai: [], lmstudio: [], xai: [] },
+            availableModels: { openai: [], lmstudio: [], xai: [], claude: [] },
 
             addConfig: (cfg) =>
                 set((s) => ({
@@ -79,9 +85,9 @@ export const useLLMConfigStore = create<LLMState>()(
 
             clearAll: () =>
                 set({
-                    configs: { openai: null, lmstudio: null, xai: null },
+                    configs: { openai: null, lmstudio: null, xai: null, claude: null },
                     defaultProvider: null,
-                    availableModels: { openai: [], lmstudio: [], xai: [] },
+                    availableModels: { openai: [], lmstudio: [], xai: [], claude: [] },
                 }),
 
             setAvailableModels: (provider, models) =>
