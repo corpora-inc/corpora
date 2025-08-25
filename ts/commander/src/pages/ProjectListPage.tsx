@@ -160,9 +160,13 @@ export default function ProjectListPage() {
             <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-semibold">Projects</h1>
-                    <SettingsDialog />
+
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+                    <SettingsDialog />
+                    <Button onClick={() => navigate("/projects/new")}>
+                        New Project
+                    </Button>
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
@@ -173,9 +177,6 @@ export default function ProjectListPage() {
                             className="pl-10 w-full sm:w-64"
                         />
                     </div>
-                    <Button onClick={() => navigate("/projects/new")}>
-                        New Project
-                    </Button>
                 </div>
             </div>
 
