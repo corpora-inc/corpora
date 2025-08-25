@@ -1,5 +1,5 @@
 // ts/commander/src/components/SubsectionEditor.tsx
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -34,6 +34,9 @@ export function SubsectionEditor({
     const [instructions, setInstructions] = useState("")
     const [content, setContent] = useState("")
     const [enhanceOpen, setEnhanceOpen] = useState(false)
+    // refs to manage autosave behaviour
+    const initialSeedDone = useRef(false)
+    const lastSavedContent = useRef<string | null>(null)
 
     // seed from fetched data
     useEffect(() => {
@@ -42,8 +45,29 @@ export function SubsectionEditor({
             setTitle(t)
             setInstructions(i ?? "")
             setContent(c ?? "")
+            // mark initial seed complete and remember server content to avoid
+            // autosaving immediately after load
+            initialSeedDone.current = true
+            lastSavedContent.current = c ?? ""
         }
     }, [subQ.data])
+
+    // Debounced autosave: whenever `content` changes and contains text,
+    // save after a short pause. Skip autosave while initially seeding data
+    // and avoid saving if content equals the last saved value.
+    useEffect(() => {
+        if (!initialSeedDone.current) return
+        const trimmed = content.trim()
+        if (!trimmed) return
+        if (lastSavedContent.current === content) return
+
+        const t = setTimeout(() => {
+            saveSub.mutate({ subsectionId, data: { title, instructions, content } })
+            lastSavedContent.current = content
+        }, 2000)
+
+        return () => clearTimeout(t)
+    }, [content, title, instructions, subsectionId, saveSub])
 
     // find parent section
     const section = useMemo<SectionWithSubsections>(() => {
