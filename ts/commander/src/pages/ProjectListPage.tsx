@@ -14,6 +14,19 @@ import {
 import type { ProjectOut } from "@/api/schemas/projectOut";
 import { useQueryClient } from "@tanstack/react-query";
 
+const SkeletonCard = () => (
+    <li className="flex flex-col justify-between cursor-default rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="self-end">
+            <div className="h-8 w-8 rounded bg-gray-100" />
+        </div>
+        <div className="space-y-2 mt-2">
+            <div className="h-5 w-3/4 rounded bg-gray-100" />
+            <div className="h-4 w-full rounded bg-gray-100" />
+            <div className="h-3 w-1/2 rounded bg-gray-100 mt-3" />
+        </div>
+    </li>
+);
+
 export default function ProjectListPage() {
     console.log("mounted ProjectListPage")
     const navigate = useNavigate();
@@ -81,28 +94,63 @@ export default function ProjectListPage() {
             );
         });
     }, [projects, searchQuery]);
+
+
     if (isLoading) {
         return (
-            <div className="p-6 text-center">
-                Loading projects…
+            <div className="">
+                <div className="mx-auto space-y-6 p-4">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-2xl font-semibold text-gray-700 animate-pulse">Projects</h1>
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-24 rounded-md bg-gray-100 animate-pulse" />
+                            <div className="h-10 w-10 rounded-md bg-gray-100 animate-pulse" />
+                        </div>
+                    </div>
+
+                    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <SkeletonCard key={i} />
+                        ))}
+                    </ul>
+                </div>
             </div>
         );
-    } if (isError) {
+    }
+
+    if (isError) {
+        const message = (error as Error | null)?.message ?? "Unknown error";
         return (
-            <div className="p-6 text-center text-red-600">
-                Error loading projects: {(error as Error).message}
+            <div className="p-6">
+                <div className="max-w-md mx-auto bg-red-50 border border-red-100 text-red-700 rounded-lg p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold">Failed to load projects</h2>
+                    <p className="mt-2 text-sm text-red-700">{message}</p>
+                    <div className="mt-4 flex justify-center gap-2">
+                        <Button
+                            variant="ghost"
+                            onClick={() => queryClient.invalidateQueries({ queryKey: getCorporaCommanderApiProjectListProjectsQueryKey() })}
+                        >
+                            Retry
+                        </Button>
+                        <Button onClick={() => navigate("/projects/new")}>New Project</Button>
+                    </div>
+                </div>
             </div>
         );
     }
 
     if (projects.length === 0) {
         return (
-            <div className="p-6 text-center space-y-4">
-                <h2 className="text-xl font-semibold">No projects yet</h2>
-                <p>Create your first book project to get started.</p>
-                <Button onClick={() => navigate("/projects/new")}>
-                    New Project
-                </Button>
+            <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+                <div className="max-w-md w-full text-center space-y-4 ">
+                    <h2 className="text-2xl font-semibold text-gray-800">No projects yet</h2>
+                    <p className="text-sm text-gray-600">Create your first book project to get started.</p>
+                    <div className="pt-2">
+                        <Button onClick={() => navigate("/projects/new")}>
+                            New Project
+                        </Button>
+                    </div>
+                </div>
             </div>
         );
     }
