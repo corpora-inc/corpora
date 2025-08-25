@@ -50,7 +50,7 @@ class ClaudeClient(LLMBaseInterface):
 
         payload = {
             "model": self.completion_model,
-            "max_tokens": 1024,
+            "max_tokens": 8192,
             "messages": anthropic_messages,
         }
 
@@ -67,7 +67,6 @@ class ClaudeClient(LLMBaseInterface):
             f"{self.base_url}/v1/messages",
             json=payload,
             headers=headers,
-            timeout=30,
         )
 
         if response.status_code != 200:
@@ -103,7 +102,7 @@ class ClaudeClient(LLMBaseInterface):
 
         # Add the enhanced system message
         final_messages = [
-            ChatCompletionTextMessage(role="system", text=system_message)
+            ChatCompletionTextMessage(role="system", text=system_message),
         ] + enhanced_messages
 
         completion_text = self.get_text_completion(final_messages)
