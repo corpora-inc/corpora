@@ -5,15 +5,15 @@ import { ArrowLeftIcon, Menu } from "lucide-react"
 import { useProjectStore } from "@/stores/ProjectStore"
 import { ExportPdfButton } from "@/components/ExportPdfButton"
 import { SettingsDialog } from "@/components/SettingsDialog"
+import HistoryPanel from "./HistoryPanel"
 
 export interface TopBarProps {
     /** Show mobile outline drawer */
     onToggleOutlinePanel?: () => void
     /** Show mobile history drawer */
-    onToggleHistoryPanel?: () => void
 }
 
-export function TopBar({ onToggleOutlinePanel, onToggleHistoryPanel }: TopBarProps) {
+export function TopBar({ onToggleOutlinePanel,  }: TopBarProps) {
     const project = useProjectStore((s) => s.project)
     const sections = useProjectStore((s) => s.sections)
     const setOutlineOpen = useProjectStore((s) => s.setOutlineOpen)
@@ -62,12 +62,7 @@ export function TopBar({ onToggleOutlinePanel, onToggleHistoryPanel }: TopBarPro
 
             {/* Right: action buttons + settings */}
             <div className="flex items-center space-x-2">
-                <button
-                    className="hidden md:inline-flex"
-                    onClick={() => onToggleHistoryPanel?.()}
-                >
-                    History
-                </button>
+                <HistoryPanel/>
                 {!hasSections && (
                     <Button onClick={() => setOutlineOpen(true)}>Outline</Button>
                 )}

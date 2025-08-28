@@ -53,7 +53,6 @@ export default function ProjectEditorPage() {
 
     // mobile drawer state
     const [mobileOutlineOpen, setMobileOutlineOpen] = useState(false)
-    const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false)
 
     useEffect(() => {
         // close the mobile outline when the selected section or subsection changes
@@ -129,12 +128,12 @@ export default function ProjectEditorPage() {
                 )}
 
                 {/* Mobile history sheet (shadcn) */}
-                <HistoryPanel open={mobileHistoryOpen} onOpenChange={setMobileHistoryOpen} />
+                <HistoryPanel />
 
                 <main className="flex-1 flex flex-col h-full overflow-hidden">
                     <TopBar
                         onToggleOutlinePanel={() => setMobileOutlineOpen(true)}
-                        onToggleHistoryPanel={() => setMobileHistoryOpen(true)}
+                       
                     />
 
                     <div className="flex-1 overflow-auto p-6">

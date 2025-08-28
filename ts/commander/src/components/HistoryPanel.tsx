@@ -13,7 +13,9 @@ import {
     SheetTitle,
     SheetFooter,
     SheetClose,
+    SheetTrigger,
 } from "@/components/ui/sheet"
+import { Button } from "./ui/button"
 
 type Snapshot = {
     id: string
@@ -23,13 +25,7 @@ type Snapshot = {
     created_at: string
 }
 
-export default function HistoryPanel({
-    open,
-    onOpenChange,
-}: {
-    open?: boolean
-    onOpenChange?: (open: boolean) => void
-}) {
+export default function HistoryPanel() {
     const project = useProjectStore((s) => s.project)
     const setSelectedSectionId = useProjectStore((s) => s.setSelectedSectionId)
     const setSelectedSubsectionId = useProjectStore((s) => s.setSelectedSubsectionId)
@@ -54,30 +50,29 @@ export default function HistoryPanel({
     if (!project) return null
 
     return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
+        <Sheet>
+            <SheetTrigger asChild>
+                <Button variant="outline">History</Button>
+            </SheetTrigger>
             <SheetContent side="right" className="w-80">
                 <SheetHeader>
-                    <div className="flex items-center justify-between w-full">
-                        <SheetTitle>History</SheetTitle>
-                        <div className="flex gap-2 items-center">
-                            <button
-                                className="btn"
-                                onClick={async () => {
-                                    setLoading(true)
-                                    await createSnapshot(project.id)
-                                    const list = await listSnapshots(project.id)
-                                    setSnaps(list as Snapshot[])
-                                    setLoading(false)
-                                }}
-                            >
-                                New
-                            </button>
-                            <SheetClose />
-                        </div>
-                    </div>
+                    <SheetTitle>History</SheetTitle>
                 </SheetHeader>
 
-                <div className="overflow-auto p-2 flex-1">
+
+                <div className="overflow-auto p-2 flex-1 space-y-4">
+                    <Button
+                    className="w-full"
+                        onClick={async () => {
+                            setLoading(true)
+                            await createSnapshot(project.id)
+                            const list = await listSnapshots(project.id)
+                            setSnaps(list as Snapshot[])
+                            setLoading(false)
+                        }}
+                    >
+                        New snapshot
+                    </Button>
                     {loading && <div className="p-2">Loading…</div>}
                     {!loading && snaps.length === 0 && (
                         <p className="p-2 text-sm text-gray-500">No snapshots</p>
@@ -94,29 +89,28 @@ export default function HistoryPanel({
                                         <button
                                             className="btn-sm"
                                             onClick={async () => {
-                                                    if (!confirm("Restore this snapshot? This will overwrite current content.")) return
-                                                    setLoading(true)
-                                                    // clear selection to avoid components fetching old IDs
-                                                    setSelectedSectionId(null)
-                                                    setSelectedSubsectionId(null)
-                                                    // also clear persisted selection in localStorage for this project
-                                                    try {
-                                                        if (project?.id) {
-                                                            const key = `commander.project.${project.id}.selection`
-                                                            localStorage.removeItem(key)
-                                                        }
-                                                    } catch {
-                                                        /* ignore localStorage errors */
+                                                if (!confirm("Restore this snapshot? This will overwrite current content.")) return
+                                                setLoading(true)
+                                                // clear selection to avoid components fetching old IDs
+                                                setSelectedSectionId(null)
+                                                setSelectedSubsectionId(null)
+                                                // also clear persisted selection in localStorage for this project
+                                                try {
+                                                    if (project?.id) {
+                                                        const key = `commander.project.${project.id}.selection`
+                                                        localStorage.removeItem(key)
                                                     }
-                                                    await restoreSnapshot(s.id)
-                                                    // invalidate and refetch project + sections
-                                                    if (project) {
-                                                        queryClient.invalidateQueries({ queryKey: getCorporaCommanderApiProjectGetProjectQueryKey(project.id) })
-                                                        queryClient.invalidateQueries({ queryKey: getCorporaCommanderApiSectionListSectionsQueryKey(project.id) })
-                                                    }
-                                                    setLoading(false)
-                                                    onOpenChange?.(false)
-                                                }}
+                                                } catch {
+                                                    /* ignore localStorage errors */
+                                                }
+                                                await restoreSnapshot(s.id)
+                                                // invalidate and refetch project + sections
+                                                if (project) {
+                                                    queryClient.invalidateQueries({ queryKey: getCorporaCommanderApiProjectGetProjectQueryKey(project.id) })
+                                                    queryClient.invalidateQueries({ queryKey: getCorporaCommanderApiSectionListSectionsQueryKey(project.id) })
+                                                }
+                                                setLoading(false)
+                                            }}
                                         >
                                             Restore
                                         </button>
