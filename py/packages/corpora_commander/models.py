@@ -140,3 +140,27 @@ def _delete_file_on_image_delete(sender, instance: "ProjectImage", **kwargs):
         except FileNotFoundError:
             # Non-fatal: storage might already be missing the file
             pass
+
+
+class ProjectSnapshot(models.Model):
+    """
+    A full snapshot of a Project (metadata + sections + subsections).
+    Stored as JSON for easy restore.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(
+        Project,
+        related_name="snapshots",
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    snapshot = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Snapshot {self.id} for {self.project.title}"

@@ -13,4 +13,5 @@ from . import (  # noqa
     export,
     rewrite,
     images,
+    snapshot,
 )

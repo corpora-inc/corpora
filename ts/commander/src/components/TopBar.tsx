@@ -9,9 +9,11 @@ import { SettingsDialog } from "@/components/SettingsDialog"
 export interface TopBarProps {
     /** Show mobile outline drawer */
     onToggleOutlinePanel?: () => void
+    /** Show mobile history drawer */
+    onToggleHistoryPanel?: () => void
 }
 
-export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
+export function TopBar({ onToggleOutlinePanel, onToggleHistoryPanel }: TopBarProps) {
     const project = useProjectStore((s) => s.project)
     const sections = useProjectStore((s) => s.sections)
     const setOutlineOpen = useProjectStore((s) => s.setOutlineOpen)
@@ -30,7 +32,7 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
     return (
         <div className="border-b p-6 flex items-center justify-between">
             {/* Left: mobile burger + back + title */}
-            <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4">
                 {onToggleOutlinePanel && (
                     <Button
                         variant="ghost"
@@ -60,6 +62,12 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
 
             {/* Right: action buttons + settings */}
             <div className="flex items-center space-x-2">
+                <button
+                    className="hidden md:inline-flex"
+                    onClick={() => onToggleHistoryPanel?.()}
+                >
+                    History
+                </button>
                 {!hasSections && (
                     <Button onClick={() => setOutlineOpen(true)}>Outline</Button>
                 )}
