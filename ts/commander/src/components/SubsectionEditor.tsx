@@ -156,7 +156,7 @@ export function SubsectionEditor({
                 <div className="flex-1 flex flex-col min-h-0">
                     <label className="block mb-1 font-medium">Content</label>
                     <Textarea
-                        className="flex-1 resize-none w-full min-h-0 overflow-y-auto"
+                        className="min-h-24  w-full"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                     />
