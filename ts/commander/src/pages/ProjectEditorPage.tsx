@@ -16,7 +16,6 @@ import { ProjectMetadataEditor } from "@/components/ProjectMetadataEditor"
 import { SectionEditor } from "@/components/SectionEditor"
 import { SubsectionEditor } from "@/components/SubsectionEditor"
 import { TopBar } from "@/components/TopBar"
-import HistoryPanel from "@/components/HistoryPanel"
 import { GenerateRewriteDialog } from "@/components/GenerateRewriteDialog"
 import ImageDrawer from "@/components/ImageDrawer"
 
@@ -128,7 +127,6 @@ export default function ProjectEditorPage() {
                 )}
 
                 {/* Mobile history sheet (shadcn) */}
-                <HistoryPanel />
 
                 <main className="flex-1 flex flex-col h-full overflow-hidden">
                     <TopBar
