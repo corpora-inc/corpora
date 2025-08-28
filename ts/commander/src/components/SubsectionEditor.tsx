@@ -141,7 +141,7 @@ export function SubsectionEditor({
             </div>
 
             {/* Body */}
-            <div className="flex-1 flex flex-col overflow-hidden space-y-4 min-h-0">
+            <div className="flex flex-col overflow-y-scroll space-y-4 min-h-0">
                 {/* Instructions (fixed ~3 lines) */}
                 <div>
                     <label className="block mb-1 font-medium">Instructions</label>
