@@ -1,7 +1,15 @@
 // ts/commander/src/components/OutlinePanel.tsx
 import type { FC } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { useProjectStore } from "@/stores/ProjectStore"
+import { useQueryClient } from "@tanstack/react-query"
+import {
+    useCorporaCommanderApiSectionUpdateSection,
+    useCorporaCommanderApiSubsectionUpdateSubsection,
+    getCorporaCommanderApiSectionListSectionsQueryKey,
+} from "@/api/commander/commander"
 
 
 export const OutlinePanel: FC = () => {
@@ -14,6 +22,76 @@ export const OutlinePanel: FC = () => {
         (s) => s.setSelectedSubsectionId
     )
     const setOutlineOpen = useProjectStore((s) => s.setOutlineOpen)
+
+    // editing state
+    const [editingSectionId, setEditingSectionId] = useState<string | null>(null)
+    const [editingSubsectionId, setEditingSubsectionId] = useState<string | null>(null)
+    const [tempTitle, setTempTitle] = useState("")
+
+    // hooks
+    const queryClient = useQueryClient()
+    const updateSection = useCorporaCommanderApiSectionUpdateSection()
+    const updateSubsection = useCorporaCommanderApiSubsectionUpdateSubsection()
+    const project = useProjectStore((s) => s.project)
+
+    // handlers
+    const startEditingSection = (sectionId: string, currentTitle: string) => {
+        setEditingSectionId(sectionId)
+        setTempTitle(currentTitle)
+    }
+
+    const startEditingSubsection = (subsectionId: string, currentTitle: string) => {
+        setEditingSubsectionId(subsectionId)
+        setTempTitle(currentTitle)
+    }
+
+    const saveSectionTitle = () => {
+        if (editingSectionId && project) {
+            updateSection.mutate(
+                {
+                    sectionId: editingSectionId,
+                    data: { title: tempTitle },
+                },
+                {
+                    onSuccess: () => {
+                        queryClient.invalidateQueries({
+                            queryKey: getCorporaCommanderApiSectionListSectionsQueryKey(project.id),
+                        })
+                        setEditingSectionId(null)
+                        setTempTitle("")
+                    },
+                }
+            )
+        }
+    }
+
+    const saveSubsectionTitle = () => {
+        if (editingSubsectionId) {
+            updateSubsection.mutate(
+                {
+                    subsectionId: editingSubsectionId,
+                    data: { title: tempTitle },
+                },
+                {
+                    onSuccess: () => {
+                        if (project) {
+                            queryClient.invalidateQueries({
+                                queryKey: getCorporaCommanderApiSectionListSectionsQueryKey(project.id),
+                            })
+                        }
+                        setEditingSubsectionId(null)
+                        setTempTitle("")
+                    },
+                }
+            )
+        }
+    }
+
+    const cancelEdit = () => {
+        setEditingSectionId(null)
+        setEditingSubsectionId(null)
+        setTempTitle("")
+    }
 
     return (
         // <aside className="w-64 border-r p-4 hidden md:flex flex-col h-full">
@@ -36,12 +114,28 @@ export const OutlinePanel: FC = () => {
                                         : "hover:bg-gray-100")
                                 }
                                 onClick={() => {
+                                    if (editingSectionId === sec.id) return
                                     // select section *and* clear any subsection
                                     setSelectedSectionId(sec.id)
                                     setSelectedSubsectionId(null)
                                 }}
+                                onDoubleClick={() => startEditingSection(sec.id, sec.title)}
                             >
-                                {sec.title}
+                                {editingSectionId === sec.id ? (
+                                    <Input
+                                        value={tempTitle}
+                                        onChange={(e) => setTempTitle(e.target.value)}
+                                        onBlur={saveSectionTitle}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") saveSectionTitle()
+                                            if (e.key === "Escape") cancelEdit()
+                                        }}
+                                        className=" px-1 text-sm"
+                                        autoFocus
+                                    />
+                                ) : (
+                                    sec.title
+                                )}
                             </div>
 
                             {sec.id === selectedSectionId && sec.subsections.length > 0 && (
@@ -55,9 +149,27 @@ export const OutlinePanel: FC = () => {
                                                         ? "bg-blue-50"
                                                         : "hover:bg-gray-100")
                                                 }
-                                                onClick={() => setSelectedSubsectionId(sub.id)}
+                                                onClick={() => {
+                                                    if (editingSubsectionId === sub.id) return
+                                                    setSelectedSubsectionId(sub.id)
+                                                }}
+                                                onDoubleClick={() => startEditingSubsection(sub.id, sub.title)}
                                             >
-                                                {sub.title}
+                                                {editingSubsectionId === sub.id ? (
+                                                    <Input
+                                                        value={tempTitle}
+                                                        onChange={(e) => setTempTitle(e.target.value)}
+                                                        onBlur={saveSubsectionTitle}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") saveSubsectionTitle()
+                                                            if (e.key === "Escape") cancelEdit()
+                                                        }}
+                                                        className="px-1  text-sm ml-4"
+                                                        autoFocus
+                                                    />
+                                                ) : (
+                                                    sub.title
+                                                )}
                                             </div>
                                         </li>
                                     ))}
