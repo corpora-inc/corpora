@@ -129,7 +129,7 @@ export function SectionEditor({
                 <div className="flex-1 flex flex-col min-h-0">
                     <label className="block mb-1 font-medium">Introduction</label>
                     <Textarea
-                        className="flex-1 h-full min-h-0 w-full resize-none overflow-y-auto"
+                        className="min-h-24  w-full"
                         value={intro}
                         onChange={(e) => setIntro(e.target.value)}
                     />

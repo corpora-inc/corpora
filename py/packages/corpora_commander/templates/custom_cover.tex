@@ -1,3 +1,4 @@
+{% load tex %}
 {% if show_cover %}
 % turn off page number
 \thispagestyle{empty}
@@ -30,9 +31,9 @@
   \begin{minipage}{\textwidth}
     \centering
     \Huge\bfseries
-    % Cranks up the line height—fuck with 1.5 if you want more or less
+  % Adjust line height; tweak the factor (e.g., 1.25–1.5) as needed
     \linespread{1.25}\selectfont
-    {{title}}
+  {{title|latex_escape}}
   \end{minipage}
   \\[5em]
   % TODO: - linespacing
@@ -40,11 +41,11 @@
   % ! Misplaced alignment tab character &.
   % <recently read> &
   % l.286   {\Large\itshape Russia&
-  {\Large\itshape {{subtitle}}}
+  {\Large\itshape {{subtitle|latex_escape}}}
   \\[9em]
-  {\large {{author}}}
+  {\large {{author|latex_escape}}}
   \\[1em]
-  {\large {{publisher}}}
+  {\large {{publisher|latex_escape}}}
   \\[1em]
   \vfill
   {\large \today}

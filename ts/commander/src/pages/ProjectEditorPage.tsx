@@ -17,6 +17,7 @@ import { SectionEditor } from "@/components/SectionEditor"
 import { SubsectionEditor } from "@/components/SubsectionEditor"
 import { TopBar } from "@/components/TopBar"
 import { GenerateRewriteDialog } from "@/components/GenerateRewriteDialog"
+import ImageDrawer from "@/components/ImageDrawer"
 
 export default function ProjectEditorPage() {
     const { id } = useParams<{ id: string }>()
@@ -125,8 +126,13 @@ export default function ProjectEditorPage() {
                     </div>
                 )}
 
+                {/* Mobile history sheet (shadcn) */}
+
                 <main className="flex-1 flex flex-col h-full overflow-hidden">
-                    <TopBar onToggleOutlinePanel={() => setMobileOutlineOpen(true)} />
+                    <TopBar
+                        onToggleOutlinePanel={() => setMobileOutlineOpen(true)}
+                       
+                    />
 
                     <div className="flex-1 overflow-auto p-6">
                         {editorPane}
@@ -158,6 +164,7 @@ export default function ProjectEditorPage() {
                     sectionsQuery.refetch()
                 }}
             />
+            <ImageDrawer projectId={id!} />
         </>
     )
 }

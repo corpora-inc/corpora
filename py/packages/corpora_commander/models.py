@@ -1,11 +1,20 @@
-# src/models.py
 import uuid
 
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+
+
+# TODO: cloud storage?
+def project_image_upload_to(instance, filename):
+    """
+    Store images under MEDIA_ROOT/uploads/<project_uuid>/<filename>
+    """
+    # Django sanitizes the final name; keep a stable, bucket-friendly path
+    return f"uploads/{instance.project.id}/{filename}"
 
 
 class Project(models.Model):
-    # 1) UUID primary key
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -89,3 +98,69 @@ class Subsection(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ProjectImage(models.Model):
+    """
+    Images belonging to a Project, matching markdown tokens {{IMAGE: caption}}
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(
+        Project,
+        related_name="images",
+        on_delete=models.CASCADE,
+    )
+    image = models.ImageField(
+        upload_to=project_image_upload_to,
+        help_text="Image file to fulfill markdown placeholder caption",
+    )
+    caption = models.CharField(
+        max_length=1000,
+        help_text="Exact text matching the {{IMAGE: caption}} token",
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    # width = models.PositiveIntegerField(null=True, blank=True, editable=False)
+    # height = models.PositiveIntegerField(null=True, blank=True, editable=False)
+
+    class Meta:
+        unique_together = ("project", "caption")
+        ordering = ["uploaded_at"]
+
+    def __str__(self):
+        return f"{self.project.title} - {self.caption}"
+
+
+@receiver(post_delete, sender=ProjectImage)
+def _delete_file_on_image_delete(sender, instance: "ProjectImage", **kwargs):
+    # Remove file from storage when the model is deleted
+    if instance.image:
+        try:
+            instance.image.delete(save=False)
+        except FileNotFoundError:
+            # Non-fatal: storage might already be missing the file
+            pass
+
+
+class ProjectSnapshot(models.Model):
+    """
+    A full snapshot of a Project (metadata + sections + subsections).
+    Stored as JSON for easy restore.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(
+        Project,
+        related_name="snapshots",
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    snapshot = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Snapshot {self.id} for {self.project.title}"

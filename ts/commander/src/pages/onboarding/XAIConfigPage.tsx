@@ -79,8 +79,8 @@ export default function XAIConfigPage() {
             if (!list.length) throw new Error("No models returned");
             setModels(list);
             setSelectedModel(list[0]);
-        } catch (e: any) {
-            setError(e.message);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : String(e));
         } finally {
             setLoading(false);
         }
@@ -109,8 +109,8 @@ export default function XAIConfigPage() {
             const { text } = await res.json();
             setPing(text);
             setValidated(true);
-        } catch (e: any) {
-            setError(e.message);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : String(e));
         } finally {
             setLoading(false);
         }
@@ -124,14 +124,14 @@ export default function XAIConfigPage() {
             defaultModel: selectedModel,
         };
         addConfig(cfg);
-        navigate("/onboarding/complete");
+        navigate("/onboarding/claude");
     };
 
     return (
         <OnboardingContainer
             title="Configure XAI"
             subtitle="Provide your XAI API key and choose a default model."
-            skip="/onboarding/complete"
+            skip="/onboarding/claude"
             footer={
                 <>
                     <Button

@@ -5,6 +5,9 @@ django-oauth-toolkit==3.0.1
 pgvector==0.3.6
 psycopg2==2.9.10
 # image stack
+Pillow==10.4.0
 aiofiles==24.1.0
 matplotlib==3.10.1
 sympy==1.13.3
+django-storages[boto3]==1.14.4
+boto3==1.35.54

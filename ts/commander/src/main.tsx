@@ -13,6 +13,7 @@ import WizardWelcome from "./pages/onboarding/WizardWelcome";
 import OpenAIConfigPage from "./pages/onboarding/OpenAIConfigPage";
 import LMStudioConfigPage from "./pages/onboarding/LMStudioConfigPage";
 import XAIConfigPage from "./pages/onboarding/XAIConfigPage";
+import ClaudeConfigPage from "./pages/onboarding/ClaudeConfigPage";
 import WizardComplete from "./pages/onboarding/WizardComplete";
 
 import MainLayout from "./layouts/MainLayout";
@@ -35,6 +36,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="openai" element={<OpenAIConfigPage />} />
             <Route path="lmstudio" element={<LMStudioConfigPage />} />
             <Route path="xai" element={<XAIConfigPage />} />
+            <Route path="claude" element={<ClaudeConfigPage />} />
             <Route path="complete" element={<WizardComplete />} />
           </Route>
 

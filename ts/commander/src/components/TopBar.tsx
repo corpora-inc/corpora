@@ -1,16 +1,19 @@
 // src/components/TopBar.tsx
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import { ArrowLeftIcon, Menu } from "lucide-react"
 import { useProjectStore } from "@/stores/ProjectStore"
 import { ExportPdfButton } from "@/components/ExportPdfButton"
+import { SettingsDialog } from "@/components/SettingsDialog"
+import HistoryPanel from "./HistoryPanel"
 
 export interface TopBarProps {
     /** Show mobile outline drawer */
     onToggleOutlinePanel?: () => void
+    /** Show mobile history drawer */
 }
 
-export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
+export function TopBar({ onToggleOutlinePanel,  }: TopBarProps) {
     const project = useProjectStore((s) => s.project)
     const sections = useProjectStore((s) => s.sections)
     const setOutlineOpen = useProjectStore((s) => s.setOutlineOpen)
@@ -29,7 +32,7 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
     return (
         <div className="border-b p-6 flex items-center justify-between">
             {/* Left: mobile burger + back + title */}
-            <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4">
                 {onToggleOutlinePanel && (
                     <Button
                         variant="ghost"
@@ -47,7 +50,7 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
                     asChild
                     aria-label="Back to projects"
                 >
-                    <Link to="/projects">←</Link>
+                    <Link to="/projects"><ArrowLeftIcon className="w-4 h-4"/></Link>
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold">{project.title}</h1>
@@ -57,8 +60,9 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
                 </div>
             </div>
 
-            {/* Right: action buttons */}
-            <div className="space-x-2">
+            {/* Right: action buttons + settings */}
+            <div className="flex items-center space-x-2">
+                <HistoryPanel/>
                 {!hasSections && (
                     <Button onClick={() => setOutlineOpen(true)}>Outline</Button>
                 )}
@@ -71,6 +75,7 @@ export function TopBar({ onToggleOutlinePanel }: TopBarProps) {
                 {hasSections && (
                     <ExportPdfButton projectId={project.id} />
                 )}
+                <SettingsDialog />
             </div>
         </div>
     )
