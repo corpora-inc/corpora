@@ -1,17 +1,17 @@
+import os
 import re
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-import os
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import (
     UploadedFile as DjangoUploadedFile,
 )
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.utils.text import get_valid_filename
 from ninja import File, Form, UploadedFile
-from django.db import IntegrityError
 
 try:
     from PIL import Image as PILImage  # noqa: F401
@@ -101,7 +101,7 @@ def create_image(
     size = getattr(image, "size", None)
     if size is not None and size > max_bytes:
         raise ValidationError(
-            f"Image too large: {size} bytes (max {max_bytes} bytes)"
+            f"Image too large: {size} bytes (max {max_bytes} bytes)",
         )
 
     # Create model; storage backend (local or S3) handles the file
@@ -113,7 +113,7 @@ def create_image(
         )
     except IntegrityError:
         raise ValidationError(
-            "An image with this caption already exists for the project."
+            "An image with this caption already exists for the project.",
         )
     return img
 

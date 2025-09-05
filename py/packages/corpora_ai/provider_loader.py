@@ -12,7 +12,7 @@ from corpora_ai.llm_interface import LLMBaseInterface
 # e.g., Cohere, would follow the same pattern
 
 
-def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
+def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:  # noqa: C901
     """Dynamically loads the best LLM provider based on environment variables.
 
     Returns:
@@ -65,7 +65,7 @@ def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
             api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError(
-                "ANTHROPIC_API_KEY environment variable is not set."
+                "ANTHROPIC_API_KEY environment variable is not set.",
             )
         return ClaudeClient(
             api_key=api_key,
