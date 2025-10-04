@@ -25,8 +25,10 @@ class XAIClient(LLMBaseInterface):
     def __init__(
         self,
         api_key: str,
-        completion_model: str = "grok-3-fast",
+        # completion_model: str = "grok-3-fast",
         # completion_model: str = "grok-3-mini-fast-beta",
+        # completion_model: str = "grok-4-fast-non-reasoning",
+        completion_model: str = "grok-4",
         base_url: str = "https://api.x.ai/v1",
         image_model: str = "grok-2-image",
         # XAI has no embedding model
