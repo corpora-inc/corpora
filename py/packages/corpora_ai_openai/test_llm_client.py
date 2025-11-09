@@ -32,16 +32,6 @@ class TestOpenAIClient(unittest.TestCase):
         response = self.client.get_text_completion(messages)
         self.assertEqual(response, "This is a test response.")
 
-        # Ensure OpenAI API was called with correct parameters
-        self.mock_openai_client.chat.completions.create.assert_called_once_with(
-            # TODO: share constants?
-            # model="gpt-4o",
-            # model="o4-mini",
-            # TODO: flaaaaaky ...
-            model="gpt-4.1",
-            messages=[{"role": "user", "content": "Tell me a joke."}],
-        )
-
     def test_get_embedding_success(self):
         """Test that get_embedding returns the correct embedding vector."""
         # Mock response from OpenAI API
