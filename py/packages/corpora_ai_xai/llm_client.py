@@ -25,7 +25,8 @@ class XAIClient(LLMBaseInterface):
     def __init__(
         self,
         api_key: str,
-        completion_model: str = "grok-3-fast",
+        # completion_model: str = "grok-4",
+        completion_model: str = "grok-4-fast-non-reasoning",
         # completion_model: str = "grok-3-mini-fast-beta",
         base_url: str = "https://api.x.ai/v1",
         image_model: str = "grok-2-image",
@@ -78,6 +79,7 @@ class XAIClient(LLMBaseInterface):
         )
 
         payload = [{"role": m.role, "content": m.text} for m in messages]
+        print(f"XAI payload messages: {payload[-1]}")
         schema = model.model_json_schema()
         # XAI expects a `tools` list with function definitions:
         tool_def = {
