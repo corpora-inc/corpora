@@ -29,7 +29,9 @@ class OpenAIClient(LLMBaseInterface):
         # completion_model: str = "o3-mini",
         # completion_model: str = "o4-mini",
         # completion_model: str = "o3",
-        completion_model: str = "gpt-4.1",
+        # completion_model: str = "gpt-4.1",
+        # completion_model: str = "gpt-5-pro",
+        completion_model: str = "gpt-5",
         embedding_model: str = "text-embedding-3-small",
         image_model: str = "gpt-image-1",
         azure_endpoint: str = None,
@@ -100,18 +102,22 @@ class OpenAIClient(LLMBaseInterface):
         }
 
         try:
+            print(message_dicts[-1])
             # Call OpenAI API with function calling
+            # print("CALLING")
             response = self.client.chat.completions.create(
                 model=self.completion_model,
                 messages=message_dicts,
                 functions=[function],
                 function_call={"name": "generate_data"},
             )
+            # print("AQUI!!")
+            # print(response.json())
 
             # Extract and parse function arguments
             function_args = response.choices[0].message.function_call.arguments
             data_dict = json.loads(function_args)
-            print(f"Function arguments: {data_dict}")
+            # print(f"Function arguments: {data_dict}")
             return model.model_validate(data_dict)
         except OpenAIError as e:
             raise RuntimeError(f"Failed to generate data completion: {e}")
