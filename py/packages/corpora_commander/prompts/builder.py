@@ -26,6 +26,7 @@ MARKDOWN_RULES = """
 - Always put a blank line before and after block elements (headers, lists, code blocks, blockquotes).
 - Separate logical blocks with blank lines. You MUST put a blank line before a bullet list.
 - Section introductions contain **no** markdown headers.
+- Never use emdashes.
 - Each subsection body **must** **start** with a level-2 header: `## {title}`. Within the subsection, use subheaders such as `###`, as needed.
 """
 

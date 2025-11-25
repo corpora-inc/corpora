@@ -1,36 +1,58 @@
+// ts/commander/src/components/ui/textarea.tsx
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-type TextareaProps = React.ComponentProps<"textarea">
+type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>
 
-function Textarea({ className, ...props }: TextareaProps) {
-  const isControlled = props.value !== undefined
-  const [internalValue, setInternalValue] = React.useState<string>(
-    // defaultValue may be undefined or not a string
-    props.defaultValue ? String(props.defaultValue) : ""
-  )
+function Textarea({ className, onChange, value, defaultValue, ...props }: TextareaProps) {
+  const isControlled = value !== undefined
 
-  const currentValue = String(isControlled ? props.value ?? "" : internalValue)
+  const initialText =
+    typeof value === "string"
+      ? value
+      : typeof defaultValue === "string"
+        ? defaultValue
+        : ""
 
-  const countWords = (text: string) => {
-    const trimmed = text.trim()
+  const [wordCount, setWordCount] = React.useState(() => {
+    const trimmed = initialText.trim()
     if (!trimmed) return 0
     return trimmed.split(/\s+/).filter(Boolean).length
+  })
+
+  const updateCount = React.useCallback((text: string) => {
+    const trimmed = text.trim()
+    if (!trimmed) {
+      setWordCount(0)
+      return
+    }
+    setWordCount(trimmed.split(/\s+/).filter(Boolean).length)
+  }, [])
+
+  // For controlled usage, recompute when value changes
+  React.useEffect(() => {
+    if (!isControlled || typeof value !== "string") return
+    updateCount(value)
+  }, [isControlled, value, updateCount])
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (!isControlled) {
+      // Uncontrolled: read from the DOM value, but do NOT mirror it in state
+      updateCount(e.target.value)
+    }
+
+    if (onChange) {
+      onChange(e)
+    }
   }
 
-  const wordCount = countWords(currentValue)
-
-  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    if (!isControlled) setInternalValue(e.target.value)
-    if (props.onChange) props.onChange(e)
-  }
-
-  const userAriaInvalid = (props as unknown as Record<string, unknown>)["aria-invalid"] as boolean | undefined
-
+  const userAriaInvalid = (props as unknown as Record<string, unknown>)[
+    "aria-invalid"
+  ] as boolean | undefined
 
   return (
-    <div className="relative">
+    <div className="space-y-1">
       <textarea
         data-slot="textarea"
         className={cn(
@@ -39,11 +61,12 @@ function Textarea({ className, ...props }: TextareaProps) {
           className
         )}
         {...props}
+        {...(isControlled ? { value } : { defaultValue })}
         onChange={handleChange}
         aria-invalid={Boolean(userAriaInvalid)}
       />
 
-      <div className="pointer-events-none absolute right-2 top-1 text-xs text-muted-foreground bg-gray-400/20 py-0.5 px-1 rounded-sm">
+      <div className="flex justify-end text-xs text-muted-foreground">
         <span aria-live="polite">{wordCount}</span>
         <span className="ml-1">words</span>
       </div>

@@ -89,7 +89,7 @@ export function SubsectionEditor({
     }, [sections, subQ.data, project.id])
 
     // build extraContext
-    const extraContext = useMemo(() => {
+    const extraContext = () => {
         const parts: string[] = []
         parts.push(`Project Title: ${project.title}`)
         if (project.subtitle) parts.push(`Subtitle: ${project.subtitle}`)
@@ -108,8 +108,9 @@ export function SubsectionEditor({
         parts.push(`You are currently editing subsection: ${subQ.data?.data.title}`)
         parts.push(`Subsection Instructions: ${subQ.data?.data.instructions}`)
         parts.push(GENERAL_MARKDOWN_INSTRUCTIONS)
+        parts.push("Return the edited content of the subsection.")
         return parts.join("\n\n")
-    }, [project, section, subQ.data, subsectionId])
+    }
 
     const handleSave = () =>
         saveSub.mutate({
@@ -195,7 +196,7 @@ export function SubsectionEditor({
                     content: "str",
                 }}
                 initialData={{ title, instructions, content }}
-                extraContext={extraContext}
+                extraContext={extraContext()}
                 onAccept={({
                     title: newTitle,
                     instructions: newInst,
