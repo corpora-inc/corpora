@@ -26,6 +26,7 @@ COPY py/requirements-dev.txt /workspace/requirements-dev.txt
 COPY py/packages/corpora_proj/requirements.txt /workspace/packages/corpora_proj/requirements.txt
 COPY py/packages/corpora/requirements.txt /workspace/packages/corpora/requirements.txt
 COPY py/packages/corpora_ai_openai/requirements.txt /workspace/packages/corpora_ai_openai/requirements.txt
+COPY py/packages/corpora_ai_claude/requirements.txt /workspace/packages/corpora_ai_claude/requirements.txt
 RUN pip install --no-cache-dir -r /workspace/requirements-app.txt
 
 CMD ["sleep", "infinity"]

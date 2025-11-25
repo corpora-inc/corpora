@@ -31,7 +31,7 @@ class OpenAIClient(LLMBaseInterface):
         # completion_model: str = "o3",
         # completion_model: str = "gpt-4.1",
         # completion_model: str = "gpt-5-pro",
-        completion_model: str = "gpt-5",
+        completion_model: str = "gpt-5.1",
         embedding_model: str = "text-embedding-3-small",
         image_model: str = "gpt-image-1",
         azure_endpoint: str = None,
@@ -110,6 +110,10 @@ class OpenAIClient(LLMBaseInterface):
                 messages=message_dicts,
                 functions=[function],
                 function_call={"name": "generate_data"},
+                # hrm ... we need to pass more kwargs for provider-specific stuff?
+                # or, I guess we could try to normalize it in the interface?
+                # it's also per-model what is accepted.
+                # reasoning_effort="high",
             )
             # print("AQUI!!")
             # print(response.json())

@@ -36,6 +36,7 @@ COPY py/packages/corpora_cli/requirements.txt /workspace/packages/corpora_cli/re
 COPY py/packages/corpora_client/requirements.txt /workspace/packages/corpora_client/requirements.txt
 COPY py/packages/corpora_client/test-requirements.txt /workspace/packages/corpora_client/test-requirements.txt
 COPY py/packages/corpora_ai_openai/requirements.txt /workspace/packages/corpora_ai_openai/requirements.txt
+COPY py/packages/corpora_ai_claude/requirements.txt /workspace/packages/corpora_ai_claude/requirements.txt
 RUN pip install --no-cache-dir -r /workspace/requirements.txt
 
 RUN npm install -g @openapitools/openapi-generator-cli && \

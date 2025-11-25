@@ -3,6 +3,7 @@
 -r packages/corpora/requirements.txt
 -r packages/corpora_proj/requirements.txt
 -r packages/corpora_ai_openai/requirements.txt
+-r packages/corpora_ai_claude/requirements.txt
 # TODO: decide if these should be isolated
 langchain-text-splitters==0.3.2
 tiktoken==0.8.0
