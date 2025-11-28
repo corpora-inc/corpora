@@ -9,6 +9,7 @@ import {
     makeUnitKey,
     type UnitKey,
     type UnitStatus,
+    hasPendingProposal,
 } from "@/stores/RewriteWorkspaceStore"
 
 interface RewriteSidebarProps {
@@ -28,11 +29,11 @@ const renderStatusIcon = (status: UnitStatus) => {
     if (status === "pending") {
         return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
     }
-    if (status === "done") {
-        return <Check className="h-4 w-4 text-emerald-500" />
-    }
     if (status === "error") {
         return <AlertCircle className="h-4 w-4 text-red-500" />
+    }
+    if (status === "done") {
+        return <Check className="h-4 w-4 text-emerald-500" />
     }
     return <span className="h-4 w-4" />
 }
@@ -56,6 +57,10 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
         () => Object.keys(unitStates).length,
         [unitStates]
     )
+    const pendingCount = useMemo(
+        () => Object.values(unitStates).filter(hasPendingProposal).length,
+        [unitStates]
+    )
 
     // tri-state for the "All units" checkbox
     const allChecked = totalCount > 0 && selectedCount === totalCount
@@ -70,6 +75,7 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
         unitStates[key] ?? {
             selected: false,
             status: "idle",
+            currentText: "",
             proposal: "",
             lastPrompt: "",
             ...fallback,
@@ -106,6 +112,14 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                 </div>
                 <span className="text-muted-foreground">
                     {selectedCount} selected
+                    {pendingCount > 0 && (
+                        <>
+                            {" · "}
+                            <span className="text-amber-600">
+                                {pendingCount} to review
+                            </span>
+                        </>
+                    )}
                 </span>
             </div>
 
@@ -114,20 +128,25 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                     {sections.map((sec) => {
                         const secKey = makeUnitKey("section", sec.id)
                         const secState = getUnitState(secKey, {
-                            proposal: sec.introduction ?? "",
+                            currentText: sec.introduction ?? "",
                         })
                         const subsections = sec.subsections ?? []
+                        const sectionPending = hasPendingProposal(secState)
 
                         return (
                             <div
                                 key={sec.id}
-                                className="rounded-md border bg-muted/40"
+                                className={`rounded-md border bg-muted/40 ${sectionPending ? "border-amber-400" : ""
+                                    }`}
                             >
                                 {/* Section row */}
                                 <div
                                     role="button"
                                     tabIndex={0}
                                     className={`flex w-full items-center justify-between gap-2 rounded-t-md px-3 py-2 text-left text-xs ${activeKey === secKey ? "bg-muted" : ""
+                                        } ${sectionPending
+                                            ? "bg-amber-50 dark:bg-amber-900/20"
+                                            : ""
                                         }`}
                                     onClick={() => setActiveKey(secKey)}
                                     onKeyDown={(e) => handleRowKeyDown(secKey, e)}
@@ -150,18 +169,20 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                                                         "subsection",
                                                         sub.id
                                                     ) as UnitKey
-                                                    updateUnitState(
-                                                        subKey,
-                                                        (prev) => ({
-                                                            ...prev,
-                                                            selected,
-                                                        })
-                                                    )
+                                                    updateUnitState(subKey, (prev) => ({
+                                                        ...prev,
+                                                        selected,
+                                                    }))
                                                 }
                                             }}
                                             onClick={(e) => e.stopPropagation()}
                                         />
-                                        <span className="font-medium">
+                                        <span
+                                            className={`font-medium ${sectionPending
+                                                    ? "text-amber-700 dark:text-amber-300"
+                                                    : ""
+                                                }`}
+                                        >
                                             {sec.title || "Untitled section"}
                                         </span>
                                     </div>
@@ -176,8 +197,11 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                                                 sub.id
                                             ) as UnitKey
                                             const subState = getUnitState(subKey, {
-                                                proposal: sub.content ?? "",
+                                                currentText: sub.content ?? "",
                                             })
+                                            const subPending = hasPendingProposal(
+                                                subState
+                                            )
 
                                             return (
                                                 <div
@@ -186,6 +210,9 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                                                     tabIndex={0}
                                                     className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-xs ${activeKey === subKey
                                                             ? "bg-muted/60"
+                                                            : ""
+                                                        } ${subPending
+                                                            ? "bg-amber-50 dark:bg-amber-900/20"
                                                             : ""
                                                         }`}
                                                     onClick={() => setActiveKey(subKey)}
@@ -212,7 +239,12 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                                                                 e.stopPropagation()
                                                             }
                                                         />
-                                                        <span className="truncate">
+                                                        <span
+                                                            className={`truncate ${subPending
+                                                                    ? "text-amber-700 dark:text-amber-300"
+                                                                    : ""
+                                                                }`}
+                                                        >
                                                             {sub.title ||
                                                                 "Untitled subsection"}
                                                         </span>

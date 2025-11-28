@@ -11,10 +11,10 @@ import {
 import type { RewriteRequest, RewriteSection, RewriteSubsection } from "@/api/schemas"
 import {
     useRewriteWorkspaceStore,
-    // makeUnitKey,
     parseUnitKey,
     type UnitKey,
     type RewriteUnitState,
+    hasPendingProposal,
 } from "@/stores/RewriteWorkspaceStore"
 import { RewriteHeader } from "./RewriteHeader"
 import { RewriteSidebar } from "./RewriteSidebar"
@@ -66,7 +66,6 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
         if (sections.length && resolvedProvider) {
             initFromSections(sections as any, resolvedProvider, resolvedModel)
         } else if (sections.length) {
-            // no provider configured but we at least clear workspace
             initFromSections(sections as any, null, "")
         } else {
             reset()
@@ -82,6 +81,7 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
         unitStates[key] ?? {
             selected: false,
             status: "idle",
+            currentText: "",
             proposal: "",
             lastPrompt: "",
             ...fallback,
@@ -89,6 +89,11 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
 
     const hasSelection = useMemo(
         () => Object.values(unitStates).some((s) => s.selected),
+        [unitStates]
+    )
+
+    const pendingProposalCount = useMemo(
+        () => Object.values(unitStates).filter(hasPendingProposal).length,
         [unitStates]
     )
 
@@ -125,8 +130,7 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
     }, [activeKey, sections])
 
     const isSaving = updateSection.isPending || updateSub.isPending
-    const isRewriting =
-        rewriteSection.isPending || rewriteSubsection.isPending
+    const isRewriting = rewriteSection.isPending || rewriteSubsection.isPending
 
     const buildPayload = (unitKey: UnitKey): RewriteRequest | null => {
         if (!project || !provider || !model) return null
@@ -168,6 +172,7 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
                 updateUnitState(key, (prev) => ({
                     ...prev,
                     status: "done",
+                    // keep currentText as-is; proposal is the new suggestion
                     proposal: rewrite.introduction,
                 }))
             } else {
@@ -205,6 +210,37 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
         }
     }
 
+    const acceptKey = async (key: UnitKey) => {
+        if (!project) return
+        const { kind, id } = parseUnitKey(key)
+        const state = getUnitState(key)
+
+        // no proposal or same as current => nothing to do
+        if (!hasPendingProposal(state)) return
+
+        const newText = state.proposal
+
+        if (kind === "section") {
+            await updateSection.mutateAsync({
+                sectionId: id,
+                data: { introduction: newText },
+            })
+        } else {
+            await updateSub.mutateAsync({
+                subsectionId: id,
+                data: { content: newText },
+            })
+        }
+
+        // update local workspace: current <- proposal, proposal cleared
+        updateUnitState(key, (prev) => ({
+            ...prev,
+            currentText: newText,
+            proposal: "",
+            status: "idle",
+        }))
+    }
+
     const handleRewriteActive = async () => {
         if (!activeUnit) return
         await runRewriteForKey(activeUnit.key)
@@ -212,27 +248,25 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
 
     const handleAcceptActive = async () => {
         if (!activeUnit) return
-        const state = getUnitState(activeUnit.key)
-        if (!state.proposal || !project) return
-
         try {
-            if (activeUnit.kind === "section") {
-                await updateSection.mutateAsync({
-                    sectionId: parseUnitKey(activeUnit.key).id,
-                    data: { introduction: state.proposal },
-                })
-            } else {
-                await updateSub.mutateAsync({
-                    subsectionId: parseUnitKey(activeUnit.key).id,
-                    data: { content: state.proposal },
-                })
-            }
-            updateUnitState(activeUnit.key, (prev) => ({
-                ...prev,
-                status: "done",
-            }))
+            await acceptKey(activeUnit.key)
         } catch (e) {
             console.error("Accept rewrite failed", e)
+        }
+    }
+
+    const handleSaveAll = async () => {
+        const keysWithPending = Object.entries(unitStates)
+            .filter(([_, s]) => hasPendingProposal(s))
+            .map(([key]) => key as UnitKey)
+
+        for (const key of keysWithPending) {
+            // eslint-disable-next-line no-await-in-loop
+            try {
+                await acceptKey(key)
+            } catch (e) {
+                console.error("Save all: accept failed for", key, e)
+            }
         }
     }
 
@@ -241,11 +275,15 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
             <RewriteHeader
                 projectTitle={project?.title ?? "Project"}
                 hasSelection={hasSelection}
+                hasPendingProposals={pendingProposalCount > 0}
+                pendingProposalCount={pendingProposalCount}
+                isSaving={isSaving}
                 onRunSelected={handleRunSelected}
+                onSaveAll={handleSaveAll}
                 onClose={onClose}
             />
             <div className="flex flex-1 overflow-hidden">
-                <RewriteSidebar sections={sections as any} hasSelection={hasSelection} />
+                <RewriteSidebar sections={sections as any} />
                 <RewriteUnitPanel
                     sections={sections as any}
                     activeUnit={activeUnit}
