@@ -1,4 +1,3 @@
-// ts/commander/src/components/rewrite/RewriteSidebar.tsx
 import React, { useMemo } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -149,7 +148,9 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                                             : ""
                                         }`}
                                     onClick={() => setActiveKey(secKey)}
-                                    onKeyDown={(e) => handleRowKeyDown(secKey, e)}
+                                    onKeyDown={(e) =>
+                                        handleRowKeyDown(secKey, e)
+                                    }
                                 >
                                     <div className="flex items-center gap-2">
                                         <Checkbox
@@ -158,10 +159,13 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                                                 const selected = Boolean(c)
 
                                                 // update section itself
-                                                updateUnitState(secKey, (prev) => ({
-                                                    ...prev,
-                                                    selected,
-                                                }))
+                                                updateUnitState(
+                                                    secKey,
+                                                    (prev) => ({
+                                                        ...prev,
+                                                        selected,
+                                                    })
+                                                )
 
                                                 // update all subsections under this section
                                                 for (const sub of subsections) {
@@ -169,10 +173,13 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                                                         "subsection",
                                                         sub.id
                                                     ) as UnitKey
-                                                    updateUnitState(subKey, (prev) => ({
-                                                        ...prev,
-                                                        selected,
-                                                    }))
+                                                    updateUnitState(
+                                                        subKey,
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            selected,
+                                                        })
+                                                    )
                                                 }
                                             }}
                                             onClick={(e) => e.stopPropagation()}
@@ -196,12 +203,14 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                                                 "subsection",
                                                 sub.id
                                             ) as UnitKey
-                                            const subState = getUnitState(subKey, {
-                                                currentText: sub.content ?? "",
-                                            })
-                                            const subPending = hasPendingProposal(
-                                                subState
+                                            const subState = getUnitState(
+                                                subKey,
+                                                {
+                                                    currentText: sub.content ?? "",
+                                                }
                                             )
+                                            const subPending =
+                                                hasPendingProposal(subState)
 
                                             return (
                                                 <div
@@ -215,18 +224,29 @@ export const RewriteSidebar: React.FC<RewriteSidebarProps> = ({
                                                             ? "bg-amber-50 dark:bg-amber-900/20"
                                                             : ""
                                                         }`}
-                                                    onClick={() => setActiveKey(subKey)}
+                                                    onClick={() =>
+                                                        setActiveKey(subKey)
+                                                    }
                                                     onKeyDown={(e) =>
-                                                        handleRowKeyDown(subKey, e)
+                                                        handleRowKeyDown(
+                                                            subKey,
+                                                            e
+                                                        )
                                                     }
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <Checkbox
-                                                            checked={subState.selected}
-                                                            onCheckedChange={(c) =>
+                                                            checked={
+                                                                subState.selected
+                                                            }
+                                                            onCheckedChange={(
+                                                                c
+                                                            ) =>
                                                                 updateUnitState(
                                                                     subKey,
-                                                                    (prev) => ({
+                                                                    (
+                                                                        prev
+                                                                    ) => ({
                                                                         ...prev,
                                                                         selected:
                                                                             Boolean(

@@ -1,4 +1,3 @@
-// ts/commander/src/components/rewrite/RewriteUnitPanel.tsx
 import React, { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"

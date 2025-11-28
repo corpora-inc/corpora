@@ -1,4 +1,3 @@
-// ts/commander/src/components/rewrite/RewriteHeader.tsx
 import React from "react"
 import { X, Sparkles, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -67,7 +66,8 @@ export const RewriteHeader: React.FC<RewriteHeaderProps> = ({
                         )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                        {projectTitle} · Choose sections, tweak prompts, and accept rewrites as they come in.
+                        {projectTitle} · Choose sections, tweak prompts, and accept
+                        rewrites as they come in.
                     </p>
                 </div>
             </div>

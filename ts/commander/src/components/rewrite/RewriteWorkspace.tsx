@@ -1,4 +1,3 @@
-// ts/commander/src/components/rewrite/RewriteWorkspace.tsx
 import React, { useEffect, useMemo } from "react"
 import { useProjectStore } from "@/stores/ProjectStore"
 import { useLLMConfigStore } from "@/stores/LLMConfigStore"
@@ -8,7 +7,11 @@ import {
     useCorporaCommanderApiSectionUpdateSection,
     useCorporaCommanderApiSubsectionUpdateSubsection,
 } from "@/api/commander/commander"
-import type { RewriteRequest, RewriteSection, RewriteSubsection } from "@/api/schemas"
+import type {
+    RewriteRequest,
+    RewriteSection,
+    RewriteSubsection,
+} from "@/api/schemas"
 import {
     useRewriteWorkspaceStore,
     parseUnitKey,
@@ -33,14 +36,14 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
     const unitStates = useRewriteWorkspaceStore((s) => s.unitStates)
     const activeKey = useRewriteWorkspaceStore((s) => s.activeKey)
     const initFromSections = useRewriteWorkspaceStore((s) => s.initFromSections)
-    const reset = useRewriteWorkspaceStore((s) => s.reset)
     const globalPrompt = useRewriteWorkspaceStore((s) => s.globalPrompt)
     const provider = useRewriteWorkspaceStore((s) => s.provider)
     const model = useRewriteWorkspaceStore((s) => s.model)
     const updateUnitState = useRewriteWorkspaceStore((s) => s.updateUnitState)
 
     const rewriteSection = useCorporaCommanderApiRewriteRewriteSingleSection()
-    const rewriteSubsection = useCorporaCommanderApiRewriteRewriteSingleSubsection()
+    const rewriteSubsection =
+        useCorporaCommanderApiRewriteRewriteSingleSubsection()
     const updateSection = useCorporaCommanderApiSectionUpdateSection()
     const updateSub = useCorporaCommanderApiSubsectionUpdateSubsection()
 
@@ -61,21 +64,19 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
         )
     }, [configs, availableModels, resolvedProvider])
 
-    // Init/reset store when sections or defaults change
+    // Init/merge store when project/sections/defaults change.
+    // Because the store is persisted, this will MERGE with existing
+    // state for the same project (keeping proposals & prompts).
     useEffect(() => {
-        if (sections.length && resolvedProvider) {
-            initFromSections(sections as any, resolvedProvider, resolvedModel)
-        } else if (sections.length) {
-            initFromSections(sections as any, null, "")
-        } else {
-            reset()
-        }
+        if (!project || !project.id || !sections.length) return
 
-        return () => {
-            reset()
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sections, resolvedProvider, resolvedModel])
+        initFromSections(
+            sections as any,
+            project.id,
+            resolvedProvider,
+            resolvedModel
+        )
+    }, [project?.id, sections, resolvedProvider, resolvedModel, initFromSections])
 
     const getUnitState = (key: UnitKey, fallback?: Partial<RewriteUnitState>) =>
         unitStates[key] ?? {
@@ -130,7 +131,8 @@ export const RewriteWorkspace: React.FC<RewriteWorkspaceProps> = ({ onClose }) =
     }, [activeKey, sections])
 
     const isSaving = updateSection.isPending || updateSub.isPending
-    const isRewriting = rewriteSection.isPending || rewriteSubsection.isPending
+    const isRewriting =
+        rewriteSection.isPending || rewriteSubsection.isPending
 
     const buildPayload = (unitKey: UnitKey): RewriteRequest | null => {
         if (!project || !provider || !model) return null
