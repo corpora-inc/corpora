@@ -109,6 +109,7 @@ export function SubsectionEditor({
         parts.push(`Subsection Instructions: ${subQ.data?.data.instructions}`)
         parts.push(GENERAL_MARKDOWN_INSTRUCTIONS)
         parts.push("Return the edited content of the subsection.")
+        parts.push("Do not change the subsection title or instructions.")
         return parts.join("\n\n")
     }
 
@@ -185,25 +186,21 @@ export function SubsectionEditor({
 
             {/* AI Enhance Modal */}
             <LLMEnhanceModal<{
-                title: string
-                instructions: string
                 content: string
             }>
                 open={enhanceOpen}
                 schema={{
-                    title: "str",
-                    instructions: "str",
                     content: "str",
                 }}
-                initialData={{ title, instructions, content }}
+                initialData={{ content }}
                 extraContext={extraContext()}
                 onAccept={({
-                    title: newTitle,
-                    instructions: newInst,
+                    // title: newTitle,
+                    // instructions: newInst,
                     content: newContent,
                 }) => {
-                    if (typeof newTitle === "string") setTitle(newTitle)
-                    if (typeof newInst === "string") setInstructions(newInst)
+                    // if (typeof newTitle === "string") setTitle(newTitle)
+                    // if (typeof newInst === "string") setInstructions(newInst)
                     if (typeof newContent === "string") setContent(newContent)
                     setEnhanceOpen(false)
                 }}

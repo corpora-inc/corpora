@@ -10,7 +10,7 @@ import type { CompletionRequestApiKey } from "./completionRequestApiKey";
 import type { ChatMessageSchema } from "./chatMessageSchema";
 
 export interface CompletionRequest {
-  /** one of: openai, xai, local */
+  /** one of: openai, xai, local, claude */
   provider: string;
   /** model name to use */
   model: string;
