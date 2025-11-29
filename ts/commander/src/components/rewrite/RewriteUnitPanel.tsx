@@ -107,7 +107,7 @@ export const RewriteUnitPanel: React.FC<RewriteUnitPanelProps> = ({
                         {isSaving && isActive ? (
                             <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                         ) : null}
-                        Accept &amp; Save
+                        Accept & Save
                     </Button>
                 </div>
             </div>
