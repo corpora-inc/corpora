@@ -1,65 +1,120 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { Sparkles } from "lucide-react";
+
 import { useImageStore } from "@/stores/ImageStore";
-import { useProjectStore } from "@/stores/ProjectStore";
-import { useUploadImage } from "@/hooks/useImages";
-import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import { useGenerateImage } from "@/hooks/useImages";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-export default function ImageTokenList() {
-    const [pendingCaption, setPendingCaption] = useState<string | null>(null);
+interface ImageTokenListProps {
+    projectId: string;
+}
+
+export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     const tokens = useImageStore((s) => s.tokens);
-    const projectId = useProjectStore((s) => s.project?.id);
-    const upload = useUploadImage(projectId || "");
+    const generate = useGenerateImage(projectId);
 
-    useEffect(() => {
-        if (!upload.isPending) {
-            setPendingCaption(null);
-        }
-    }, [upload.isPending]);
+    const [promptHint, setPromptHint] = useState("");
 
-    if (!projectId) return null;
+    const missingTokens = useMemo(
+        () => tokens.filter((t) => !t.fulfilled),
+        [tokens],
+    );
+    const fulfilledTokens = useMemo(
+        () => tokens.filter((t) => t.fulfilled),
+        [tokens],
+    );
+
+    const promptValue = promptHint.trim() || undefined;
+
+    const handleGenerate = (caption: string) => {
+        generate.mutate(caption, promptValue);
+    };
+
+    const handleGenerateAllMissing = () => {
+        if (missingTokens.length === 0) return;
+        missingTokens.forEach((t) => {
+            generate.mutate(t.caption, promptValue);
+        });
+    };
+
     return (
-        <div>
-            <h3 className="text-lg font-semibold mb-2">Image Tokens</h3>
-            <ul className="space-y-2">
+        <section className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+                <div>
+                    <h2 className="text-sm font-semibold text-gray-800">
+                        Image Tokens
+                    </h2>
+                    <p className="text-xs text-gray-500">
+                        {tokens.length} total · {fulfilledTokens.length} with
+                        images · {missingTokens.length} missing
+                    </p>
+                </div>
+
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleGenerateAllMissing}
+                    disabled={
+                        missingTokens.length === 0 || generate.isPending
+                    }
+                >
+                    <Sparkles className="mr-1 h-3 w-3" />
+                    Generate missing
+                </Button>
+            </div>
+
+            <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                    Optional style / prompt hint
+                </label>
+                <Input
+                    value={promptHint}
+                    onChange={(e) => setPromptHint(e.target.value)}
+                    placeholder="e.g. clean line art, black-and-white, kid-friendly"
+                />
+                <p className="text-[0.7rem] text-gray-500 mt-0.5">
+                    Used together with each IMAGE caption when
+                    generating.
+                </p>
+            </div>
+
+            <div className="border rounded-md max-h-72 overflow-auto divide-y bg-white">
+                {tokens.length === 0 && (
+                    <div className="px-3 py-2 text-xs text-gray-500">
+                        No <code>{`{{IMAGE: …}}`}</code> tokens found in this
+                        project yet.
+                    </div>
+                )}
+
                 {tokens.map((token) => (
-                    <li key={token.caption} className="flex items-center justify-between">
-                        <span className="flex-1 truncate">{token.caption}</span>
-                        {token.fulfilled ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" aria-label="Fulfilled" />
-                        ) : (
-                            <button
-                                className="flex items-center space-x-1 text-blue-600 hover:underline disabled:opacity-50"
-                                disabled={upload.isPending}
-                                onClick={() => {
-                                    const fileInput = document.createElement("input");
-                                    fileInput.type = "file";
-                                    fileInput.accept = "image/*";
-                                    fileInput.onchange = () => {
-                                        const file = fileInput.files?.[0];
-                                        if (file) {
-                                            setPendingCaption(token.caption);
-                                            upload.mutate(token.caption, file);
-                                        }
-                                    };
-                                    fileInput.click();
-                                }}
-                            >
-                                {pendingCaption === token.caption && upload.isPending ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span>Uploading…</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <XCircle className="h-5 w-5" />
-                                        <span>Upload</span>
-                                    </>
-                                )}
-                            </button>
-                        )}
-                    </li>
+                    <div
+                        key={token.caption}
+                        className="flex items-center justify-between gap-3 px-3 py-2"
+                    >
+                        <div className="min-w-0">
+                            <div className="truncate text-sm font-medium">
+                                {token.caption}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                {token.fulfilled
+                                    ? "Linked to an image"
+                                    : "No image yet"}
+                            </div>
+                        </div>
+
+                        <Button
+                            size="sm"
+                            variant={token.fulfilled ? "outline" : "default"}
+                            onClick={() => handleGenerate(token.caption)}
+                            disabled={generate.isPending}
+                        >
+                            <Sparkles className="mr-1 h-3 w-3" />
+                            {token.fulfilled ? "Regenerate" : "Generate"}
+                        </Button>
+                    </div>
                 ))}
-            </ul>
-        </div>
+            </div>
+        </section>
     );
 }

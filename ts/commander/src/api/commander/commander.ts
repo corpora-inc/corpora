@@ -33,6 +33,7 @@ import type {
   CorporaCommanderApiLlmGenericDataCompletion200,
   DraftBookRequest,
   DraftBookResponse,
+  GenerateProjectImageIn,
   GenericCompletionRequest,
   ImageToken,
   LMStudioPing,
@@ -2896,6 +2897,189 @@ export function useCorporaCommanderApiExportExportPdf<
 }
 
 /**
+ * Build and return an EPUB for the given project.
+
+Uses:
+- templates/book.md        → source markdown
+- templates/epub.css       → styling for the EPUB
+ * @summary Export Epub
+ */
+export const corporaCommanderApiExportExportEpub = (
+  projectId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<void>> => {
+  return axios.default.get(
+    `/api/commander/projects/${projectId}/export/epub`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiExportExportEpubQueryKey = (
+  projectId: string,
+) => {
+  return [`/api/commander/projects/${projectId}/export/epub`] as const;
+};
+
+export const getCorporaCommanderApiExportExportEpubQueryOptions = <
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCorporaCommanderApiExportExportEpubQueryKey(projectId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>
+  > = ({ signal }) =>
+    corporaCommanderApiExportExportEpub(projectId, {
+      signal,
+      ...axiosOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!projectId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CorporaCommanderApiExportExportEpubQueryResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>
+>;
+export type CorporaCommanderApiExportExportEpubQueryError =
+  AxiosError<unknown>;
+
+export function useCorporaCommanderApiExportExportEpub<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiExportExportEpub<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiExportExportEpub<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Export Epub
+ */
+
+export function useCorporaCommanderApiExportExportEpub<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCorporaCommanderApiExportExportEpubQueryOptions(
+    projectId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
  * @summary Rewrite Sections
  */
 export const corporaCommanderApiRewriteRewriteSections = (
@@ -3556,6 +3740,108 @@ export const useCorporaCommanderApiImagesCreateImage = <
 > => {
   const mutationOptions =
     getCorporaCommanderApiImagesCreateImageMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Generate an image via the configured LLM/image provider and attach it
+to this project as a ProjectImage, keyed by caption.
+
+Designed to plug directly into the {{IMAGE: caption}} token system.
+ * @summary Generate Project Image
+ */
+export const corporaCommanderApiImagesGenerateProjectImage = (
+  projectId: string,
+  generateProjectImageIn: GenerateProjectImageIn,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<ProjectImageOut>> => {
+  return axios.default.post(
+    `/api/commander/projects/${projectId}/images/generate`,
+    generateProjectImageIn,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiImagesGenerateProjectImageMutationOptions =
+  <TError = AxiosError<unknown>, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>
+      >,
+      TError,
+      { projectId: string; data: GenerateProjectImageIn },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  }): UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>>,
+    TError,
+    { projectId: string; data: GenerateProjectImageIn },
+    TContext
+  > => {
+    const mutationKey = ["corporaCommanderApiImagesGenerateProjectImage"];
+    const { mutation: mutationOptions, axios: axiosOptions } = options
+      ? options.mutation &&
+        "mutationKey" in options.mutation &&
+        options.mutation.mutationKey
+        ? options
+        : { ...options, mutation: { ...options.mutation, mutationKey } }
+      : { mutation: { mutationKey }, axios: undefined };
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>
+      >,
+      { projectId: string; data: GenerateProjectImageIn }
+    > = (props) => {
+      const { projectId, data } = props ?? {};
+
+      return corporaCommanderApiImagesGenerateProjectImage(
+        projectId,
+        data,
+        axiosOptions,
+      );
+    };
+
+    return { mutationFn, ...mutationOptions };
+  };
+
+export type CorporaCommanderApiImagesGenerateProjectImageMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>>
+  >;
+export type CorporaCommanderApiImagesGenerateProjectImageMutationBody =
+  GenerateProjectImageIn;
+export type CorporaCommanderApiImagesGenerateProjectImageMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Generate Project Image
+ */
+export const useCorporaCommanderApiImagesGenerateProjectImage = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>
+      >,
+      TError,
+      { projectId: string; data: GenerateProjectImageIn },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>>,
+  TError,
+  { projectId: string; data: GenerateProjectImageIn },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiImagesGenerateProjectImageMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

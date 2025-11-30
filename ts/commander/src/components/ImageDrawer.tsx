@@ -6,31 +6,35 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { ImagePlus } from "lucide-react";
+
 import { useImageStore } from "@/stores/ImageStore";
 import { useProjectImages, useImageTokens } from "@/hooks/useImages";
 import ImageTokenList from "./ImageTokenList";
 import ImageGallery from "./ImageGallery";
 import ImageUploadDropzone from "./ImageUploadDropzone";
-import { ImagePlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface ImageDrawerProps {
   projectId: string;
 }
 
 export default function ImageDrawer({ projectId }: ImageDrawerProps) {
-  // Sync data
+  // Sync from backend into Zustand
   const imagesQuery = useProjectImages(projectId);
   const tokensQuery = useImageTokens(projectId);
+
   // Reset store when project changes
   useEffect(() => {
     if (!projectId) return;
     useImageStore.getState().reset();
     imagesQuery.refetch();
     tokensQuery.refetch();
-    // it's safe to omit queries' changing fields because refetch is called explicitly on projectId change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
+
+  const tokenCount = useImageStore((s) => s.tokens.length);
+  const imageCount = useImageStore((s) => s.images.length);
 
   return (
     <Sheet>
@@ -44,17 +48,48 @@ export default function ImageDrawer({ projectId }: ImageDrawerProps) {
           <ImagePlus />
         </Button>
       </SheetTrigger>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Image Manager</SheetTitle>
-        </SheetHeader>
-        <div className="flex-1 overflow-auto p-4 space-y-6">
-          <ImageTokenList />
-          <ImageGallery />
-        </div>
 
-        <div className="p-4 border-t">
-          <ImageUploadDropzone />
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-[70vw] flex flex-col"
+      >
+        <SheetHeader className="border-b pb-3">
+          <SheetTitle className="flex items-baseline justify-between gap-2">
+            <span>Image Manager</span>
+            <span className="text-xs font-normal text-gray-500">
+              {tokenCount} tokens · {imageCount} images
+            </span>
+          </SheetTitle>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-hidden flex flex-col gap-4 py-4">
+          {/* Tokens + generation UI */}
+          <div className="border rounded-md bg-white/80 px-4 py-3 shadow-sm">
+            <ImageTokenList projectId={projectId} />
+          </div>
+
+          {/* Gallery + upload */}
+          <div className="flex-1 min-h-0 flex flex-col gap-3 border rounded-md bg-white/80 px-4 py-3 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-gray-700">
+                Image Library
+              </h2>
+              {/* Small status from queries */}
+              <p className="text-xs text-gray-500">
+                {imagesQuery.isLoading || tokensQuery.isLoading
+                  ? "Syncing…"
+                  : "Synced"}
+              </p>
+            </div>
+
+            <div className="flex-1 min-h-0 overflow-auto">
+              <ImageGallery />
+            </div>
+
+            <div className="pt-2 border-t mt-2">
+              <ImageUploadDropzone />
+            </div>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
