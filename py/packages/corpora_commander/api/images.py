@@ -155,11 +155,12 @@ def generate_project_image(
         return None
 
     prompt_lines = [
-        f"Book title: {project.title}",
-        maybe("Subtitle", getattr(project, "subtitle", None)),
-        maybe("Purpose", getattr(project, "purpose", None)),
-        maybe("Voice", getattr(project, "voice", None)),
-        f"Image prompt: {(payload.prompt or caption).strip()}",
+        # f"Book title: {project.title}",
+        # maybe("Subtitle", getattr(project, "subtitle", None)),
+        # maybe("Purpose", getattr(project, "purpose", None)),
+        # maybe("Voice", getattr(project, "voice", None)),
+        f"The caption for the image is: {caption}",
+        maybe("Instructions", payload.prompt),
     ]
     image_prompt = "\n\n".join(line for line in prompt_lines if line)
 

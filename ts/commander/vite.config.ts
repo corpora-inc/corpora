@@ -26,12 +26,15 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      // serve user-uploaded media from Django during dev
-      "/media": {
-        target: "http://corpora-app:8877",
-        changeOrigin: true,
-        secure: false,
-      },
+      // // serve user-uploaded media from Django during dev
+      // "/media": {
+      //   target: "http://corpora-app:8877",
+      //   changeOrigin: true,
+      //   secure: false,
+      //   ws: false,         // no websockets for media
+      //   timeout: 60_000,   // 60s timeout for slow image responses
+      //   proxyTimeout: 60_000,
+      // },
     },
   },
   resolve: {

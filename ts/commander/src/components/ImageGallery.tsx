@@ -33,7 +33,7 @@ function ImageCard({ img, projectId }: ImageCardProps) {
     return (
         <div className="relative group">
             <img
-                src={img.image}
+                src={`http://localhost:8877${img.image}`}
                 alt={img.caption}
                 className="w-full h-24 object-cover rounded"
             />

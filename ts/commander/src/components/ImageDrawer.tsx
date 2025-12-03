@@ -51,10 +51,10 @@ export default function ImageDrawer({ projectId }: ImageDrawerProps) {
 
       <SheetContent
         side="right"
-        className="w-full sm:max-w-[70vw] flex flex-col"
+        className="w-full sm:max-w-[80vw] flex flex-col"
       >
         <SheetHeader className="border-b pb-3">
-          <SheetTitle className="flex items-baseline justify-between gap-2">
+          <SheetTitle className="flex items-baseline gap-2">
             <span>Image Manager</span>
             <span className="text-xs font-normal text-gray-500">
               {tokenCount} tokens · {imageCount} images
