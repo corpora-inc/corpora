@@ -30,7 +30,7 @@ class OpenAIClient(LLMBaseInterface):
         # completion_model: str = "o3",
         # completion_model: str = "gpt-4.1",
         # completion_model: str = "gpt-5-pro",
-        completion_model: str = "gpt-5.1",
+        completion_model: str = "gpt-5.2",
         embedding_model: str = "text-embedding-3-small",
         image_model: str = "gpt-image-1",
         azure_endpoint: str | None = None,
