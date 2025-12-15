@@ -102,27 +102,22 @@
 
 % =============================================================
 % Unicode symbol coverage (Option A)
-% - Goal: arrows / misc symbols from LLM output render instead of tofu.
-% - We only auto-switch for the Symbols class so xeCJK stays in charge of CJK.
 % =============================================================
 \usepackage[Symbols]{ucharclasses}
 
-% Choose a symbols font that likely exists in your container; fall back safely.
-\newfontfamily\SymbolsFont{Noto Sans Symbols 2}[Scale=MatchLowercase]
-\IfFontExistsTF{Noto Sans Symbols 2}{}{
-  \IfFontExistsTF{Noto Sans Symbols2}{
-    \renewcommand\SymbolsFont{\newfontfamily\SymbolsFont{Noto Sans Symbols2}[Scale=MatchLowercase]}
+% Pick a symbols font that actually exists; define it ONLY inside the checks.
+\IfFontExistsTF{Noto Sans Symbols2}{
+  \newfontfamily\SymbolsFont{Noto Sans Symbols2}[Scale=MatchLowercase]
+}{
+  \IfFontExistsTF{Noto Sans Symbols}{
+    \newfontfamily\SymbolsFont{Noto Sans Symbols}[Scale=MatchLowercase]
   }{
-    \IfFontExistsTF{Noto Sans Symbols}{
-      \renewcommand\SymbolsFont{\newfontfamily\SymbolsFont{Noto Sans Symbols}[Scale=MatchLowercase]}
-    }{
-      \renewcommand\SymbolsFont{\newfontfamily\SymbolsFont{DejaVu Sans}[Scale=MatchLowercase]}
-    }
+    \newfontfamily\SymbolsFont{DejaVu Sans}[Scale=MatchLowercase]
   }
 }
 
-\setDefaultTransitions{\begingroup}{\endgroup}
 \setTransitionsForSymbols{\begingroup\SymbolsFont}{\endgroup}
+
 
 % =============================================================
 % Math-ish Unicode normalization (minimal, safe)
