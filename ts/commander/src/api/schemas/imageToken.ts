@@ -6,9 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ImageTokenImageId } from "./imageTokenImageId";
+import type { ImageTokenOccurrence } from "./imageTokenOccurrence";
 
 export interface ImageToken {
   caption: string;
   fulfilled: boolean;
   image_id?: ImageTokenImageId;
+  occurrences?: ImageTokenOccurrence[];
 }

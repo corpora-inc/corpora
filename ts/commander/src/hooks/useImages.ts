@@ -34,9 +34,8 @@ export function useProjectImages(projectId?: string) {
     });
 
     useEffect(() => {
-        if (query.data) {
-            setImages(query.data.data as ProjectImageOut[]);
-        }
+        if (!query.data) return;
+        setImages(query.data.data as ProjectImageOut[]);
     }, [query.data, setImages]);
 
     return query;
@@ -57,9 +56,23 @@ export function useImageTokens(projectId?: string) {
     });
 
     useEffect(() => {
-        if (query.data) {
-            setTokens(query.data.data as ImageToken[]);
+        if (!query.data) return;
+
+        // This should be *typed* by the generated client once you regenerate.
+        const tokens = query.data.data as unknown as ImageToken[];
+
+        // Fail-fast if the generated runtime schema stripped `occurrences`.
+        // If you hit this error: backend is ahead of your client — regenerate.
+        if (tokens.length > 0) {
+            const t0: any = tokens[0];
+            if (!("occurrences" in t0)) {
+                throw new Error(
+                    "ImageToken.occurrences missing at runtime. Regenerate the OpenAPI TS client/schema (your client is stale).",
+                );
+            }
         }
+
+        setTokens(tokens);
     }, [query.data, setTokens]);
 
     return query;
@@ -67,9 +80,6 @@ export function useImageTokens(projectId?: string) {
 
 // ─── Mutations ──────────────────────────────────────────────────────
 
-/**
- * Uploads a new image. Call `mutate(caption, file)` to trigger.
- */
 export function useUploadImage(projectId: string) {
     const addImage = useImageStore((s) => s.addImage);
     const updateTokenFulfilled = useImageStore((s) => s.updateTokenFulfilled);
@@ -79,7 +89,6 @@ export function useUploadImage(projectId: string) {
             onSuccess: (response) => {
                 const img = response.data as ProjectImageOut;
                 addImage(img);
-                // Fulfill matching token across the project
                 updateTokenFulfilled(img.caption, img.id);
             },
         },
@@ -92,16 +101,11 @@ export function useUploadImage(projectId: string) {
     return { ...mutation, mutate };
 }
 
-/**
- * Updates an image caption. Call `mutate(newCaption)` to trigger.
- */
 export function useUpdateImage(projectId: string, imageId: string) {
     const updateImage = useImageStore((s) => s.updateImage);
     const images = useImageStore((s) => s.images);
     const updateTokenFulfilled = useImageStore((s) => s.updateTokenFulfilled);
-    const updateTokenUnfulfilled = useImageStore(
-        (s) => s.updateTokenUnfulfilled,
-    );
+    const updateTokenUnfulfilled = useImageStore((s) => s.updateTokenUnfulfilled);
 
     const mutation = useCorporaCommanderApiImagesUpdateImage({
         mutation: {
@@ -111,7 +115,6 @@ export function useUpdateImage(projectId: string, imageId: string) {
 
                 updateImage(updated);
 
-                // If caption changed, move fulfillment to new caption
                 if (prev && prev.caption !== updated.caption) {
                     updateTokenUnfulfilled(prev.caption);
                     updateTokenFulfilled(updated.caption, updated.id);
@@ -127,24 +130,16 @@ export function useUpdateImage(projectId: string, imageId: string) {
     return { ...mutation, mutate };
 }
 
-/**
- * Deletes an image. Call `mutate()` to trigger.
- */
 export function useDeleteImage(projectId: string, imageId: string) {
     const removeImage = useImageStore((s) => s.removeImage);
     const images = useImageStore((s) => s.images);
-    const updateTokenUnfulfilled = useImageStore(
-        (s) => s.updateTokenUnfulfilled,
-    );
+    const updateTokenUnfulfilled = useImageStore((s) => s.updateTokenUnfulfilled);
 
     const mutation = useCorporaCommanderApiImagesDeleteImage({
         mutation: {
             onSuccess: () => {
                 const deleted = images.find((i) => i.id === imageId);
-                if (deleted) {
-                    // Un-fulfill matching token across the project
-                    updateTokenUnfulfilled(deleted.caption);
-                }
+                if (deleted) updateTokenUnfulfilled(deleted.caption);
                 removeImage(imageId);
             },
         },
@@ -157,13 +152,6 @@ export function useDeleteImage(projectId: string, imageId: string) {
     return { ...mutation, mutate };
 }
 
-/**
- * Generates an image via the backend LLM/image provider and attaches it
- * to the project. Call `mutate(caption, prompt?)` to trigger.
- *
- * Uses the defaultProvider if set; otherwise falls back to the first
- * configured provider in PROVIDER_ORDER.
- */
 export function useGenerateImage(projectId: string) {
     const addImage = useImageStore((s) => s.addImage);
     const updateImage = useImageStore((s) => s.updateImage);
@@ -179,11 +167,8 @@ export function useGenerateImage(projectId: string) {
                 const img = response.data as ProjectImageOut;
 
                 const existing = images.find((i) => i.id === img.id);
-                if (existing) {
-                    updateImage(img);
-                } else {
-                    addImage(img);
-                }
+                if (existing) updateImage(img);
+                else addImage(img);
 
                 updateTokenFulfilled(img.caption, img.id);
             },
@@ -195,9 +180,7 @@ export function useGenerateImage(projectId: string) {
         | null => {
         if (defaultProvider) {
             const cfg = configs[defaultProvider];
-            if (cfg) {
-                return { provider: defaultProvider, cfg };
-            }
+            if (cfg) return { provider: defaultProvider, cfg };
         }
 
         for (const p of PROVIDER_ORDER) {
@@ -223,7 +206,6 @@ export function useGenerateImage(projectId: string) {
             projectId,
             data: {
                 provider,
-                // Backend expects a Dict[str, Any], so widen the type here.
                 config: cfg as unknown as Record<string, unknown>,
                 caption,
                 prompt,

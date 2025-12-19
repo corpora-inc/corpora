@@ -12,7 +12,6 @@ export default function ImageGallery() {
 
     return (
         <div>
-            <h3 className="text-lg font-semibold mb-2">Image Gallery</h3>
             <div className="grid grid-cols-3 gap-2">
                 {images.map((img) => (
                     <ImageCard key={img.id} img={img} projectId={projectId} />
@@ -35,7 +34,7 @@ function ImageCard({ img, projectId }: ImageCardProps) {
             <img
                 src={`http://localhost:8877${img.image}`}
                 alt={img.caption}
-                className="w-full h-24 object-cover rounded"
+                className="w-full h-32 object-cover rounded"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                 <button

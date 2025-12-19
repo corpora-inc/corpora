@@ -141,3 +141,7 @@ export * from "./updateFilesBodyDeleteFiles";
 export * from "./xAIModelsRequest";
 export * from "./xAIModelsRequestBaseUrl";
 export * from "./xAIModelsResponse";
+export * from "./imageTokenOccurrence";
+export * from "./imageTokenOccurrenceSectionTitle";
+export * from "./imageTokenOccurrenceSubsectionId";
+export * from "./imageTokenOccurrenceSubsectionTitle";
