@@ -37,6 +37,11 @@ export default function ImageDrawer({ projectId }: ImageDrawerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    tokensQuery.refetch();
+  }, [isOpen, tokensQuery]);
+
   const tokenCount = useImageStore((s) => s.tokens.length);
   const imageCount = useImageStore((s) => s.images.length);
 
