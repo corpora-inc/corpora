@@ -15,6 +15,7 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet"
 import { Button } from "./ui/button"
+import { Input } from "./ui/input"
 
 type Snapshot = {
     id: string
@@ -31,8 +32,10 @@ export default function HistoryPanel() {
     const queryClient = useQueryClient()
     const [snaps, setSnaps] = useState<Snapshot[]>([])
     const [loading, setLoading] = useState(false)
+    const [isOpen, setIsOpen] = useState(false)
+    const [newName, setNewName] = useState("")
 
-    useEffect(() => {
+    const refreshSnapshots = () => {
         if (!project) return
         let mounted = true
         setLoading(true)
@@ -44,34 +47,53 @@ export default function HistoryPanel() {
         return () => {
             mounted = false
         }
-    }, [project])
+    }
+
+    useEffect(() => {
+        if (!isOpen) return
+        const cleanup = refreshSnapshots()
+        return () => {
+            if (cleanup) cleanup()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, project?.id])
 
     if (!project) return null
 
     return (
-        <Sheet>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
                 <Button variant="outline">History</Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80">
+            <SheetContent side="right" className="w-[420px] sm:max-w-[520px]">
                 <SheetHeader>
                     <SheetTitle>History</SheetTitle>
                 </SheetHeader>
 
 
                 <div className="overflow-auto p-2 flex-1 space-y-4">
-                    <Button
-                    className="w-full"
-                        onClick={async () => {
-                            setLoading(true)
-                            await createSnapshot(project.id)
-                            const list = await listSnapshots(project.id)
-                            setSnaps(list as Snapshot[])
-                            setLoading(false)
-                        }}
-                    >
-                        New snapshot
-                    </Button>
+                    <div className="space-y-2">
+                        <Input
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            placeholder="Snapshot name (optional)"
+                        />
+                        <Button
+                            className="w-full"
+                            onClick={async () => {
+                                setLoading(true)
+                                await createSnapshot(project.id, {
+                                    name: newName.trim() || undefined,
+                                })
+                                setNewName("")
+                                const list = await listSnapshots(project.id)
+                                setSnaps(list as Snapshot[])
+                                setLoading(false)
+                            }}
+                        >
+                            New snapshot
+                        </Button>
+                    </div>
                     {loading && <div className="p-2">Loading…</div>}
                     {!loading && snaps.length === 0 && (
                         <p className="p-2 text-sm text-gray-500">No snapshots</p>

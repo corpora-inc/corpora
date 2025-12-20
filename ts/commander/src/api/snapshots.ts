@@ -6,11 +6,14 @@ export async function listSnapshots(projectId: string) {
     return res.json()
 }
 
-export async function createSnapshot(projectId: string) {
+export async function createSnapshot(
+    projectId: string,
+    payload?: { name?: string; description?: string },
+) {
     const res = await fetch(`${base}/projects/${projectId}/snapshots`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify(payload ?? {}),
     })
     if (!res.ok) throw new Error("failed to create snapshot")
     return res.json()
