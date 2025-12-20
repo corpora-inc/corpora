@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ImagePlus } from "lucide-react";
 
 import { useImageStore } from "@/stores/ImageStore";
-import { useProjectImages, useImageTokens } from "@/hooks/useImages";
+import { useProjectImages, useImageTokens, useGenerateImage } from "@/hooks/useImages";
 import ImageTokenList from "./ImageTokenList";
 
 interface ImageDrawerProps {
@@ -40,6 +40,17 @@ export default function ImageDrawer({ projectId }: ImageDrawerProps) {
     tokensQuery.refetch();
   }, [isOpen, tokensQuery]);
 
+  const tokens = useImageStore((s) => s.tokens);
+  const promptHint = useImageStore((s) => s.promptHint);
+  const generate = useGenerateImage(projectId);
+  const missingTokens = tokens.filter((t) => !t.fulfilled);
+  const promptValue = promptHint.trim() || undefined;
+
+  const handleGenerateMissing = () => {
+    if (missingTokens.length === 0) return;
+    missingTokens.forEach((t) => generate.mutate(t.caption, promptValue));
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -54,11 +65,24 @@ export default function ImageDrawer({ projectId }: ImageDrawerProps) {
       </SheetTrigger>
 
       <SheetContent side="right" className="w-full sm:max-w-[80vw] flex flex-col">
-        <SheetHeader className="border-b pb-3">
-          <SheetTitle>Image Manager</SheetTitle>
+        <SheetHeader className="border-b pb-2">
+          <div className="flex items-center gap-3">
+            <SheetTitle>Image Manager</SheetTitle>
+            {missingTokens.length === 0 || (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-xs"
+                onClick={handleGenerateMissing}
+                disabled={generate.isPending}
+              >
+                Generate missing
+              </Button>
+            )}
+          </div>
         </SheetHeader>
 
-        <div className="flex-1 min-h-0 py-4">
+        <div className="flex-1 min-h-0">
           <ImageTokenList projectId={projectId} />
         </div>
       </SheetContent>

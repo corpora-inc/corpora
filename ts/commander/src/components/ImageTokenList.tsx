@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     ArrowUpRight,
     Loader2,
@@ -63,19 +63,10 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
     const [uploadingToken, setUploadingToken] = useState<string | null>(null);
 
-    const missingTokens = useMemo(
-        () => tokens.filter((t) => !t.fulfilled),
-        [tokens],
-    );
     const promptValue = promptHint.trim() || undefined;
 
     const handleGenerate = (caption: string) => {
         generate.mutate(caption, promptValue);
-    };
-
-    const handleGenerateAllMissing = () => {
-        if (missingTokens.length === 0) return;
-        missingTokens.forEach((t) => generate.mutate(t.caption, promptValue));
     };
 
     const goToOccurrence = (occ: ImageTokenOccurrence) => {
@@ -365,41 +356,22 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
 
     return (
         <section className="flex h-full flex-col gap-3">
-            <div className="flex items-center justify-end">
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleGenerateAllMissing}
-                    disabled={missingTokens.length === 0 || generate.isPending}
-                >
-                    <Sparkles className="mr-1 h-3 w-3" />
-                    Generate missing
-                </Button>
-            </div>
-
-            <div className="space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                    <label className="text-xs font-medium text-gray-600">
-                        Optional prompt
-                    </label>
-
-                    <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7"
-                        onClick={clearPromptHint}
-                        disabled={!promptHint.trim()}
-                        title="Clear prompt hint"
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
-                </div>
-
+            <div className="flex items-center gap-2">
                 <Input
                     value={promptHint}
                     onChange={(e) => setPromptHint(e.target.value)}
-                    placeholder="e.g. clean line art, black-and-white, kid-friendly"
+                    placeholder="Optional prompt (e.g. clean line art, black-and-white)"
                 />
+                <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-9 w-9"
+                    onClick={clearPromptHint}
+                    disabled={!promptHint.trim()}
+                    title="Clear prompt hint"
+                >
+                    <X className="h-4 w-4" />
+                </Button>
             </div>
 
             <div className="flex-1 min-h-0 overflow-auto divide-y">
