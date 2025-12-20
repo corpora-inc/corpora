@@ -659,7 +659,8 @@ function ImageDetailModal({
                         variant="destructive"
                         onClick={() => {
                             if (confirm(`Delete image for caption "${image.caption}"?`)) {
-                                del.mutate(undefined, { onSuccess: onClear });
+                                del.mutate();
+                                onClear();
                             }
                         }}
                         disabled={del.isPending}
