@@ -1,12 +1,20 @@
-import { useMemo } from "react";
-import { ArrowUpRight, Sparkles, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowUpRight, Sparkles, Trash2, X } from "lucide-react";
 
 import { useImageStore } from "@/stores/ImageStore";
 import { useProjectStore } from "@/stores/ProjectStore";
+import {
+    corporaCommanderApiSectionGetSection,
+    corporaCommanderApiSubsectionGetSubsection,
+    getCorporaCommanderApiImagesListImageTokensQueryKey,
+    useCorporaCommanderApiSectionUpdateSection,
+    useCorporaCommanderApiSubsectionUpdateSubsection,
+} from "@/api/commander/commander";
 import { useGenerateImage } from "@/hooks/useImages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ImageTokenOccurrence } from "@/api/schemas/imageTokenOccurrence";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ImageTokenListProps {
     projectId: string;
@@ -15,6 +23,10 @@ interface ImageTokenListProps {
 export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     const tokens = useImageStore((s) => s.tokens);
     const setDrawerOpen = useImageStore((s) => s.setDrawerOpen);
+
+    const updateSection = useCorporaCommanderApiSectionUpdateSection();
+    const updateSubsection = useCorporaCommanderApiSubsectionUpdateSubsection();
+    const queryClient = useQueryClient();
 
     const promptHint = useImageStore((s) => s.promptHint);
     const setPromptHint = useImageStore((s) => s.setPromptHint);
@@ -26,6 +38,7 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     );
 
     const generate = useGenerateImage(projectId);
+    const [deletingToken, setDeletingToken] = useState<string | null>(null);
 
     const missingTokens = useMemo(
         () => tokens.filter((t) => !t.fulfilled),
@@ -57,6 +70,100 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
         }
 
         setDrawerOpen(false);
+    };
+
+    const removeImageToken = (value: string | null | undefined, caption: string) => {
+        if (!value) return { text: value ?? "", changed: false };
+        const escaped = caption.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(`\\{\\{IMAGE:\\s*${escaped}\\s*\\}\\}`, "g");
+        const next = value.replace(regex, "");
+        return { text: next, changed: next !== value };
+    };
+
+    const handleDeleteToken = async (caption: string, occurrences?: ImageTokenOccurrence[]) => {
+        if (!occurrences || occurrences.length === 0) return;
+        const ok = window.confirm(
+            `Remove all {{IMAGE: ${caption}}} tokens from their sections/subsections?`,
+        );
+        if (!ok) return;
+
+        const targets = new Map<
+            string,
+            { sectionId: string; subsectionId?: string | null }
+        >();
+        occurrences.forEach((occ) => {
+            const key = occ.subsection_id
+                ? `sub:${occ.subsection_id}`
+                : `sec:${occ.section_id}`;
+            if (!targets.has(key)) {
+                targets.set(key, {
+                    sectionId: occ.section_id,
+                    subsectionId: occ.subsection_id ?? null,
+                });
+            }
+        });
+
+        setDeletingToken(caption);
+        try {
+            for (const target of targets.values()) {
+                if (target.subsectionId) {
+                    const subRes = await corporaCommanderApiSubsectionGetSubsection(
+                        target.subsectionId,
+                    );
+                    const sub = subRes.data;
+                    const content = removeImageToken(sub.content ?? "", caption);
+                    const instructions = removeImageToken(
+                        sub.instructions ?? "",
+                        caption,
+                    );
+
+                    if (!content.changed && !instructions.changed) continue;
+
+                    const payload: {
+                        content?: string;
+                        instructions?: string;
+                    } = {};
+                    if (content.changed) payload.content = content.text;
+                    if (instructions.changed) payload.instructions = instructions.text;
+
+                    await updateSubsection.mutateAsync({
+                        subsectionId: target.subsectionId,
+                        data: payload,
+                    });
+                } else {
+                    const secRes = await corporaCommanderApiSectionGetSection(
+                        target.sectionId,
+                    );
+                    const sec = secRes.data;
+                    const intro = removeImageToken(sec.introduction ?? "", caption);
+                    const instructions = removeImageToken(
+                        sec.instructions ?? "",
+                        caption,
+                    );
+
+                    if (!intro.changed && !instructions.changed) continue;
+
+                    const payload: {
+                        introduction?: string;
+                        instructions?: string;
+                    } = {};
+                    if (intro.changed) payload.introduction = intro.text;
+                    if (instructions.changed) payload.instructions = instructions.text;
+
+                    await updateSection.mutateAsync({
+                        sectionId: target.sectionId,
+                        data: payload,
+                    });
+                }
+            }
+        } finally {
+            setDeletingToken(null);
+            queryClient.invalidateQueries({
+                queryKey: getCorporaCommanderApiImagesListImageTokensQueryKey(
+                    projectId,
+                ),
+            });
+        }
     };
 
     return (
@@ -148,6 +255,19 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                                 <Button
                                     size="icon"
                                     variant="outline"
+                                    onClick={() =>
+                                        handleDeleteToken(token.caption, token.occurrences)
+                                    }
+                                    disabled={deletingToken === token.caption}
+                                    aria-label="Delete token"
+                                    title="Delete token"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+
+                                <Button
+                                    size="icon"
+                                    variant="outline"
                                     disabled={!canGo}
                                     onClick={() => {
                                         if (!occ0) return;
@@ -164,7 +284,7 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                                     className="min-w-[150px] justify-center"
                                     variant={token.fulfilled ? "outline" : "default"}
                                     onClick={() => handleGenerate(token.caption)}
-                                    disabled={generate.isPending}
+                                    disabled={generate.isPending || deletingToken === token.caption}
                                 >
                                     <Sparkles className="mr-1 h-3 w-3" />
                                     {token.fulfilled ? "Regenerate" : "Generate"}
