@@ -3,6 +3,13 @@ import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { LLMEnhanceModal } from "./LLMEnhanceModal"
 
 export type ProjectFields = {
@@ -17,6 +24,7 @@ export type ProjectFields = {
     isbn?: string
     language?: string
     publication_date?: string
+    book_size?: string
 }
 
 export interface ProjectFormProps {
@@ -51,6 +59,7 @@ export function ProjectForm({
     secondaryAction,
 }: ProjectFormProps) {
     const [enhanceOpen, setEnhanceOpen] = useState(false)
+    const bookSizes = ["5x8", "5.25x8", "5.5x8.5", "6x9", "8.5x11"]
 
     const enhanceSchema = {
         title: "str",
@@ -157,6 +166,26 @@ export function ProjectForm({
                         onChange={(e) => onChange({ language: e.target.value })}
                     />
                 </div>
+            </div>
+
+            {/* Book size */}
+            <div>
+                <label className="block text-sm font-medium">Book Size</label>
+                <Select
+                    value={values.book_size ?? "6x9"}
+                    onValueChange={(value) => onChange({ book_size: value })}
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {bookSizes.map((size) => (
+                            <SelectItem key={size} value={size}>
+                                {size}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
 
             {/* Publication date */}

@@ -289,6 +289,7 @@ export const OutlinePanel: FC = () => {
     }
 
     const handleDeleteSection = (sectionId: string) => {
+        if (!confirm("Delete this section?")) return;
         deleteSection.mutate(
             { sectionId },
             {
@@ -308,6 +309,7 @@ export const OutlinePanel: FC = () => {
     }
 
     const handleDeleteSubsection = (subsectionId: string) => {
+        if (!confirm("Delete this subsection?")) return;
         deleteSubsection.mutate(
             { subsectionId },
             {

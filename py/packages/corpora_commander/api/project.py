@@ -9,6 +9,8 @@ from pydantic import BaseModel, field_validator
 
 from corpora_commander.models import Project
 
+BOOK_SIZES = {size for size, _label in Project.BOOK_SIZE_CHOICES}
+
 from .router import router
 
 
@@ -24,6 +26,16 @@ class ProjectIn(BaseModel):
     instructions: Optional[str] = ""
     voice: Optional[str] = ""
     has_images: bool = False  # new field
+    book_size: Optional[str] = "6x9"
+
+    @field_validator("book_size")
+    @classmethod
+    def _validate_book_size(cls, v):
+        if v is None:
+            return v
+        if v not in BOOK_SIZES:
+            raise ValueError(f"Invalid book_size: {v}")
+        return v
 
 
 class ProjectOut(ProjectIn):
@@ -47,6 +59,7 @@ class ProjectUpdate(BaseModel):
     isbn: Optional[str] = None
     language: Optional[str] = None
     publication_date: Optional[date] = None
+    book_size: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -56,6 +69,15 @@ class ProjectUpdate(BaseModel):
         # turn empty‐string or all‐whitespace into None
         if isinstance(v, str) and not v.strip():
             return None
+        return v
+
+    @field_validator("book_size")
+    @classmethod
+    def _validate_book_size(cls, v):
+        if v is None:
+            return v
+        if v not in BOOK_SIZES:
+            raise ValueError(f"Invalid book_size: {v}")
         return v
 
 

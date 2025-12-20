@@ -15,6 +15,13 @@ def project_image_upload_to(instance, filename):
 
 
 class Project(models.Model):
+    BOOK_SIZE_CHOICES = [
+        ("5x8", "5x8"),
+        ("5.25x8", "5.25x8"),
+        ("5.5x8.5", "5.5x8.5"),
+        ("6x9", "6x9"),
+        ("8.5x11", "8.5x11"),
+    ]
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -29,6 +36,11 @@ class Project(models.Model):
     isbn = models.CharField(max_length=32, blank=True)
     language = models.CharField(max_length=10, default="en-US")
     publication_date = models.DateField(null=True, blank=True)
+    book_size = models.CharField(
+        max_length=16,
+        choices=BOOK_SIZE_CHOICES,
+        default="6x9",
+    )
 
     # NEW: do we include images?
     has_images = models.BooleanField(

@@ -21,6 +21,14 @@ from .router import router
 
 logger = logging.getLogger(__name__)
 
+BOOK_SIZE_DIMENSIONS = {
+    "5x8": ("5in", "8in"),
+    "5.25x8": ("5.25in", "8in"),
+    "5.5x8.5": ("5.5in", "8.5in"),
+    "6x9": ("6in", "9in"),
+    "8.5x11": ("8.5in", "11in"),
+}
+
 
 def _render_project_markdown_with_images(project: Project) -> tuple[Path, Path]:
     """
@@ -100,8 +108,15 @@ def export_pdf(request, project_id: UUID):
     build_dir, md_file = _render_project_markdown_with_images(proj)
 
     # 3) Render custom headings (TeX) and cover (TeX)
+    paperwidth, paperheight = BOOK_SIZE_DIMENSIONS.get(
+        proj.book_size or "6x9",
+        BOOK_SIZE_DIMENSIONS["6x9"],
+    )
     (build_dir / "custom_headings.tex").write_text(
-        render_to_string("custom_headings.tex", {}),
+        render_to_string(
+            "custom_headings.tex",
+            {"paperwidth": paperwidth, "paperheight": paperheight},
+        ),
         encoding="utf-8",
     )
     cover_ctx = {
@@ -118,7 +133,10 @@ def export_pdf(request, project_id: UUID):
     )
 
     # 4) Render your one-and-only 6×9 defaults file via Django templates
-    defaults_content = render_to_string("pandoc/6x9.yaml", {})
+    defaults_content = render_to_string(
+        "pandoc/defaults.yaml",
+        {"paperwidth": paperwidth, "paperheight": paperheight},
+    )
     defaults_file = build_dir / "defaults.yaml"
     defaults_file.write_text(defaults_content, encoding="utf-8")
 

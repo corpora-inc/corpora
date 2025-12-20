@@ -20,6 +20,7 @@ export default function NewProjectWizard() {
         isbn: "",
         language: "en-US",
         publication_date: "",
+        book_size: "6x9",
     })
 
     const isPending = createProject.isPending

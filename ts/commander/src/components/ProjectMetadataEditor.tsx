@@ -32,6 +32,7 @@ export function ProjectMetadataEditor({ projectId }: { projectId: string }) {
                 isbn: p.isbn ?? "",
                 language: p.language ?? "",
                 publication_date: p.publication_date ?? "",
+                book_size: p.book_size ?? "6x9",
             })
         }
     }, [projQ.data])
@@ -63,6 +64,7 @@ export function ProjectMetadataEditor({ projectId }: { projectId: string }) {
                     isbn: values!.isbn || undefined,
                     language: values!.language || undefined,
                     publication_date: values!.publication_date || undefined,
+                    book_size: values!.book_size || undefined,
                 },
             },
             {
