@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { useMemo } from "react";
+import { ArrowUpRight, Sparkles, X } from "lucide-react";
 
 import { useImageStore } from "@/stores/ImageStore";
 import { useProjectStore } from "@/stores/ProjectStore";
@@ -16,15 +16,25 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     const tokens = useImageStore((s) => s.tokens);
     const setDrawerOpen = useImageStore((s) => s.setDrawerOpen);
 
+    const promptHint = useImageStore((s) => s.promptHint);
+    const setPromptHint = useImageStore((s) => s.setPromptHint);
+    const clearPromptHint = useImageStore((s) => s.clearPromptHint);
+
     const setSelectedSectionId = useProjectStore((s) => s.setSelectedSectionId);
-    const setSelectedSubsectionId = useProjectStore((s) => s.setSelectedSubsectionId);
+    const setSelectedSubsectionId = useProjectStore(
+        (s) => s.setSelectedSubsectionId,
+    );
 
     const generate = useGenerateImage(projectId);
 
-    const [promptHint, setPromptHint] = useState("");
-
-    const missingTokens = useMemo(() => tokens.filter((t) => !t.fulfilled), [tokens]);
-    const fulfilledTokens = useMemo(() => tokens.filter((t) => t.fulfilled), [tokens]);
+    const missingTokens = useMemo(
+        () => tokens.filter((t) => !t.fulfilled),
+        [tokens],
+    );
+    const fulfilledTokens = useMemo(
+        () => tokens.filter((t) => t.fulfilled),
+        [tokens],
+    );
 
     const promptValue = promptHint.trim() || undefined;
 
@@ -38,7 +48,6 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     };
 
     const goToOccurrence = (occ: ImageTokenOccurrence) => {
-        // IMPORTANT: use the store the editor already listens to
         setSelectedSectionId(occ.section_id);
 
         if (occ.subsection_id) {
@@ -47,7 +56,6 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
             setSelectedSubsectionId(null);
         }
 
-        // Close image drawer
         setDrawerOpen(false);
     };
 
@@ -57,7 +65,8 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                 <div>
                     <h2 className="text-sm font-semibold text-gray-800">Image Tokens</h2>
                     <p className="text-xs text-gray-500">
-                        {tokens.length} total · {fulfilledTokens.length} with images · {missingTokens.length} missing
+                        {tokens.length} total · {fulfilledTokens.length} with images ·{" "}
+                        {missingTokens.length} missing
                     </p>
                 </div>
 
@@ -73,12 +82,30 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
             </div>
 
             <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-600">Optional style / prompt hint</label>
+                <div className="flex items-center justify-between gap-2">
+                    <label className="text-xs font-medium text-gray-600">
+                        Optional style / prompt hint
+                    </label>
+
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2"
+                        onClick={clearPromptHint}
+                        disabled={!promptHint.trim()}
+                        title="Clear prompt hint"
+                    >
+                        <X className="h-4 w-4" />
+                        <span className="ml-1 text-xs">Clear</span>
+                    </Button>
+                </div>
+
                 <Input
                     value={promptHint}
                     onChange={(e) => setPromptHint(e.target.value)}
                     placeholder="e.g. clean line art, black-and-white, kid-friendly"
                 />
+
                 <p className="text-[0.7rem] text-gray-500 mt-0.5">
                     Used together with each IMAGE caption when generating.
                 </p>
@@ -117,7 +144,6 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                                 </div>
                             </div>
 
-                            {/* Fixed action column keeps right-side buttons aligned */}
                             <div className="w-[260px] shrink-0 flex items-center justify-end gap-2">
                                 <Button
                                     size="icon"
