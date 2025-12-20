@@ -1,5 +1,13 @@
-import { useMemo, useState } from "react";
-import { ArrowUpRight, Pencil, Sparkles, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+    ArrowUpRight,
+    Loader2,
+    Pencil,
+    Sparkles,
+    Trash2,
+    UploadCloud,
+    X,
+} from "lucide-react";
 
 import { useImageStore } from "@/stores/ImageStore";
 import { useProjectStore } from "@/stores/ProjectStore";
@@ -15,11 +23,12 @@ import {
     useCorporaCommanderApiSectionUpdateSection,
     useCorporaCommanderApiSubsectionUpdateSubsection,
 } from "@/api/commander/commander";
-import { useGenerateImage } from "@/hooks/useImages";
+import { useDeleteImage, useGenerateImage, useUploadImage } from "@/hooks/useImages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ImageTokenOccurrence } from "@/api/schemas/imageTokenOccurrence";
 import type { ImageToken } from "@/api/schemas/imageToken";
+import type { ProjectImageOut } from "@/api/schemas/projectImageOut";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface ImageTokenListProps {
@@ -28,6 +37,7 @@ interface ImageTokenListProps {
 
 export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     const tokens = useImageStore((s) => s.tokens);
+    const images = useImageStore((s) => s.images);
     const setDrawerOpen = useImageStore((s) => s.setDrawerOpen);
 
     const updateImage = useCorporaCommanderApiImagesUpdateImage();
@@ -45,20 +55,18 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     );
 
     const generate = useGenerateImage(projectId);
+    const upload = useUploadImage(projectId);
     const [deletingToken, setDeletingToken] = useState<string | null>(null);
     const [editingToken, setEditingToken] = useState<string | null>(null);
     const [editingValue, setEditingValue] = useState("");
     const [savingToken, setSavingToken] = useState<string | null>(null);
+    const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+    const [uploadingToken, setUploadingToken] = useState<string | null>(null);
 
     const missingTokens = useMemo(
         () => tokens.filter((t) => !t.fulfilled),
         [tokens],
     );
-    const fulfilledTokens = useMemo(
-        () => tokens.filter((t) => t.fulfilled),
-        [tokens],
-    );
-
     const promptValue = promptHint.trim() || undefined;
 
     const handleGenerate = (caption: string) => {
@@ -80,6 +88,35 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
         }
 
         setDrawerOpen(false);
+    };
+
+    const getImageForToken = (token: ImageToken) => {
+        if (token.image_id) {
+            return images.find((img) => img.id === token.image_id);
+        }
+        return images.find((img) => img.caption === token.caption);
+    };
+
+    useEffect(() => {
+        if (!upload.isPending) setUploadingToken(null);
+    }, [upload.isPending]);
+
+    const triggerUpload = (token: ImageToken, file: File) => {
+        if (getImageForToken(token)) return;
+        setUploadingToken(token.caption);
+        upload.mutate(token.caption, file);
+    };
+
+    const openFilePicker = (token: ImageToken) => {
+        if (getImageForToken(token)) return;
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = () => {
+            const file = input.files?.[0];
+            if (file) triggerUpload(token, file);
+        };
+        input.click();
     };
 
     const replaceImageToken = (
@@ -327,16 +364,8 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     };
 
     return (
-        <section className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-                <div>
-                    <h2 className="text-sm font-semibold text-gray-800">Image Tokens</h2>
-                    <p className="text-xs text-gray-500">
-                        {tokens.length} total · {fulfilledTokens.length} with images ·{" "}
-                        {missingTokens.length} missing
-                    </p>
-                </div>
-
+        <section className="flex h-full flex-col gap-3">
+            <div className="flex items-center justify-end">
                 <Button
                     size="sm"
                     variant="outline"
@@ -351,19 +380,18 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
             <div className="space-y-1">
                 <div className="flex items-center justify-between gap-2">
                     <label className="text-xs font-medium text-gray-600">
-                        Optional style / prompt hint
+                        Optional prompt
                     </label>
 
                     <Button
-                        size="sm"
+                        size="icon"
                         variant="ghost"
-                        className="h-7 px-2"
+                        className="h-7 w-7"
                         onClick={clearPromptHint}
                         disabled={!promptHint.trim()}
                         title="Clear prompt hint"
                     >
                         <X className="h-4 w-4" />
-                        <span className="ml-1 text-xs">Clear</span>
                     </Button>
                 </div>
 
@@ -372,13 +400,9 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                     onChange={(e) => setPromptHint(e.target.value)}
                     placeholder="e.g. clean line art, black-and-white, kid-friendly"
                 />
-
-                <p className="text-[0.7rem] text-gray-500 mt-0.5">
-                    Used together with each IMAGE caption when generating.
-                </p>
             </div>
 
-            <div className="border rounded-md max-h-72 overflow-auto divide-y bg-white">
+            <div className="flex-1 min-h-0 overflow-auto divide-y">
                 {tokens.length === 0 && (
                     <div className="px-3 py-2 text-xs text-gray-500">
                         No <code>{`{{IMAGE: …}}`}</code> tokens found in this project yet.
@@ -389,6 +413,7 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                     const occ0 = token.occurrences?.[0];
                     const canGo = Boolean(occ0);
                     const isEditing = editingToken === token.caption;
+                    const tokenImage = getImageForToken(token);
 
                     const locationLabel = occ0
                         ? occ0.subsection_title
@@ -403,6 +428,47 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
 
                     return (
                         <div key={token.caption} className="flex items-start gap-3 px-3 py-2">
+                            <button
+                                type="button"
+                                className="mt-0.5 h-12 w-12 shrink-0 rounded-md border bg-gray-50 overflow-hidden"
+                                onClick={() => {
+                                    if (tokenImage) setSelectedImageId(tokenImage.id);
+                                }}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    const file = e.dataTransfer.files?.[0];
+                                    if (file) triggerUpload(token, file);
+                                }}
+                                disabled={!tokenImage && uploadingToken === token.caption}
+                                aria-label={
+                                    tokenImage
+                                        ? "Open image detail"
+                                        : "Drop to upload image"
+                                }
+                                title={
+                                    tokenImage
+                                        ? "Open image detail"
+                                        : "Drop to upload image"
+                                }
+                            >
+                                {tokenImage ? (
+                                    <img
+                                        src={`http://localhost:8877${tokenImage.image}`}
+                                        alt={tokenImage.caption}
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : uploadingToken === token.caption ? (
+                                    <div className="h-full w-full flex items-center justify-center text-gray-400">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    </div>
+                                ) : (
+                                    <div className="h-full w-full flex items-center justify-center text-[0.6rem] text-gray-400">
+                                        —
+                                    </div>
+                                )}
+                            </button>
+
                             <div className="flex-1 min-w-0">
                                 {isEditing ? (
                                     <div className="flex flex-col gap-2">
@@ -465,6 +531,27 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                                     </Button>
                                 )}
 
+                                {!tokenImage && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => openFilePicker(token)}
+                                        disabled={
+                                            uploadingToken === token.caption ||
+                                            savingToken === token.caption ||
+                                            isEditing
+                                        }
+                                        title="Upload image for this token"
+                                    >
+                                        {uploadingToken === token.caption ? (
+                                            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                        ) : (
+                                            <UploadCloud className="mr-1 h-3 w-3" />
+                                        )}
+                                        Upload
+                                    </Button>
+                                )}
+
                                 <Button
                                     size="icon"
                                     variant="outline"
@@ -516,6 +603,71 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                     );
                 })}
             </div>
+
+            <ImageDetailModal
+                projectId={projectId}
+                image={images.find((img) => img.id === selectedImageId) ?? null}
+                onClear={() => setSelectedImageId(null)}
+            />
         </section>
+    );
+}
+
+function ImageDetailModal({
+    projectId,
+    image,
+    onClear,
+}: {
+    projectId: string;
+    image: ProjectImageOut | null;
+    onClear: () => void;
+}) {
+    if (!image) return null;
+
+    const del = useDeleteImage(projectId, image.id);
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+            <div className="absolute inset-0" onClick={onClear} />
+            <div className="relative z-10 flex h-[88vh] w-[92vw] max-w-5xl flex-col rounded-2xl bg-white shadow-2xl">
+                <div className="flex items-center justify-between border-b px-5 py-3">
+                    <div className="min-w-0">
+                        <div className="text-sm font-semibold text-gray-900 truncate">
+                            Image Detail
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                            {image.caption}
+                        </div>
+                    </div>
+                    <Button size="icon" variant="ghost" onClick={onClear}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center bg-gray-50 overflow-auto">
+                    <img
+                        src={`http://localhost:8877${image.image}`}
+                        alt={image.caption}
+                        className="max-h-none max-w-none object-contain"
+                    />
+                </div>
+
+                <div className="flex items-center justify-between border-t px-5 py-4">
+                    <div />
+                    <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                            if (confirm(`Delete image for caption "${image.caption}"?`)) {
+                                del.mutate(undefined, { onSuccess: onClear });
+                            }
+                        }}
+                        disabled={del.isPending}
+                    >
+                        {del.isPending ? "Deleting…" : "Delete image"}
+                    </Button>
+                </div>
+            </div>
+        </div>
     );
 }
