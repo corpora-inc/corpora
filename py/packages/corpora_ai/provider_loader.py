@@ -59,18 +59,21 @@ def load_llm_provider(provider_name="", **kwargs) -> Optional[LLMBaseInterface]:
         return LocalClient(**kwargs)
 
     if provider_name == "claude":
+        print("Loading Claude provider...")
         api_key = kwargs.pop("api_key", None)
-        base_url = kwargs.pop("base_url", None)
+        # base_url = kwargs.pop("base_url", None)
         if not api_key:
             api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
+            print("ERROR: ANTHROPIC_API_KEY environment variable is not set.")
             raise ValueError(
                 "ANTHROPIC_API_KEY environment variable is not set.",
             )
+        print("returning Claude client...")
         return ClaudeClient(
             api_key=api_key,
-            base_url=base_url or "https://api.anthropic.com",
-            **kwargs,
+            # base_url=base_url or "https://api.anthropic.com",
+            # **kwargs,
         )
 
     # Placeholder for additional providers (e.g., Cohere)

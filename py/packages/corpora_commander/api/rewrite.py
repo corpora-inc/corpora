@@ -5,7 +5,7 @@ from uuid import UUID
 from django.shortcuts import get_object_or_404
 from pydantic import BaseModel
 
-from corpora_commander.models import Project
+from corpora_commander.models import Project, Section, Subsection
 from corpora_commander.prompts.builder import (
     build_rewrite_section_messages,
     build_rewrite_subsection_messages,
@@ -96,3 +96,77 @@ def rewrite_subsections(request, project_id: UUID, payload: RewriteRequest):
             results.append(rewrite)
 
     return results
+
+
+@router.post(
+    "/projects/{project_id}/rewrite/sections/{section_id}",
+    response=RewriteSection,
+)
+def rewrite_single_section(
+    request,
+    project_id: UUID,
+    section_id: UUID,
+    payload: RewriteRequest,
+):
+    logger.info(
+        "Rewriting single section %s for project %s",
+        section_id,
+        project_id,
+    )
+
+    proj: Project = get_object_or_404(Project, id=project_id)
+    section: Section = get_object_or_404(
+        Section,
+        id=section_id,
+        project=proj,
+    )
+
+    llm = build_llm(payload.provider, payload.config)
+
+    messages = build_rewrite_section_messages(
+        project=proj,
+        section=section,
+        user_prompt=payload.prompt,
+        schema_json=RewriteSection.model_json_schema(),
+    )
+    rewrite = llm.get_data_completion(messages, RewriteSection)
+
+    return rewrite
+
+
+@router.post(
+    "/projects/{project_id}/rewrite/subsections/{subsection_id}",
+    response=RewriteSubsection,
+)
+def rewrite_single_subsection(
+    request,
+    project_id: UUID,
+    subsection_id: UUID,
+    payload: RewriteRequest,
+):
+    logger.info(
+        "Rewriting single subsection %s for project %s",
+        subsection_id,
+        project_id,
+    )
+
+    proj: Project = get_object_or_404(Project, id=project_id)
+    subsection: Subsection = get_object_or_404(
+        Subsection,
+        id=subsection_id,
+        section__project=proj,
+    )
+    section: Section = subsection.section
+
+    llm = build_llm(payload.provider, payload.config)
+
+    messages = build_rewrite_subsection_messages(
+        project=proj,
+        section=section,
+        sub=subsection,
+        user_prompt=payload.prompt,
+        schema_json=RewriteSubsection.model_json_schema(),
+    )
+    rewrite = llm.get_data_completion(messages, RewriteSubsection)
+
+    return rewrite

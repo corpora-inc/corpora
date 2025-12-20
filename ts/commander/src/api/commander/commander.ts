@@ -25,12 +25,15 @@ import * as axios from "axios";
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 
 import type {
+  ClaudeModelsRequest,
+  ClaudeModelsResponse,
   CompletionRequest,
   CompletionResponse,
   CorporaCommanderApiImagesCreateImageBody,
   CorporaCommanderApiLlmGenericDataCompletion200,
   DraftBookRequest,
   DraftBookResponse,
+  GenerateProjectImageIn,
   GenericCompletionRequest,
   ImageToken,
   LMStudioPing,
@@ -49,6 +52,8 @@ import type {
   SectionOut,
   SectionUpdate,
   SectionWithSubsections,
+  SnapshotIn,
+  SnapshotOut,
   SubsectionIn,
   SubsectionOut,
   SubsectionUpdate,
@@ -429,6 +434,100 @@ export const useCorporaCommanderApiOnboardingListXaiModels = <
 > => {
   const mutationOptions =
     getCorporaCommanderApiOnboardingListXaiModelsMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Fetch the list of available Claude model IDs via GET /v1/models.
+ * @summary List Claude Models
+ */
+export const corporaCommanderApiOnboardingListClaudeModels = (
+  claudeModelsRequest: ClaudeModelsRequest,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<ClaudeModelsResponse>> => {
+  return axios.default.post(
+    `/api/commander/claude/models`,
+    claudeModelsRequest,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiOnboardingListClaudeModelsMutationOptions =
+  <TError = AxiosError<unknown>, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiOnboardingListClaudeModels>
+      >,
+      TError,
+      { data: ClaudeModelsRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  }): UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiOnboardingListClaudeModels>>,
+    TError,
+    { data: ClaudeModelsRequest },
+    TContext
+  > => {
+    const mutationKey = ["corporaCommanderApiOnboardingListClaudeModels"];
+    const { mutation: mutationOptions, axios: axiosOptions } = options
+      ? options.mutation &&
+        "mutationKey" in options.mutation &&
+        options.mutation.mutationKey
+        ? options
+        : { ...options, mutation: { ...options.mutation, mutationKey } }
+      : { mutation: { mutationKey }, axios: undefined };
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiOnboardingListClaudeModels>
+      >,
+      { data: ClaudeModelsRequest }
+    > = (props) => {
+      const { data } = props ?? {};
+
+      return corporaCommanderApiOnboardingListClaudeModels(data, axiosOptions);
+    };
+
+    return { mutationFn, ...mutationOptions };
+  };
+
+export type CorporaCommanderApiOnboardingListClaudeModelsMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiOnboardingListClaudeModels>>
+  >;
+export type CorporaCommanderApiOnboardingListClaudeModelsMutationBody =
+  ClaudeModelsRequest;
+export type CorporaCommanderApiOnboardingListClaudeModelsMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary List Claude Models
+ */
+export const useCorporaCommanderApiOnboardingListClaudeModels = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiOnboardingListClaudeModels>
+      >,
+      TError,
+      { data: ClaudeModelsRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiOnboardingListClaudeModels>>,
+  TError,
+  { data: ClaudeModelsRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiOnboardingListClaudeModelsMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
@@ -2798,6 +2897,189 @@ export function useCorporaCommanderApiExportExportPdf<
 }
 
 /**
+ * Build and return an EPUB for the given project.
+
+Uses:
+- templates/book.md        → source markdown
+- templates/epub.css       → styling for the EPUB
+ * @summary Export Epub
+ */
+export const corporaCommanderApiExportExportEpub = (
+  projectId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<void>> => {
+  return axios.default.get(
+    `/api/commander/projects/${projectId}/export/epub`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiExportExportEpubQueryKey = (
+  projectId: string,
+) => {
+  return [`/api/commander/projects/${projectId}/export/epub`] as const;
+};
+
+export const getCorporaCommanderApiExportExportEpubQueryOptions = <
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCorporaCommanderApiExportExportEpubQueryKey(projectId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>
+  > = ({ signal }) =>
+    corporaCommanderApiExportExportEpub(projectId, {
+      signal,
+      ...axiosOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!projectId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CorporaCommanderApiExportExportEpubQueryResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>
+>;
+export type CorporaCommanderApiExportExportEpubQueryError =
+  AxiosError<unknown>;
+
+export function useCorporaCommanderApiExportExportEpub<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiExportExportEpub<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiExportExportEpub<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Export Epub
+ */
+
+export function useCorporaCommanderApiExportExportEpub<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiExportExportEpub>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCorporaCommanderApiExportExportEpubQueryOptions(
+    projectId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
  * @summary Rewrite Sections
  */
 export const corporaCommanderApiRewriteRewriteSections = (
@@ -2982,6 +3264,214 @@ export const useCorporaCommanderApiRewriteRewriteSubsections = <
 > => {
   const mutationOptions =
     getCorporaCommanderApiRewriteRewriteSubsectionsMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Rewrite Single Section
+ */
+export const corporaCommanderApiRewriteRewriteSingleSection = (
+  projectId: string,
+  sectionId: string,
+  rewriteRequest: RewriteRequest,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<RewriteSection>> => {
+  return axios.default.post(
+    `/api/commander/projects/${projectId}/rewrite/sections/${sectionId}`,
+    rewriteRequest,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiRewriteRewriteSingleSectionMutationOptions =
+  <TError = AxiosError<unknown>, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSection>
+      >,
+      TError,
+      { projectId: string; sectionId: string; data: RewriteRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  }): UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSection>>,
+    TError,
+    { projectId: string; sectionId: string; data: RewriteRequest },
+    TContext
+  > => {
+    const mutationKey = ["corporaCommanderApiRewriteRewriteSingleSection"];
+    const { mutation: mutationOptions, axios: axiosOptions } = options
+      ? options.mutation &&
+        "mutationKey" in options.mutation &&
+        options.mutation.mutationKey
+        ? options
+        : { ...options, mutation: { ...options.mutation, mutationKey } }
+      : { mutation: { mutationKey }, axios: undefined };
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSection>
+      >,
+      { projectId: string; sectionId: string; data: RewriteRequest }
+    > = (props) => {
+      const { projectId, sectionId, data } = props ?? {};
+
+      return corporaCommanderApiRewriteRewriteSingleSection(
+        projectId,
+        sectionId,
+        data,
+        axiosOptions,
+      );
+    };
+
+    return { mutationFn, ...mutationOptions };
+  };
+
+export type CorporaCommanderApiRewriteRewriteSingleSectionMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSection>>
+  >;
+export type CorporaCommanderApiRewriteRewriteSingleSectionMutationBody =
+  RewriteRequest;
+export type CorporaCommanderApiRewriteRewriteSingleSectionMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Rewrite Single Section
+ */
+export const useCorporaCommanderApiRewriteRewriteSingleSection = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSection>
+      >,
+      TError,
+      { projectId: string; sectionId: string; data: RewriteRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSection>>,
+  TError,
+  { projectId: string; sectionId: string; data: RewriteRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiRewriteRewriteSingleSectionMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Rewrite Single Subsection
+ */
+export const corporaCommanderApiRewriteRewriteSingleSubsection = (
+  projectId: string,
+  subsectionId: string,
+  rewriteRequest: RewriteRequest,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<RewriteSubsection>> => {
+  return axios.default.post(
+    `/api/commander/projects/${projectId}/rewrite/subsections/${subsectionId}`,
+    rewriteRequest,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiRewriteRewriteSingleSubsectionMutationOptions =
+  <TError = AxiosError<unknown>, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSubsection>
+      >,
+      TError,
+      { projectId: string; subsectionId: string; data: RewriteRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  }): UseMutationOptions<
+    Awaited<
+      ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSubsection>
+    >,
+    TError,
+    { projectId: string; subsectionId: string; data: RewriteRequest },
+    TContext
+  > => {
+    const mutationKey = ["corporaCommanderApiRewriteRewriteSingleSubsection"];
+    const { mutation: mutationOptions, axios: axiosOptions } = options
+      ? options.mutation &&
+        "mutationKey" in options.mutation &&
+        options.mutation.mutationKey
+        ? options
+        : { ...options, mutation: { ...options.mutation, mutationKey } }
+      : { mutation: { mutationKey }, axios: undefined };
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSubsection>
+      >,
+      { projectId: string; subsectionId: string; data: RewriteRequest }
+    > = (props) => {
+      const { projectId, subsectionId, data } = props ?? {};
+
+      return corporaCommanderApiRewriteRewriteSingleSubsection(
+        projectId,
+        subsectionId,
+        data,
+        axiosOptions,
+      );
+    };
+
+    return { mutationFn, ...mutationOptions };
+  };
+
+export type CorporaCommanderApiRewriteRewriteSingleSubsectionMutationResult =
+  NonNullable<
+    Awaited<
+      ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSubsection>
+    >
+  >;
+export type CorporaCommanderApiRewriteRewriteSingleSubsectionMutationBody =
+  RewriteRequest;
+export type CorporaCommanderApiRewriteRewriteSingleSubsectionMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Rewrite Single Subsection
+ */
+export const useCorporaCommanderApiRewriteRewriteSingleSubsection = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSubsection>
+      >,
+      TError,
+      { projectId: string; subsectionId: string; data: RewriteRequest },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<
+    ReturnType<typeof corporaCommanderApiRewriteRewriteSingleSubsection>
+  >,
+  TError,
+  { projectId: string; subsectionId: string; data: RewriteRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiRewriteRewriteSingleSubsectionMutationOptions(
+      options,
+    );
 
   return useMutation(mutationOptions, queryClient);
 };
@@ -3250,6 +3740,108 @@ export const useCorporaCommanderApiImagesCreateImage = <
 > => {
   const mutationOptions =
     getCorporaCommanderApiImagesCreateImageMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Generate an image via the configured LLM/image provider and attach it
+to this project as a ProjectImage, keyed by caption.
+
+Designed to plug directly into the {{IMAGE: caption}} token system.
+ * @summary Generate Project Image
+ */
+export const corporaCommanderApiImagesGenerateProjectImage = (
+  projectId: string,
+  generateProjectImageIn: GenerateProjectImageIn,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<ProjectImageOut>> => {
+  return axios.default.post(
+    `/api/commander/projects/${projectId}/images/generate`,
+    generateProjectImageIn,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiImagesGenerateProjectImageMutationOptions =
+  <TError = AxiosError<unknown>, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>
+      >,
+      TError,
+      { projectId: string; data: GenerateProjectImageIn },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  }): UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>>,
+    TError,
+    { projectId: string; data: GenerateProjectImageIn },
+    TContext
+  > => {
+    const mutationKey = ["corporaCommanderApiImagesGenerateProjectImage"];
+    const { mutation: mutationOptions, axios: axiosOptions } = options
+      ? options.mutation &&
+        "mutationKey" in options.mutation &&
+        options.mutation.mutationKey
+        ? options
+        : { ...options, mutation: { ...options.mutation, mutationKey } }
+      : { mutation: { mutationKey }, axios: undefined };
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>
+      >,
+      { projectId: string; data: GenerateProjectImageIn }
+    > = (props) => {
+      const { projectId, data } = props ?? {};
+
+      return corporaCommanderApiImagesGenerateProjectImage(
+        projectId,
+        data,
+        axiosOptions,
+      );
+    };
+
+    return { mutationFn, ...mutationOptions };
+  };
+
+export type CorporaCommanderApiImagesGenerateProjectImageMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>>
+  >;
+export type CorporaCommanderApiImagesGenerateProjectImageMutationBody =
+  GenerateProjectImageIn;
+export type CorporaCommanderApiImagesGenerateProjectImageMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Generate Project Image
+ */
+export const useCorporaCommanderApiImagesGenerateProjectImage = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>
+      >,
+      TError,
+      { projectId: string; data: GenerateProjectImageIn },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiImagesGenerateProjectImage>>,
+  TError,
+  { projectId: string; data: GenerateProjectImageIn },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiImagesGenerateProjectImageMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
@@ -3801,3 +4393,628 @@ export function useCorporaCommanderApiImagesListImageTokens<
 
   return query;
 }
+
+/**
+ * @summary List Snapshots
+ */
+export const corporaCommanderApiSnapshotListSnapshots = (
+  projectId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<SnapshotOut[]>> => {
+  return axios.default.get(
+    `/api/commander/projects/${projectId}/snapshots`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiSnapshotListSnapshotsQueryKey = (
+  projectId: string,
+) => {
+  return [`/api/commander/projects/${projectId}/snapshots`] as const;
+};
+
+export const getCorporaCommanderApiSnapshotListSnapshotsQueryOptions = <
+  TData = Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCorporaCommanderApiSnapshotListSnapshotsQueryKey(projectId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>
+  > = ({ signal }) =>
+    corporaCommanderApiSnapshotListSnapshots(projectId, {
+      signal,
+      ...axiosOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!projectId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CorporaCommanderApiSnapshotListSnapshotsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>
+>;
+export type CorporaCommanderApiSnapshotListSnapshotsQueryError =
+  AxiosError<unknown>;
+
+export function useCorporaCommanderApiSnapshotListSnapshots<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiSnapshotListSnapshots<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiSnapshotListSnapshots<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List Snapshots
+ */
+
+export function useCorporaCommanderApiSnapshotListSnapshots<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+  TError = AxiosError<unknown>,
+>(
+  projectId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSnapshotListSnapshots>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCorporaCommanderApiSnapshotListSnapshotsQueryOptions(
+    projectId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Create Snapshot
+ */
+export const corporaCommanderApiSnapshotCreateSnapshot = (
+  projectId: string,
+  snapshotIn: SnapshotIn,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<SnapshotOut>> => {
+  return axios.default.post(
+    `/api/commander/projects/${projectId}/snapshots`,
+    snapshotIn,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiSnapshotCreateSnapshotMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotCreateSnapshot>>,
+    TError,
+    { projectId: string; data: SnapshotIn },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiSnapshotCreateSnapshot>>,
+  TError,
+  { projectId: string; data: SnapshotIn },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiSnapshotCreateSnapshot"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotCreateSnapshot>>,
+    { projectId: string; data: SnapshotIn }
+  > = (props) => {
+    const { projectId, data } = props ?? {};
+
+    return corporaCommanderApiSnapshotCreateSnapshot(
+      projectId,
+      data,
+      axiosOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiSnapshotCreateSnapshotMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotCreateSnapshot>>
+  >;
+export type CorporaCommanderApiSnapshotCreateSnapshotMutationBody = SnapshotIn;
+export type CorporaCommanderApiSnapshotCreateSnapshotMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Create Snapshot
+ */
+export const useCorporaCommanderApiSnapshotCreateSnapshot = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiSnapshotCreateSnapshot>>,
+      TError,
+      { projectId: string; data: SnapshotIn },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiSnapshotCreateSnapshot>>,
+  TError,
+  { projectId: string; data: SnapshotIn },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiSnapshotCreateSnapshotMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Get Snapshot
+ */
+export const corporaCommanderApiSnapshotGetSnapshot = (
+  snapshotId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<SnapshotOut>> => {
+  return axios.default.get(`/api/commander/snapshots/${snapshotId}`, options);
+};
+
+export const getCorporaCommanderApiSnapshotGetSnapshotQueryKey = (
+  snapshotId: string,
+) => {
+  return [`/api/commander/snapshots/${snapshotId}`] as const;
+};
+
+export const getCorporaCommanderApiSnapshotGetSnapshotQueryOptions = <
+  TData = Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+  TError = AxiosError<unknown>,
+>(
+  snapshotId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCorporaCommanderApiSnapshotGetSnapshotQueryKey(snapshotId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>
+  > = ({ signal }) =>
+    corporaCommanderApiSnapshotGetSnapshot(snapshotId, {
+      signal,
+      ...axiosOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!snapshotId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CorporaCommanderApiSnapshotGetSnapshotQueryResult = NonNullable<
+  Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>
+>;
+export type CorporaCommanderApiSnapshotGetSnapshotQueryError =
+  AxiosError<unknown>;
+
+export function useCorporaCommanderApiSnapshotGetSnapshot<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+  TError = AxiosError<unknown>,
+>(
+  snapshotId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiSnapshotGetSnapshot<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+  TError = AxiosError<unknown>,
+>(
+  snapshotId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+          TError,
+          Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>
+        >,
+        "initialData"
+      >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useCorporaCommanderApiSnapshotGetSnapshot<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+  TError = AxiosError<unknown>,
+>(
+  snapshotId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get Snapshot
+ */
+
+export function useCorporaCommanderApiSnapshotGetSnapshot<
+  TData = Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+  TError = AxiosError<unknown>,
+>(
+  snapshotId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof corporaCommanderApiSnapshotGetSnapshot>>,
+        TError,
+        TData
+      >
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCorporaCommanderApiSnapshotGetSnapshotQueryOptions(
+    snapshotId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Delete Snapshot
+ */
+export const corporaCommanderApiSnapshotDeleteSnapshot = (
+  snapshotId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<void>> => {
+  return axios.default.delete(
+    `/api/commander/snapshots/${snapshotId}`,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiSnapshotDeleteSnapshotMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotDeleteSnapshot>>,
+    TError,
+    { snapshotId: string },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiSnapshotDeleteSnapshot>>,
+  TError,
+  { snapshotId: string },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiSnapshotDeleteSnapshot"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotDeleteSnapshot>>,
+    { snapshotId: string }
+  > = (props) => {
+    const { snapshotId } = props ?? {};
+
+    return corporaCommanderApiSnapshotDeleteSnapshot(snapshotId, axiosOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiSnapshotDeleteSnapshotMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotDeleteSnapshot>>
+  >;
+
+export type CorporaCommanderApiSnapshotDeleteSnapshotMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Delete Snapshot
+ */
+export const useCorporaCommanderApiSnapshotDeleteSnapshot = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiSnapshotDeleteSnapshot>>,
+      TError,
+      { snapshotId: string },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiSnapshotDeleteSnapshot>>,
+  TError,
+  { snapshotId: string },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiSnapshotDeleteSnapshotMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Restore Snapshot
+ */
+export const corporaCommanderApiSnapshotRestoreSnapshot = (
+  snapshotId: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<SnapshotOut>> => {
+  return axios.default.post(
+    `/api/commander/snapshots/${snapshotId}/restore`,
+    undefined,
+    options,
+  );
+};
+
+export const getCorporaCommanderApiSnapshotRestoreSnapshotMutationOptions = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotRestoreSnapshot>>,
+    TError,
+    { snapshotId: string },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof corporaCommanderApiSnapshotRestoreSnapshot>>,
+  TError,
+  { snapshotId: string },
+  TContext
+> => {
+  const mutationKey = ["corporaCommanderApiSnapshotRestoreSnapshot"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotRestoreSnapshot>>,
+    { snapshotId: string }
+  > = (props) => {
+    const { snapshotId } = props ?? {};
+
+    return corporaCommanderApiSnapshotRestoreSnapshot(
+      snapshotId,
+      axiosOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CorporaCommanderApiSnapshotRestoreSnapshotMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof corporaCommanderApiSnapshotRestoreSnapshot>>
+  >;
+
+export type CorporaCommanderApiSnapshotRestoreSnapshotMutationError =
+  AxiosError<unknown>;
+
+/**
+ * @summary Restore Snapshot
+ */
+export const useCorporaCommanderApiSnapshotRestoreSnapshot = <
+  TError = AxiosError<unknown>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof corporaCommanderApiSnapshotRestoreSnapshot>>,
+      TError,
+      { snapshotId: string },
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof corporaCommanderApiSnapshotRestoreSnapshot>>,
+  TError,
+  { snapshotId: string },
+  TContext
+> => {
+  const mutationOptions =
+    getCorporaCommanderApiSnapshotRestoreSnapshotMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};

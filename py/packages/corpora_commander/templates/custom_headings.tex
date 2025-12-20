@@ -24,36 +24,24 @@
 \setlength{\afterchapskip}{2em}
 \setsecnumdepth{none}
 
-
 % ==== Force format for \section*{Contents} ====
 \usepackage{titlesec}
 
 % ==== Redefine \tableofcontents with a small “Contents” header ====
 \makeatletter
 \renewcommand\tableofcontents{%
-  % \cleardoublepage                          % start on a fresh page (book class)
+  % \cleardoublepage
   \begingroup
-    \setlength{\parskip}{1pt}%              % no extra space between entries
-    \setlength{\parindent}{0pt}%            % no indentation
-    \vspace{5em}                        % space before the title
+    \setlength{\parskip}{1pt}%
+    \setlength{\parindent}{0pt}%
+    \vspace{3em}%
     {\LARGE \bfseries Contents\par}
-    \vspace{2em}
-    \@starttoc{toc}%                        % now dump the actual ToC
+    \vspace{0.5em}
+    \@starttoc{toc}%
   \endgroup
 }
 \makeatother
 
-% tighten up 2/3
-% Tighten spacing for section and subsection headings
-% \titlespacing*{<command>}{<left>}{<before-sep>}{<after-sep>}
-%   <left>: left margin
-%   <before-sep>: space above heading
-%   <after-sep>: space below heading
-% Tighten spacing for section and subsection headings
-% \titlespacing*{\section}
-%   {0pt}{1.2em plus 0.6em minus 0.4em}{0.6em plus 0.3em minus 0.2em}
-% \titlespacing*{\subsection}
-%   {0pt}{1.0em plus 0.5em minus 0.3em}{0.5em plus 0.2em minus 0.2em}
 % ##
 \titlespacing*{\section}{0pt}{0.8em}{0.1em}
 % ###
@@ -71,28 +59,19 @@
   {\normalfont\normalsize\bfseries\itshape}{\thesubparagraph}{1em}{}
 \titlespacing*{\subparagraph}{0pt}{0.2em}{0em}
 
-
-% ---------------------------------------------
-% Line Spacing and Readability
-% ---------------------------------------------
-% Increase line spacing for young learners (uncomment to activate)
-% \usepackage{setspace}
-% \setstretch{1.2}
-
 % ---------------------------------------------
 % Header and Footer Styling
 % ---------------------------------------------
 \usepackage{fancyhdr}
 \pagestyle{fancy}
-\fancyhf{}                     % Clear header/footer
-\fancyfoot[LE,RO]{\thepage}   % Page numbers: left on even, right on odd
+\fancyhf{}
+\fancyfoot[LE,RO]{\thepage}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
 
 % ---------------------------------------------
 % Customized Horizontal Rules
 % ---------------------------------------------
-% Create a thinner, centered horizontal rule
 \newcommand{\myhrule}{%
   \par\vspace*{1em}%
   {\centering\rule{0.6\linewidth}{0.4pt}\par}%
@@ -102,51 +81,31 @@
 % ---------------------------------------------
 % List and Bullet Customization
 % ---------------------------------------------
+\usepackage{enumitem}
+\usepackage{amssymb} % for \triangleright (reliable glyphs)
+
 \makeatletter
-% Level 2 bullet: small open bullet
-\renewcommand\labelitemii{\textopenbullet}
-% Level 3 bullet: circle
-\renewcommand\labelitemiii{\circ}
+% IMPORTANT: avoid \textopenbullet (often tofu under XeLaTeX/fontspec).
+% Use math glyphs for nested bullets so they always render.
+\renewcommand\labelitemii{\ensuremath{\circ}}
+\renewcommand\labelitemiii{\ensuremath{\triangleright}}
 \makeatother
 
-% % Memoir's own list spacing controls
-% \setbeforeitemize{0.6em}   % space before the list
-% \setafteritemize{0.6em}    % space after the list
-% \setitemize{1}{1.5em}{1em}{0.5em}  % 1st level: indent, label width, label sep
-% \setitemize{2}{1.3em}{1em}{0.5em}  % 2nd level, etc.
-% % Patch itemize for inter-item spacing (hacky, but effective)
-% \let\olditem\item
-% \renewcommand{\item}{\olditem\vspace{0.25em}}  % space between items
+% Patch \item ONCE (prevents recursion if header is included twice)
+\makeatletter
+\@ifundefined{corpora@olditem}{%
+  \let\corpora@olditem\item
+  \renewcommand{\item}{\corpora@olditem\vspace{0.191em}}%
+}{}
+\makeatother
 
-% % Memoir list spacing (not enumitem!)
-% \setbeforeitemize{0.5em}
-% \setafteritemize{0.5em}
-% % Inter-item spacing patch (affects all itemize)
-% \let\olditem\item
-% \renewcommand{\item}{\olditem\vspace{0.25em}}
-\usepackage{enumitem}
-\let\olditem\item
-\renewcommand{\item}{\olditem\vspace{0.191em}}
 \setlist[itemize,enumerate]{topsep=-0.5em, leftmargin=1.5em, after=\vspace{0.25em}}
-
-
 
 % ---------------------------------------------
 % Block Quote Styling
 % ---------------------------------------------
-\usepackage{mdframed}
 \usepackage{xcolor}
-
-% \renewenvironment{quote}
-%   {\begin{mdframed}[
-%     backgroundcolor=gray!10,
-%     linecolor=gray!60,
-%     leftline=true, rightline=false, topline=false, bottomline=false,
-%     innerleftmargin=1em, innerrightmargin=1.618em,
-%     innertopmargin=1em, innerbottommargin=1em,
-%     skipabove=1.618em, skipbelow=0em,
-%   ]}
-%   {\end{mdframed}}
+\usepackage{mdframed}
 
 \renewenvironment{quote}
   {\begin{samepage}
@@ -160,11 +119,9 @@
    ]}
   {\end{mdframed}\vspace{-0.5em}\end{samepage}}
 
-
 \usepackage{caption}
 \captionsetup[figure]{labelformat=empty}
 \captionsetup[table]{labelformat=empty}
-
 
 % ---------------------------------------------
 % Plotting and Graphics
@@ -173,32 +130,36 @@
 \pgfplotsset{width=10cm,compat=1.9}
 \usepgfplotslibrary{statistics}
 
-% Optionally define a centered TikZ environment
-% \newenvironment{centeredtikz}
-%   {\par\vspace{2em}\begin{center}\begin{tikzpicture}}
-%   {\end{tikzpicture}\end{center}\par\vspace{2em}}
-
-% % do chinese and mixed fonts
-% \usepackage[CJKspace=false]{xeCJK}
-% \setmainfont{Noto Serif}
-% \setCJKmainfont{Noto Sans CJK SC}
-% \setCJKfamilyfont{cjk}{Noto Sans CJK SC}
-% \newcommand{\chinese}[1]{\CJKfamily{cjk}#1}
-
-% \usepackage[CJKspace=false]{xeCJK}         % Load xeCJK, disable CJK spacing
-% \setmainfont{Noto Serif}                   % Main font for Latin text
-% \setCJKmainfont{Noto Sans CJK SC}          % Font for Chinese text
-% \setCJKfamilyfont{cjk}{Noto Sans CJK SC}   % Define a CJK family for switching
-% \setCJKpunctfont{Noto Serif}               % Use Noto Serif for punctuation
-% \newcommand{\chinese}[1]{\CJKfamily{cjk}#1} % Command for Chinese text
-
+% ---------------------------------------------
+% Fonts (Latin + CJK) — keep your working setup
+% ---------------------------------------------
+\usepackage{fontspec}
 \usepackage{xeCJK}
+
 \setmainfont{Noto Serif}
 \setCJKmainfont{Noto Sans CJK SC}
+
 \AtBeginDocument{%
-  \XeTeXcharclass`‘=0  % Left single quotation mark (U+2018)
-  \XeTeXcharclass`’=0  % Right single quotation mark / apostrophe (U+2019)
-  \XeTeXcharclass`“=0  % Left double quotation mark (U+201C)
-  \XeTeXcharclass`”=0  % Right double quotation mark (U+201D)
-  \XeTeXcharclass`…=0  % Ellipsis (U+2026)
+  \XeTeXcharclass`‘=0
+  \XeTeXcharclass`’=0
+  \XeTeXcharclass`“=0
+  \XeTeXcharclass`”=0
+  \XeTeXcharclass`…=0
 }
+
+% ---------------------------------------------
+% Unicode normalization (NO ucharclasses)
+% ---------------------------------------------
+\usepackage{newunicodechar}
+\newunicodechar{÷}{\ensuremath{\div}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{−}{-}
+\newunicodechar{≤}{\ensuremath{\le}}
+\newunicodechar{≥}{\ensuremath{\ge}}
+\newunicodechar{≠}{\ensuremath{\ne}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+\newunicodechar{…}{\ldots}

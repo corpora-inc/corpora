@@ -27,11 +27,11 @@ class ClaudeClient(LLMBaseInterface):
         self,
         api_key: str,
         completion_model: str = "claude-opus-4-1",
-        default_max_tokens: int = 2048,
+        # default_max_tokens: int = 2048,
     ):
         self.client = Anthropic(api_key=api_key)
         self.completion_model = completion_model
-        self.default_max_tokens = default_max_tokens
+        # self.default_max_tokens = default_max_tokens
 
     # ---------- Public API ----------
 
@@ -44,7 +44,7 @@ class ClaudeClient(LLMBaseInterface):
 
         msg = self.client.messages.create(
             model=self.completion_model,
-            max_tokens=self.default_max_tokens,
+            # max_tokens=self.default_max_tokens,
             messages=conversa,
             system=system,
         )
@@ -75,7 +75,7 @@ class ClaudeClient(LLMBaseInterface):
 
         msg = self.client.messages.create(
             model=self.completion_model,
-            max_tokens=min(self.default_max_tokens, 1024),
+            max_tokens=10000,
             messages=conversa,
             system=system,
             tools=tools,

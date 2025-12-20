@@ -10,30 +10,32 @@ from corpora_commander.models import Project, Section, Subsection
 # ── Global constants ────────────────────────────────────────────
 ROLE_AUTHOR = """
 Role: You are an expert book author and editor.
-""".strip()
+"""
 
 ROLE_EDITOR = """
 Role: You are an expert book editor. Preserve meaning, improve style.
-""".strip()
+"""
 
 ROLE_OUTLINER = """
 Role: You are an expert book outliner.
-""".strip()
+"""
 
 MARKDOWN_RULES = """
 # Markdown Rules
 - Use CommonMark. Do **not** include raw HTML tags.
-- Section introductions contain **no** markdown headers.
-- Each subsection body **must** start with a level-2 header: `## {title}`.
+- Always put a blank line before and after block elements (headers, lists, code blocks, blockquotes).
 - Separate logical blocks with blank lines. You MUST put a blank line before a bullet list.
-""".strip()
+- Section introductions contain **no** markdown headers.
+- Never use emdashes.
+- Each subsection body **must** **start** with a level-2 header: `## {title}`. Within the subsection, use subheaders such as `###`, as needed.
+"""
 
 JSON_RULES = """
 # JSON Output Rules
 - Return strictly valid JSON matching the provided schema.
 - Do **not** wrap JSON in Markdown fences.
 - Do **not** add extra keys or metadata.
-""".strip()
+"""
 
 IMAGE_TOKEN_RULES = """
 # Image Token Syntax
@@ -45,7 +47,7 @@ Insert an image placeholder where it truly enhances comprehension:
 - Appears alone on its own line with blank lines before and after.
 - `<caption>` is a concise description of the imagined illustration.
 - Do **not** use Markdown image syntax (`![]()`).
-""".strip()
+"""
 
 # ── Internal helpers ────────────────────────────────────────────
 

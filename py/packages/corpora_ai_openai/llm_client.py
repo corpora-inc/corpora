@@ -1,5 +1,4 @@
 import base64
-import json
 from typing import TYPE_CHECKING, List, Type, TypeVar
 
 from corpora_ai.llm_interface import (
@@ -7,7 +6,7 @@ from corpora_ai.llm_interface import (
     GeneratedImage,
     LLMBaseInterface,
 )
-from openai import AzureOpenAI, OpenAI, OpenAIError
+from openai import AzureOpenAI, OpenAI
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
@@ -31,10 +30,10 @@ class OpenAIClient(LLMBaseInterface):
         # completion_model: str = "o3",
         # completion_model: str = "gpt-4.1",
         # completion_model: str = "gpt-5-pro",
-        completion_model: str = "gpt-5",
+        completion_model: str = "gpt-5.2",
         embedding_model: str = "text-embedding-3-small",
         image_model: str = "gpt-image-1",
-        azure_endpoint: str = None,
+        azure_endpoint: str | None = None,
     ):
         if azure_endpoint:
             self.client = AzureOpenAI(
@@ -45,6 +44,7 @@ class OpenAIClient(LLMBaseInterface):
             )
         else:
             self.client = OpenAI(api_key=api_key)
+
         self.completion_model = completion_model
         self.embedding_model = embedding_model
         self.image_model = image_model
@@ -55,30 +55,50 @@ class OpenAIClient(LLMBaseInterface):
     ) -> str:
         if not messages:
             raise ValueError("Input messages must not be empty.")
-        # Convert Message objects to dictionaries for the OpenAI API
-        message_dicts = [
+
+        # Responses API uses `input` instead of `messages`
+        # but still accepts the familiar role/content shape.
+        input_items = [
             {"role": msg.role, "content": msg.text} for msg in messages
         ]
-        response = self.client.chat.completions.create(
+
+        response = self.client.responses.create(
             model=self.completion_model,
-            messages=message_dicts,
+            input=input_items,
         )
-        return response.choices[0].message.content
+
+        # The Responses API exposes a convenience property for text output.
+        # This should be present for normal text generations.
+        output_text = getattr(response, "output_text", None)
+        if isinstance(output_text, str):
+            return output_text
+
+        # Fallback: walk the structured output if `output_text`
+        # is unexpectedly missing.
+        for item in getattr(response, "output", []):
+            content = getattr(item, "content", None)
+            if not content:
+                continue
+            first = content[0]
+            text_val = getattr(first, "text", None)
+            if isinstance(text_val, str):
+                return text_val
+
+        raise RuntimeError("No text content found in OpenAI Responses output.")
 
     def get_data_completion(
         self,
         messages: List[ChatCompletionTextMessage],
         model: Type[T],
     ) -> T:
-        """Generates structured data completion using OpenAI's function calling.
+        """Generates structured data completion using the Responses API.
 
         Args:
-            messages (List[ChatCompletionTextMessage]): Input messages for the completion.
-            model (Type[BaseModel]): A Pydantic model class to validate and structure the output.
+            messages: Input messages for the completion.
+            model: A Pydantic model class to validate and structure the output.
 
         Returns:
-            BaseModel: An instance of the provided Pydantic model populated with data.
-
+            An instance of the provided Pydantic model populated with data.
         """
         if not issubclass(model, BaseModel):
             raise ValueError("Schema must be a subclass of pydantic.BaseModel.")
@@ -86,43 +106,29 @@ class OpenAIClient(LLMBaseInterface):
         if not messages:
             raise ValueError("Input messages must not be empty.")
 
-        # Prepare messages for OpenAI API
-        message_dicts = [
+        input_items = [
             {"role": msg.role, "content": msg.text} for msg in messages
         ]
 
-        # Generate JSON Schema from the Pydantic model
-        json_schema = model.model_json_schema()
+        # Use the Responses API structured-output helper.
+        # `text_format=model` tells the client to parse directly into the
+        # provided Pydantic model type.
+        response = self.client.responses.parse(
+            model=self.completion_model,
+            input=input_items,
+            text_format=model,
+        )
 
-        # Define the function for OpenAI's function calling
-        function = {
-            "name": "generate_data",
-            "description": "Generate data based on the provided schema.",
-            "parameters": json_schema,
-        }
-
+        # For structured outputs, the parsed value is attached to the content.
+        # With a single primary output, we take the first item.
         try:
-            print(message_dicts[-1])
-            # Call OpenAI API with function calling
-            # print("CALLING")
-            response = self.client.chat.completions.create(
-                model=self.completion_model,
-                messages=message_dicts,
-                functions=[function],
-                function_call={"name": "generate_data"},
+            parsed = response.output[0].content[0].parsed  # type: ignore[attr-defined]
+        except (AttributeError, IndexError, KeyError) as e:
+            raise RuntimeError(
+                f"Failed to extract parsed structured output: {e}",
             )
-            # print("AQUI!!")
-            # print(response.json())
 
-            # Extract and parse function arguments
-            function_args = response.choices[0].message.function_call.arguments
-            data_dict = json.loads(function_args)
-            # print(f"Function arguments: {data_dict}")
-            return model.model_validate(data_dict)
-        except OpenAIError as e:
-            raise RuntimeError(f"Failed to generate data completion: {e}")
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Failed to parse function arguments: {e}")
+        return parsed
 
     def get_image(
         self,
@@ -139,15 +145,12 @@ class OpenAIClient(LLMBaseInterface):
         Returns:
             A list of GeneratedImage with raw bytes and the appropriate format ("png").
         """
-        # build the core params
         params = {
             "model": self.image_model,
             "prompt": prompt,
-            # "response_format": "b64_json",
             "n": 1,
             "size": "1024x1024",
         }
-        # merge in any overrides (e.g. size="1536x1024", n=2)
         params.update(kwargs)
         resp: ImagesResponse = self.client.images.generate(**params)
 

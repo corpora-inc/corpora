@@ -14,23 +14,21 @@ class TestOpenAIClient(unittest.TestCase):
         self.client = OpenAIClient(api_key="test_api_key")
 
     def test_get_text_completion_success(self):
-        """Test that get_text_completion returns the correct response text."""
-        # Mock response from OpenAI API
         mock_response = MagicMock()
-        mock_response.choices = [MagicMock()]
-        mock_response.choices[0].message.content = "This is a test response."
-        self.mock_openai_client.chat.completions.create.return_value = (
-            mock_response
-        )
+        mock_response.output_text = "This is a test response."
+        self.mock_openai_client.responses.create.return_value = mock_response
 
-        # Define test messages
         messages = [
             ChatCompletionTextMessage(role="user", text="Tell me a joke."),
         ]
 
-        # Call get_text_completion and assert response
         response = self.client.get_text_completion(messages)
         self.assertEqual(response, "This is a test response.")
+
+        self.mock_openai_client.responses.create.assert_called_once_with(
+            model=self.client.completion_model,
+            input=[{"role": "user", "content": "Tell me a joke."}],
+        )
 
     def test_get_embedding_success(self):
         """Test that get_embedding returns the correct embedding vector."""
