@@ -33,6 +33,7 @@ export function ProjectMetadataEditor({ projectId }: { projectId: string }) {
                 language: p.language ?? "",
                 publication_date: p.publication_date ?? "",
                 book_size: p.book_size ?? "6x9",
+                font_size: p.font_size ? String(p.font_size) : "11.0",
             })
         }
     }, [projQ.data])
@@ -65,6 +66,9 @@ export function ProjectMetadataEditor({ projectId }: { projectId: string }) {
                     language: values!.language || undefined,
                     publication_date: values!.publication_date || undefined,
                     book_size: values!.book_size || undefined,
+                    font_size: values!.font_size?.trim()
+                        ? Number(values!.font_size)
+                        : undefined,
                 },
             },
             {

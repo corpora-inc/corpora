@@ -15,6 +15,7 @@ import type { ProjectInPublicationDate } from "./projectInPublicationDate";
 import type { ProjectInInstructions } from "./projectInInstructions";
 import type { ProjectInVoice } from "./projectInVoice";
 import type { ProjectInBookSize } from "./projectInBookSize";
+import type { ProjectInFontSize } from "./projectInFontSize";
 
 export interface ProjectIn {
   title: string;
@@ -29,4 +30,5 @@ export interface ProjectIn {
   voice?: ProjectInVoice;
   has_images?: boolean;
   book_size?: ProjectInBookSize;
+  font_size?: ProjectInFontSize;
 }

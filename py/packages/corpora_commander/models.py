@@ -36,6 +36,11 @@ class Project(models.Model):
     isbn = models.CharField(max_length=32, blank=True)
     language = models.CharField(max_length=10, default="en-US")
     publication_date = models.DateField(null=True, blank=True)
+    font_size = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=11.0,
+    )
     book_size = models.CharField(
         max_length=16,
         choices=BOOK_SIZE_CHOICES,

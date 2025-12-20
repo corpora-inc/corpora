@@ -15,6 +15,7 @@ import type { ProjectOutPublicationDate } from "./projectOutPublicationDate";
 import type { ProjectOutInstructions } from "./projectOutInstructions";
 import type { ProjectOutVoice } from "./projectOutVoice";
 import type { ProjectOutBookSize } from "./projectOutBookSize";
+import type { ProjectOutFontSize } from "./projectOutFontSize";
 
 export interface ProjectOut {
   title: string;
@@ -29,6 +30,7 @@ export interface ProjectOut {
   voice?: ProjectOutVoice;
   has_images?: boolean;
   book_size?: ProjectOutBookSize;
+  font_size?: ProjectOutFontSize;
   id: string;
   created_at: string;
   updated_at: string;

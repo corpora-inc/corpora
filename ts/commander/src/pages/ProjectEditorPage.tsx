@@ -164,7 +164,7 @@ export default function ProjectEditorPage() {
                     sectionsQuery.refetch()
                 }}
             />
-            <ImageDrawer projectId={id!} />
+            <ImageDrawer projectId={id!} showTrigger={false} />
         </>
     )
 }

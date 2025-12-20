@@ -148,3 +148,6 @@ export * from "./updateFilesBodyDeleteFiles";
 export * from "./xAIModelsRequest";
 export * from "./xAIModelsRequestBaseUrl";
 export * from "./xAIModelsResponse";
+export * from "./projectInFontSize";
+export * from "./projectOutFontSize";
+export * from "./projectUpdateFontSize";

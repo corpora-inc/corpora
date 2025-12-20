@@ -10,6 +10,15 @@
   - `cd encorpora/corpan/corpan-app && npm install`
   - `cd encorpora/panko/pako && npm install`
 
+You can generate the client in `ts/commander/src/api/` by running:
+
+```
+pnpm run gen:api
+```
+
+DO NOT EDIT THE FILES IN `ts/commander/src/api/` DIRECTLY.
+
+
 ## Dev servers
 - Backend (API + workers + db + redis): `docker compose up` (serves `http://localhost:8877`).
 - Backend (local, no Docker): `cd py/packages && uvicorn corpora_proj.asgi:application --host 0.0.0.0 --port 8877 --reload`

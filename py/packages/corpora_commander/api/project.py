@@ -1,6 +1,7 @@
 # corpora_commander/api/project.py
 
 from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 from typing import List, Optional
 from uuid import UUID
 
@@ -10,6 +11,8 @@ from pydantic import BaseModel, field_validator
 from corpora_commander.models import Project
 
 BOOK_SIZES = {size for size, _label in Project.BOOK_SIZE_CHOICES}
+MIN_FONT_SIZE = Decimal("8.0")
+MAX_FONT_SIZE = Decimal("18.0")
 
 from .router import router
 
@@ -27,6 +30,7 @@ class ProjectIn(BaseModel):
     voice: Optional[str] = ""
     has_images: bool = False  # new field
     book_size: Optional[str] = "6x9"
+    font_size: Optional[Decimal] = Decimal("11.0")
 
     @field_validator("book_size")
     @classmethod
@@ -36,6 +40,21 @@ class ProjectIn(BaseModel):
         if v not in BOOK_SIZES:
             raise ValueError(f"Invalid book_size: {v}")
         return v
+
+    @field_validator("font_size", mode="before")
+    @classmethod
+    def _validate_font_size(cls, v):
+        if v is None or v == "":
+            return None
+        try:
+            size = Decimal(str(v))
+        except (InvalidOperation, ValueError) as exc:
+            raise ValueError(f"Invalid font_size: {v}") from exc
+        if size < MIN_FONT_SIZE or size > MAX_FONT_SIZE:
+            raise ValueError(
+                f"font_size must be between {MIN_FONT_SIZE} and {MAX_FONT_SIZE}"
+            )
+        return size
 
 
 class ProjectOut(ProjectIn):
@@ -60,6 +79,7 @@ class ProjectUpdate(BaseModel):
     language: Optional[str] = None
     publication_date: Optional[date] = None
     book_size: Optional[str] = None
+    font_size: Optional[Decimal] = None
 
     model_config = {"from_attributes": True}
 
@@ -79,6 +99,21 @@ class ProjectUpdate(BaseModel):
         if v not in BOOK_SIZES:
             raise ValueError(f"Invalid book_size: {v}")
         return v
+
+    @field_validator("font_size", mode="before")
+    @classmethod
+    def _validate_font_size(cls, v):
+        if v is None or v == "":
+            return None
+        try:
+            size = Decimal(str(v))
+        except (InvalidOperation, ValueError) as exc:
+            raise ValueError(f"Invalid font_size: {v}") from exc
+        if size < MIN_FONT_SIZE or size > MAX_FONT_SIZE:
+            raise ValueError(
+                f"font_size must be between {MIN_FONT_SIZE} and {MAX_FONT_SIZE}"
+            )
+        return size
 
 
 @router.get("/projects/", response=List[ProjectOut])

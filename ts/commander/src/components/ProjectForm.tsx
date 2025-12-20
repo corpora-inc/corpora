@@ -25,6 +25,7 @@ export type ProjectFields = {
     language?: string
     publication_date?: string
     book_size?: string
+    font_size?: string
 }
 
 export interface ProjectFormProps {
@@ -168,24 +169,42 @@ export function ProjectForm({
                 </div>
             </div>
 
-            {/* Book size */}
-            <div>
-                <label className="block text-sm font-medium">Book Size</label>
-                <Select
-                    value={values.book_size ?? "6x9"}
-                    onValueChange={(value) => onChange({ book_size: value })}
-                >
-                    <SelectTrigger className="w-full">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {bookSizes.map((size) => (
-                            <SelectItem key={size} value={size}>
-                                {size}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+            {/* Book size + Font size */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium">Book Size</label>
+                    <Select
+                        value={values.book_size ?? "6x9"}
+                        onValueChange={(value) => onChange({ book_size: value })}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {bookSizes.map((size) => (
+                                <SelectItem key={size} value={size}>
+                                    {size}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Font Size</label>
+                    <Input
+                        type="number"
+                        min={8}
+                        max={18}
+                        step={0.1}
+                        value={values.font_size ?? ""}
+                        onChange={(e) =>
+                            onChange({
+                                font_size: e.target.value,
+                            })
+                        }
+                    />
+                </div>
             </div>
 
             {/* Publication date */}

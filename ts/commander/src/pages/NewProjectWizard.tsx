@@ -21,6 +21,7 @@ export default function NewProjectWizard() {
         language: "en-US",
         publication_date: "",
         book_size: "6x9",
+        font_size: "11.0",
     })
 
     const isPending = createProject.isPending
@@ -33,6 +34,9 @@ export default function NewProjectWizard() {
             publication_date: formValues.publication_date?.trim()
                 ? formValues.publication_date
                 : undefined,
+            font_size: formValues.font_size?.trim()
+                ? Number(formValues.font_size)
+                : undefined,
         }
         const res = await createProject.mutateAsync({ data: payload })
         navigate(`/project/${res.data.id}`)
@@ -43,6 +47,9 @@ export default function NewProjectWizard() {
             ...formValues,
             publication_date: formValues.publication_date?.trim()
                 ? formValues.publication_date
+                : undefined,
+            font_size: formValues.font_size?.trim()
+                ? Number(formValues.font_size)
                 : undefined,
         }
         await createProject.mutateAsync({ data: payload })

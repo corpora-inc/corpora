@@ -1,10 +1,10 @@
 \usepackage[
   paperwidth={{ paperwidth|default:"6in" }},
   paperheight={{ paperheight|default:"9in" }},
-  left=0.75in,
-  right=0.75in,
-  top=0.6in,
-  bottom=1.0in,   % You can adjust this as needed
+  left={{ margin_left|default:"0.75in" }},
+  right={{ margin_right|default:"0.75in" }},
+  top={{ margin_top|default:"0.6in" }},
+  bottom={{ margin_bottom|default:"1.0in" }},
   heightrounded
 ]{geometry}
 
@@ -140,6 +140,7 @@
 \setCJKmainfont{Noto Sans CJK SC}
 
 \AtBeginDocument{%
+  \fontsize{ {{ font_size|default:"11pt" }} }{ {{ line_height|default:"13.2pt" }} }\selectfont
   \XeTeXcharclass`‘=0
   \XeTeXcharclass`’=0
   \XeTeXcharclass`“=0
