@@ -1,12 +1,17 @@
 import { useMemo, useState } from "react";
-import { ArrowUpRight, Sparkles, Trash2, X } from "lucide-react";
+import { ArrowUpRight, Pencil, Sparkles, Trash2, X } from "lucide-react";
 
 import { useImageStore } from "@/stores/ImageStore";
 import { useProjectStore } from "@/stores/ProjectStore";
 import {
     corporaCommanderApiSectionGetSection,
     corporaCommanderApiSubsectionGetSubsection,
+    getCorporaCommanderApiImagesListImagesQueryKey,
     getCorporaCommanderApiImagesListImageTokensQueryKey,
+    getCorporaCommanderApiSectionGetSectionQueryKey,
+    getCorporaCommanderApiSectionListSectionsQueryKey,
+    getCorporaCommanderApiSubsectionGetSubsectionQueryKey,
+    useCorporaCommanderApiImagesUpdateImage,
     useCorporaCommanderApiSectionUpdateSection,
     useCorporaCommanderApiSubsectionUpdateSubsection,
 } from "@/api/commander/commander";
@@ -14,6 +19,7 @@ import { useGenerateImage } from "@/hooks/useImages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ImageTokenOccurrence } from "@/api/schemas/imageTokenOccurrence";
+import type { ImageToken } from "@/api/schemas/imageToken";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface ImageTokenListProps {
@@ -24,6 +30,7 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     const tokens = useImageStore((s) => s.tokens);
     const setDrawerOpen = useImageStore((s) => s.setDrawerOpen);
 
+    const updateImage = useCorporaCommanderApiImagesUpdateImage();
     const updateSection = useCorporaCommanderApiSectionUpdateSection();
     const updateSubsection = useCorporaCommanderApiSubsectionUpdateSubsection();
     const queryClient = useQueryClient();
@@ -39,6 +46,9 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
 
     const generate = useGenerateImage(projectId);
     const [deletingToken, setDeletingToken] = useState<string | null>(null);
+    const [editingToken, setEditingToken] = useState<string | null>(null);
+    const [editingValue, setEditingValue] = useState("");
+    const [savingToken, setSavingToken] = useState<string | null>(null);
 
     const missingTokens = useMemo(
         () => tokens.filter((t) => !t.fulfilled),
@@ -70,6 +80,19 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
         }
 
         setDrawerOpen(false);
+    };
+
+    const replaceImageToken = (
+        value: string | null | undefined,
+        fromCaption: string,
+        toCaption: string,
+    ) => {
+        if (!value) return { text: value ?? "", changed: false };
+        const escaped = fromCaption.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(`\\{\\{IMAGE:\\s*${escaped}\\s*\\}\\}`, "g");
+        const replacement = `{{IMAGE: ${toCaption}}}`;
+        const next = value.replace(regex, replacement);
+        return { text: next, changed: next !== value };
     };
 
     const removeImageToken = (value: string | null | undefined, caption: string) => {
@@ -166,6 +189,143 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
         }
     };
 
+    const handleEditToken = (token: ImageToken) => {
+        setEditingToken(token.caption);
+        setEditingValue(token.caption);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingToken(null);
+        setEditingValue("");
+    };
+
+    const handleSaveEdit = async (token: ImageToken) => {
+        const nextCaption = editingValue.trim();
+        if (!nextCaption || nextCaption === token.caption) {
+            handleCancelEdit();
+            return;
+        }
+
+        setSavingToken(token.caption);
+        try {
+            const occurrences = token.occurrences ?? [];
+            const targets = new Map<
+                string,
+                { sectionId: string; subsectionId?: string | null }
+            >();
+            occurrences.forEach((occ) => {
+                const key = occ.subsection_id
+                    ? `sub:${occ.subsection_id}`
+                    : `sec:${occ.section_id}`;
+                if (!targets.has(key)) {
+                    targets.set(key, {
+                        sectionId: occ.section_id,
+                        subsectionId: occ.subsection_id ?? null,
+                    });
+                }
+            });
+
+            for (const target of targets.values()) {
+                if (target.subsectionId) {
+                    const subRes = await corporaCommanderApiSubsectionGetSubsection(
+                        target.subsectionId,
+                    );
+                    const sub = subRes.data;
+                    const content = replaceImageToken(
+                        sub.content ?? "",
+                        token.caption,
+                        nextCaption,
+                    );
+                    const instructions = replaceImageToken(
+                        sub.instructions ?? "",
+                        token.caption,
+                        nextCaption,
+                    );
+
+                    if (!content.changed && !instructions.changed) continue;
+
+                    const payload: {
+                        content?: string;
+                        instructions?: string;
+                    } = {};
+                    if (content.changed) payload.content = content.text;
+                    if (instructions.changed) payload.instructions = instructions.text;
+
+                    await updateSubsection.mutateAsync({
+                        subsectionId: target.subsectionId,
+                        data: payload,
+                    });
+
+                    queryClient.invalidateQueries({
+                        queryKey:
+                            getCorporaCommanderApiSubsectionGetSubsectionQueryKey(
+                                target.subsectionId,
+                            ),
+                    });
+                } else {
+                    const secRes = await corporaCommanderApiSectionGetSection(
+                        target.sectionId,
+                    );
+                    const sec = secRes.data;
+                    const intro = replaceImageToken(
+                        sec.introduction ?? "",
+                        token.caption,
+                        nextCaption,
+                    );
+                    const instructions = replaceImageToken(
+                        sec.instructions ?? "",
+                        token.caption,
+                        nextCaption,
+                    );
+
+                    if (!intro.changed && !instructions.changed) continue;
+
+                    const payload: {
+                        introduction?: string;
+                        instructions?: string;
+                    } = {};
+                    if (intro.changed) payload.introduction = intro.text;
+                    if (instructions.changed) payload.instructions = instructions.text;
+
+                    await updateSection.mutateAsync({
+                        sectionId: target.sectionId,
+                        data: payload,
+                    });
+
+                    queryClient.invalidateQueries({
+                        queryKey: getCorporaCommanderApiSectionGetSectionQueryKey(
+                            target.sectionId,
+                        ),
+                    });
+                }
+            }
+
+            if (token.image_id) {
+                await updateImage.mutateAsync({
+                    projectId,
+                    imageId: token.image_id,
+                    data: { caption: nextCaption },
+                });
+            }
+
+            queryClient.invalidateQueries({
+                queryKey: getCorporaCommanderApiImagesListImagesQueryKey(projectId),
+            });
+            queryClient.invalidateQueries({
+                queryKey: getCorporaCommanderApiImagesListImageTokensQueryKey(
+                    projectId,
+                ),
+            });
+            queryClient.invalidateQueries({
+                queryKey: getCorporaCommanderApiSectionListSectionsQueryKey(projectId),
+            });
+        } finally {
+            setSavingToken(null);
+            setEditingToken(null);
+            setEditingValue("");
+        }
+    };
+
     return (
         <section className="space-y-3">
             <div className="flex items-center justify-between gap-3">
@@ -228,6 +388,7 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                 {tokens.map((token) => {
                     const occ0 = token.occurrences?.[0];
                     const canGo = Boolean(occ0);
+                    const isEditing = editingToken === token.caption;
 
                     const locationLabel = occ0
                         ? occ0.subsection_title
@@ -241,24 +402,80 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                             : 0;
 
                     return (
-                        <div key={token.caption} className="flex items-center gap-3 px-3 py-2">
+                        <div key={token.caption} className="flex items-start gap-3 px-3 py-2">
                             <div className="flex-1 min-w-0">
-                                <div className="truncate text-sm font-medium">{token.caption}</div>
-                                <div className="text-xs text-gray-500 truncate">
-                                    {token.fulfilled ? "Linked to an image" : "No image yet"}
-                                    {locationLabel ? ` · ${locationLabel}` : ""}
-                                    {extraCount > 0 ? ` (+${extraCount})` : ""}
-                                </div>
+                                {isEditing ? (
+                                    <div className="flex flex-col gap-2">
+                                        <Input
+                                            value={editingValue}
+                                            onChange={(e) => setEditingValue(e.target.value)}
+                                            className="h-9 text-sm"
+                                            placeholder="Image token caption"
+                                            autoFocus
+                                        />
+                                        <div className="text-[0.7rem] text-gray-500">
+                                            Updates the section/subsection token and linked image caption.
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="truncate text-sm font-medium">
+                                            {token.caption}
+                                        </div>
+                                        <div className="text-xs text-gray-500 truncate">
+                                            {token.fulfilled
+                                                ? "Linked to an image"
+                                                : "No image yet"}
+                                            {locationLabel ? ` · ${locationLabel}` : ""}
+                                            {extraCount > 0 ? ` (+${extraCount})` : ""}
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
-                            <div className="w-[260px] shrink-0 flex items-center justify-end gap-2">
+                            <div className="shrink-0 flex items-center justify-end gap-2">
+                                {isEditing ? (
+                                    <>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => handleSaveEdit(token)}
+                                            disabled={savingToken === token.caption}
+                                        >
+                                            {savingToken === token.caption ? "Saving…" : "Save"}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={handleCancelEdit}
+                                            disabled={savingToken === token.caption}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <Button
+                                        size="icon"
+                                        variant="outline"
+                                        onClick={() => handleEditToken(token)}
+                                        disabled={deletingToken === token.caption}
+                                        aria-label="Edit token"
+                                        title="Edit token"
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                )}
+
                                 <Button
                                     size="icon"
                                     variant="outline"
                                     onClick={() =>
                                         handleDeleteToken(token.caption, token.occurrences)
                                     }
-                                    disabled={deletingToken === token.caption}
+                                    disabled={
+                                        deletingToken === token.caption ||
+                                        savingToken === token.caption ||
+                                        isEditing
+                                    }
                                     aria-label="Delete token"
                                     title="Delete token"
                                 >
@@ -268,7 +485,7 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                                 <Button
                                     size="icon"
                                     variant="outline"
-                                    disabled={!canGo}
+                                    disabled={!canGo || isEditing}
                                     onClick={() => {
                                         if (!occ0) return;
                                         goToOccurrence(occ0);
@@ -284,7 +501,12 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                                     className="min-w-[150px] justify-center"
                                     variant={token.fulfilled ? "outline" : "default"}
                                     onClick={() => handleGenerate(token.caption)}
-                                    disabled={generate.isPending || deletingToken === token.caption}
+                                    disabled={
+                                        generate.isPending ||
+                                        deletingToken === token.caption ||
+                                        savingToken === token.caption ||
+                                        isEditing
+                                    }
                                 >
                                     <Sparkles className="mr-1 h-3 w-3" />
                                     {token.fulfilled ? "Regenerate" : "Generate"}
