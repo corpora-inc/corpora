@@ -62,6 +62,7 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
     const [savingToken, setSavingToken] = useState<string | null>(null);
     const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
     const [uploadingToken, setUploadingToken] = useState<string | null>(null);
+    const [dragOverToken, setDragOverToken] = useState<string | null>(null);
 
     const promptValue = promptHint.trim() || undefined;
 
@@ -399,7 +400,34 @@ export default function ImageTokenList({ projectId }: ImageTokenListProps) {
                             : 0;
 
                     return (
-                        <div key={token.caption} className="flex items-start gap-3 px-3 py-2">
+                        <div
+                            key={token.caption}
+                            className={[
+                                "flex items-start gap-3 px-3 py-2 transition",
+                                dragOverToken === token.caption
+                                    ? "bg-blue-50"
+                                    : "",
+                            ]
+                                .filter(Boolean)
+                                .join(" ")}
+                            onDragOver={(e) => {
+                                if (tokenImage) return;
+                                e.preventDefault();
+                                setDragOverToken(token.caption);
+                            }}
+                            onDragLeave={() => {
+                                if (dragOverToken === token.caption) {
+                                    setDragOverToken(null);
+                                }
+                            }}
+                            onDrop={(e) => {
+                                if (tokenImage) return;
+                                e.preventDefault();
+                                setDragOverToken(null);
+                                const file = e.dataTransfer.files?.[0];
+                                if (file) triggerUpload(token, file);
+                            }}
+                        >
                             <button
                                 type="button"
                                 className="mt-0.5 h-12 w-12 shrink-0 rounded-md border bg-gray-50 overflow-hidden"
