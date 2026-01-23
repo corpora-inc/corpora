@@ -10,11 +10,11 @@ from pydantic import BaseModel, field_validator
 
 from corpora_commander.models import Project
 
+from .router import router
+
 BOOK_SIZES = {size for size, _label in Project.BOOK_SIZE_CHOICES}
 MIN_FONT_SIZE = Decimal("8.0")
 MAX_FONT_SIZE = Decimal("18.0")
-
-from .router import router
 
 
 class ProjectIn(BaseModel):
@@ -52,7 +52,7 @@ class ProjectIn(BaseModel):
             raise ValueError(f"Invalid font_size: {v}") from exc
         if size < MIN_FONT_SIZE or size > MAX_FONT_SIZE:
             raise ValueError(
-                f"font_size must be between {MIN_FONT_SIZE} and {MAX_FONT_SIZE}"
+                f"font_size must be between {MIN_FONT_SIZE} and {MAX_FONT_SIZE}",
             )
         return size
 
@@ -111,7 +111,7 @@ class ProjectUpdate(BaseModel):
             raise ValueError(f"Invalid font_size: {v}") from exc
         if size < MIN_FONT_SIZE or size > MAX_FONT_SIZE:
             raise ValueError(
-                f"font_size must be between {MIN_FONT_SIZE} and {MAX_FONT_SIZE}"
+                f"font_size must be between {MIN_FONT_SIZE} and {MAX_FONT_SIZE}",
             )
         return size
 
