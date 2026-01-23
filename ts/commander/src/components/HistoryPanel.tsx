@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { useProjectStore } from "@/stores/ProjectStore"
 import { useQueryClient } from "@tanstack/react-query"
+import type { ProjectOut } from "@/api/schemas/projectOut"
+import type { SectionWithSubsections } from "@/api/schemas/sectionWithSubsections"
+import type { SubsectionOut } from "@/api/schemas/subsectionOut"
 import {
     getCorporaCommanderApiProjectGetProjectQueryKey,
     getCorporaCommanderApiSectionListSectionsQueryKey,
@@ -36,22 +39,26 @@ type Snapshot = {
     created_at: string
 }
 
+type SnapshotSubsection = {
+    id?: SubsectionOut["id"]
+    order?: SubsectionOut["order"]
+    title?: SubsectionOut["title"]
+    content?: SubsectionOut["content"]
+    instructions?: SubsectionOut["instructions"]
+}
+
+type SnapshotSection = {
+    id?: SectionWithSubsections["id"]
+    order?: SectionWithSubsections["order"]
+    title?: SectionWithSubsections["title"]
+    introduction?: SectionWithSubsections["introduction"]
+    instructions?: SectionWithSubsections["instructions"]
+    subsections?: SnapshotSubsection[]
+}
+
 type SnapshotData = {
-    project?: Record<string, unknown>
-    sections?: Array<{
-        id?: string
-        order?: number
-        title?: string
-        introduction?: string
-        instructions?: string
-        subsections?: Array<{
-            id?: string
-            order?: number
-            title?: string
-            content?: string
-            instructions?: string
-        }>
-    }>
+    project?: Partial<ProjectOut>
+    sections?: SnapshotSection[]
 }
 
 export default function HistoryPanel() {
@@ -669,8 +676,7 @@ function buildDiff(
     let y = newTokens.length
 
     for (let d = trace.length - 1; d >= 0; d -= 1) {
-        const v = trace[d]
-        const k = x - y
+    const k = x - y
         const prevV = d > 0 ? trace[d - 1] : new Map<number, number>()
         let prevK: number
         if (k === -d || (k !== d && (prevV.get(k - 1) ?? 0) < (prevV.get(k + 1) ?? 0))) {
@@ -702,20 +708,8 @@ function buildDiff(
 }
 
 function buildSubsectionDiffs(
-    currentSubs: Array<{
-        id?: string
-        order?: number
-        title?: string
-        content?: string
-        instructions?: string
-    }>,
-    snapshotSubs: Array<{
-        id?: string
-        order?: number
-        title?: string
-        content?: string
-        instructions?: string
-    }>,
+    currentSubs: SnapshotSubsection[],
+    snapshotSubs: SnapshotSubsection[],
 ) {
     const currentById = new Map(currentSubs.map((s) => [s.id, s]))
     const snapshotById = new Map(snapshotSubs.map((s) => [s.id, s]))
