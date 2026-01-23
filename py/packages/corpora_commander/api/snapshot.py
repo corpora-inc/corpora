@@ -62,6 +62,8 @@ def create_snapshot(request, project_id: UUID, payload: SnapshotIn):
                 "instructions": project.instructions,
                 "voice": project.voice,
                 "has_images": project.has_images,
+                "book_size": project.book_size,
+                "font_size": str(project.font_size),
             },
             "sections": [],
         }
@@ -130,6 +132,8 @@ def restore_snapshot(request, snapshot_id: UUID):
             "instructions": project.instructions,
             "voice": project.voice,
             "has_images": project.has_images,
+            "book_size": project.book_size,
+            "font_size": str(project.font_size),
         },
         "sections": [],
     }
@@ -174,6 +178,8 @@ def restore_snapshot(request, snapshot_id: UUID):
             "instructions",
             "voice",
             "has_images",
+            "book_size",
+            "font_size",
         ):
             if field in proj_data:
                 setattr(project, field, proj_data[field])

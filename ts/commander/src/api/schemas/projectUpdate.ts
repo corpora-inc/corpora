@@ -16,6 +16,8 @@ import type { ProjectUpdatePublisher } from "./projectUpdatePublisher";
 import type { ProjectUpdateIsbn } from "./projectUpdateIsbn";
 import type { ProjectUpdateLanguage } from "./projectUpdateLanguage";
 import type { ProjectUpdatePublicationDate } from "./projectUpdatePublicationDate";
+import type { ProjectUpdateBookSize } from "./projectUpdateBookSize";
+import type { ProjectUpdateFontSize } from "./projectUpdateFontSize";
 
 export interface ProjectUpdate {
   title?: ProjectUpdateTitle;
@@ -29,4 +31,6 @@ export interface ProjectUpdate {
   isbn?: ProjectUpdateIsbn;
   language?: ProjectUpdateLanguage;
   publication_date?: ProjectUpdatePublicationDate;
+  book_size?: ProjectUpdateBookSize;
+  font_size?: ProjectUpdateFontSize;
 }

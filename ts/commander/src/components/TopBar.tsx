@@ -1,8 +1,9 @@
 // src/components/TopBar.tsx
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { ArrowLeftIcon, Menu } from "lucide-react"
+import { ArrowLeftIcon, ImagePlus, Menu } from "lucide-react"
 import { useProjectStore } from "@/stores/ProjectStore"
+import { useImageStore } from "@/stores/ImageStore"
 import { ExportPdfButton } from "@/components/ExportPdfButton"
 import { SettingsDialog } from "@/components/SettingsDialog"
 import { ExportEpubButton } from "@/components/ExportEpubButton"
@@ -20,6 +21,9 @@ export function TopBar({ onToggleOutlinePanel, }: TopBarProps) {
     const setOutlineOpen = useProjectStore((s) => s.setOutlineOpen)
     const setDraftOpen = useProjectStore((s) => s.setDraftOpen)
     const setRewriteOpen = useProjectStore((s) => s.setRewriteOpen) // new store action
+    const setImageDrawerOpen = useImageStore((s) => s.setDrawerOpen)
+    const setSelectedSectionId = useProjectStore((s) => s.setSelectedSectionId)
+    const setSelectedSubsectionId = useProjectStore((s) => s.setSelectedSubsectionId)
 
     if (!project) return null
 
@@ -54,7 +58,19 @@ export function TopBar({ onToggleOutlinePanel, }: TopBarProps) {
                     <Link to="/projects"><ArrowLeftIcon className="w-4 h-4" /></Link>
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-bold">{project.title}</h1>
+                    <Link
+                        to={`/project/${project.id}`}
+                        onClick={() => {
+                            setSelectedSectionId(null)
+                            setSelectedSubsectionId(null)
+                        }}
+                        className="inline-flex items-baseline gap-2 group"
+                        aria-label="Open project details"
+                    >
+                        <h1 className="text-2xl font-bold group-hover:text-gray-800">
+                            {project.title}
+                        </h1>
+                    </Link>
                     {project.subtitle && (
                         <p className="mt-1 text-gray-600">{project.subtitle}</p>
                     )}
@@ -73,6 +89,14 @@ export function TopBar({ onToggleOutlinePanel, }: TopBarProps) {
                 {hasContent && (
                     <Button onClick={() => setRewriteOpen(true)}>Rewrite</Button>
                 )}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setImageDrawerOpen(true)}
+                    aria-label="Open Image Manager"
+                >
+                    <ImagePlus className="h-5 w-5" />
+                </Button>
                 {hasSections && (
                     <ExportPdfButton projectId={project.id} />
                 )}

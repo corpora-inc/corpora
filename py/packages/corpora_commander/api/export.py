@@ -6,11 +6,12 @@ import shutil
 import subprocess
 import tempfile
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID
 
 from django.core.files.storage import default_storage
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.text import get_valid_filename
@@ -20,6 +21,48 @@ from corpora_commander.models import Project
 from .router import router
 
 logger = logging.getLogger(__name__)
+PANDOC_TIMEOUT_SECONDS = 180
+
+BOOK_SIZE_DIMENSIONS = {
+    "5x8": ("5in", "8in"),
+    "5.25x8": ("5.25in", "8in"),
+    "5.5x8.5": ("5.5in", "8.5in"),
+    "6x9": ("6in", "9in"),
+    "8.5x11": ("8.5in", "11in"),
+}
+
+BOOK_SIZE_MARGINS = {
+    "5x8": {
+        "left": "0.6in",
+        "right": "0.6in",
+        "top": "0.5in",
+        "bottom": "0.85in",
+    },
+    "5.25x8": {
+        "left": "0.62in",
+        "right": "0.62in",
+        "top": "0.55in",
+        "bottom": "0.9in",
+    },
+    "5.5x8.5": {
+        "left": "0.65in",
+        "right": "0.65in",
+        "top": "0.6in",
+        "bottom": "0.95in",
+    },
+    "6x9": {
+        "left": "0.75in",
+        "right": "0.75in",
+        "top": "0.6in",
+        "bottom": "1.0in",
+    },
+    "8.5x11": {
+        "left": "1.0in",
+        "right": "1.0in",
+        "top": "0.9in",
+        "bottom": "1.2in",
+    },
+}
 
 
 def _render_project_markdown_with_images(project: Project) -> tuple[Path, Path]:
@@ -100,8 +143,28 @@ def export_pdf(request, project_id: UUID):
     build_dir, md_file = _render_project_markdown_with_images(proj)
 
     # 3) Render custom headings (TeX) and cover (TeX)
+    size_key = proj.book_size or "6x9"
+    paperwidth, paperheight = BOOK_SIZE_DIMENSIONS.get(
+        size_key,
+        BOOK_SIZE_DIMENSIONS["6x9"],
+    )
+    margins = BOOK_SIZE_MARGINS.get(size_key, BOOK_SIZE_MARGINS["6x9"])
+    font_size = Decimal(proj.font_size or "11.0")
+    line_height = (font_size * Decimal("1.2")).quantize(Decimal("0.01"))
     (build_dir / "custom_headings.tex").write_text(
-        render_to_string("custom_headings.tex", {}),
+        render_to_string(
+            "custom_headings.tex",
+            {
+                "paperwidth": paperwidth,
+                "paperheight": paperheight,
+                "margin_left": margins["left"],
+                "margin_right": margins["right"],
+                "margin_top": margins["top"],
+                "margin_bottom": margins["bottom"],
+                "font_size": f"{font_size}pt",
+                "line_height": f"{line_height}pt",
+            },
+        ),
         encoding="utf-8",
     )
     cover_ctx = {
@@ -118,7 +181,13 @@ def export_pdf(request, project_id: UUID):
     )
 
     # 4) Render your one-and-only 6×9 defaults file via Django templates
-    defaults_content = render_to_string("pandoc/6x9.yaml", {})
+    defaults_content = render_to_string(
+        "pandoc/defaults.yaml",
+        {
+            "paperwidth": paperwidth,
+            "paperheight": paperheight,
+        },
+    )
     defaults_file = build_dir / "defaults.yaml"
     defaults_file.write_text(defaults_content, encoding="utf-8")
 
@@ -141,9 +210,18 @@ def export_pdf(request, project_id: UUID):
             cwd=build_dir,
             capture_output=True,
             text=True,
+            timeout=PANDOC_TIMEOUT_SECONDS,
         )
         logger.debug("pandoc stdout: %s", completed.stdout)
         logger.debug("pandoc stderr: %s", completed.stderr)
+    except subprocess.TimeoutExpired:
+        logger.error("Pandoc timed out after %ss", PANDOC_TIMEOUT_SECONDS)
+        shutil.rmtree(build_dir, ignore_errors=True)
+        return HttpResponse(
+            "PDF export timed out. Try again or reduce project size.",
+            status=504,
+            content_type="text/plain",
+        )
     except subprocess.CalledProcessError as e:
         logger.error(
             "Pandoc failed (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s",
@@ -151,15 +229,29 @@ def export_pdf(request, project_id: UUID):
             e.stdout,
             e.stderr,
         )
-        raise
+        shutil.rmtree(build_dir, ignore_errors=True)
+        return HttpResponse(
+            "PDF export failed. Check server logs for details.",
+            status=500,
+            content_type="text/plain",
+        )
+    if not pdf_file.exists() or pdf_file.stat().st_size == 0:
+        logger.error("Pandoc produced an empty PDF.")
+        shutil.rmtree(build_dir, ignore_errors=True)
+        return HttpResponse(
+            "PDF export produced an empty file. Try again.",
+            status=500,
+            content_type="text/plain",
+        )
 
-    # 6) Stream back the PDF
-    return FileResponse(
-        open(pdf_file, "rb"),
-        as_attachment=True,
-        filename=f"{proj.title}.pdf",
-        content_type="application/pdf",
-    )
+    # 6) Return the PDF (buffered to avoid async streaming warnings)
+    filename = f"{get_valid_filename(proj.title) or proj.id}.pdf"
+    pdf_bytes = pdf_file.read_bytes()
+    shutil.rmtree(build_dir, ignore_errors=True)
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response["Content-Length"] = str(len(pdf_bytes))
+    return response
 
 
 @router.get("/projects/{project_id}/export/epub")

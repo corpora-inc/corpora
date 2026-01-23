@@ -15,9 +15,10 @@ import ImageTokenList from "./ImageTokenList";
 
 interface ImageDrawerProps {
   projectId: string;
+  showTrigger?: boolean;
 }
 
-export default function ImageDrawer({ projectId }: ImageDrawerProps) {
+export default function ImageDrawer({ projectId, showTrigger = true }: ImageDrawerProps) {
   // Sync from backend into Zustand
   const imagesQuery = useProjectImages(projectId);
   const tokensQuery = useImageTokens(projectId);
@@ -53,16 +54,18 @@ export default function ImageDrawer({ projectId }: ImageDrawerProps) {
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button
-          variant="default"
-          size="icon"
-          className="fixed bottom-4 right-4 p-3 rounded-full shadow-lg bg-blue-600 text-white z-50 hover:bg-blue-700"
-          aria-label="Open Image Manager"
-        >
-          <ImagePlus />
-        </Button>
-      </SheetTrigger>
+      {showTrigger && (
+        <SheetTrigger asChild>
+          <Button
+            variant="default"
+            size="icon"
+            className="fixed bottom-4 right-4 p-3 rounded-full shadow-lg bg-blue-600 text-white z-50 hover:bg-blue-700"
+            aria-label="Open Image Manager"
+          >
+            <ImagePlus />
+          </Button>
+        </SheetTrigger>
+      )}
 
       <SheetContent side="right" className="w-full sm:max-w-[80vw] flex flex-col">
         <SheetHeader className="border-b pb-2">
