@@ -191,7 +191,7 @@ export default function HistoryPanel() {
 
     const snapshotData = (activeSnapshot?.snapshot ?? {}) as SnapshotData
     const projectDiffs = useMemo(() => {
-        const fields = [
+        const fields: Array<keyof ProjectOut> = [
             "title",
             "subtitle",
             "purpose",
